@@ -1,0 +1,211 @@
+{
+  "problem_id": "django-authentication-013",
+  "title": "Implement Two-Factor Authentication with TOTP and Backup Codes",
+  "slug": "implement-two-factor-authentication-with-totp-and-backup-codes",
+  "framework": "django",
+  "category": "authentication",
+  "difficulty": "intermediate",
+  "description": "You're building a security system that requires Two-Factor Authentication (2FA) for sensitive operations. The system must support Time-based One-Time Passwords (TOTP) via authenticator apps and backup codes for emergency access.\n\n**Requirements:**\n\n1. **TOTP Setup and Verification:**\n   - Generate secret keys for users (32-character base32)\n   - Create QR codes for authenticator app setup\n   - Verify TOTP codes with configurable window (default ±1 period)\n   - Support multiple devices per user\n\n2. **Backup Codes System:**\n   - Generate 10 backup codes per user (16-character alphanumeric)\n   - Codes must be hashed before storage\n   - Single-use only (mark as used when redeemed)\n   - User can regenerate backup codes (invalidates old ones)\n\n3. **2FA Status Management:**\n   - Enable/disable 2FA for user accounts\n   - Require 2FA for specific actions (admin panel, financial operations)\n   - Remember trusted devices for 30 days\n   - Emergency bypass for account recovery\n\n4. **Security Features:**\n   - Rate limiting for 2FA attempts (5 attempts per 15 minutes)\n   - Lock account after 10 failed 2FA attempts\n   - Audit logging of all 2FA operations\n   - Session management for 2FA-authenticated sessions\n\n5. **User Experience:**\n   - Graceful fallback to backup codes if TOTP fails\n   - Email notifications for 2FA events (enabled, disabled, backup codes used)\n   - Clear instructions for setting up authenticator app\n   - Ability to revoke specific authenticator devices\n\n6. **Models to Create:**\n   - `User2FAProfile` - Store 2FA settings and secret\n   - `AuthenticatorDevice` - Track registered authenticator devices\n   - `BackupCode` - Store hashed backup codes\n   - `TwoFactorAttempt` - Audit log for 2FA attempts\n   - `TrustedDevice` - Remember devices that passed 2FA\n\n**Expected Flow:**\n\n```python\n# Setup 2FA\nsetup_data = setup_2fa(user)\n# Returns: {\n#   'secret': 'JBSWY3DPEHPK3PXP',\n#   'qr_code_url': 'otpauth://totp/...',\n#   'backup_codes': ['ABCD-1234-EFGH', ...]\n# }\n\n# Verify TOTP code\nis_valid = verify_totp_code(user, '123456')\n\n# Use backup code\nis_valid = use_backup_code(user, 'ABCD-1234-EFGH')\n\n# Require 2FA for sensitive action\nif requires_2fa(user, 'withdraw_funds'):\n    return redirect_to_2fa_verification()\n```\n\n**Security Constraints:**\n- TOTP secrets must be encrypted in database\n- Backup codes must be hashed (bcrypt recommended)\n- No plain text storage of secrets or codes\n- Implement proper CSRF protection for 2FA endpoints\n- Validate all inputs strictly\n- Use Django's security middleware\n\n**Integration Points:**\n- Must work with Django's authentication system\n- Should provide middleware for 2FA enforcement\n- Must have admin interface for managing 2FA status\n- Should send email notifications for security events",
+  "description_preview": "Implement a complete 2FA system with TOTP, backup codes, trusted devices, and comprehensive security auditing.",
+  "context_code": "# BASE IMPORTS AND DEPENDENCIES (for reference only)\n# You need to implement the 2FA system\nimport base64\nimport hashlib\nimport qrcode\nimport io\nfrom datetime import datetime, timedelta\n\n# Required packages (assume installed):\n# pyotp - for TOTP generation/verification\n# bcrypt - for backup code hashing\n# qrcode - for QR code generation\n\nfrom django.db import models\nfrom django.utils import timezone\nfrom django.conf import settings\nfrom django.contrib.auth import get_user_model\nfrom django.core.mail import send_mail\n\nUser = get_user_model()\n\n# You'll need to create:\n# 1. 2FA models\n# 2. TOTP helper functions\n# 3. Backup code system\n# 4. Verification logic\n# 5. Middleware for 2FA enforcement\n# 6. Admin integration",
+  "starter_code": "",
+  "target_area": "Create the complete Two-Factor Authentication system with TOTP and backup codes",
+  "validation_spec": {
+    "required_imports": [
+      "pyotp",
+      "bcrypt",
+      "qrcode",
+      "base64",
+      "secrets",
+      "datetime",
+      "django.db.models",
+      "django.utils.timezone",
+      "django.contrib.auth",
+      "django.core.cache",
+      "cryptography.fernet"
+    ],
+    "required_structure": {
+      "classes": [
+        {
+          "name": "User2FAProfile",
+          "required_fields": ["user", "is_enabled", "secret_encrypted", "created_at", "last_used"],
+          "required_methods": ["enable_2fa", "disable_2fa", "generate_backup_codes", "verify_totp"]
+        },
+        {
+          "name": "AuthenticatorDevice",
+          "required_fields": ["user", "device_name", "device_id", "last_used", "is_active"],
+          "required_methods": ["revoke"]
+        },
+        {
+          "name": "BackupCode",
+          "required_fields": ["user", "code_hash", "created_at", "used_at", "is_used"],
+          "required_methods": ["mark_used", "is_valid"]
+        },
+        {
+          "name": "TwoFactorAttempt",
+          "required_fields": ["user", "attempt_type", "ip_address", "user_agent", "success", "created_at"]
+        },
+        {
+          "name": "TrustedDevice",
+          "required_fields": ["user", "device_id", "browser_fingerprint", "trusted_until", "created_at"]
+        },
+        {
+          "name": "TwoFactorMiddleware",
+          "required_methods": ["process_request", "require_2fa_verification"]
+        }
+      ],
+      "functions": [
+        {
+          "name": "setup_2fa",
+          "params": ["user"],
+          "returns": "dict"
+        },
+        {
+          "name": "verify_2fa",
+          "params": ["user", "code", "device_id"],
+          "returns": "bool"
+        },
+        {
+          "name": "generate_backup_codes",
+          "params": ["count"],
+          "returns": "list"
+        },
+        {
+          "name": "encrypt_secret",
+          "params": ["secret"],
+          "returns": "bytes"
+        },
+        {
+          "name": "decrypt_secret",
+          "params": ["encrypted_secret"],
+          "returns": "str"
+        }
+      ]
+    },
+    "behavior_patterns": [
+      "Generates secure TOTP secrets using secrets.token_bytes",
+      "Encrypts TOTP secret before storage using Fernet",
+      "Creates QR codes in otpauth://totp format",
+      "Verifies TOTP codes with configurable window (default ±1)",
+      "Hashes backup codes with bcrypt before storage",
+      "Implements rate limiting for 2FA attempts",
+      "Tracks trusted devices with browser fingerprinting",
+      "Logs all 2FA attempts for audit purposes",
+      "Sends email notifications for security events",
+      "Provides emergency bypass with admin approval",
+      "Implements session management for 2FA status",
+      "Validates all inputs and handles edge cases",
+      "Uses atomic transactions for critical operations"
+    ]
+  },
+  "import_weight": 15.00,
+  "structure_weight": 35.00,
+  "behavior_weight": 50.00,
+  "passing_score": 80.00,
+  "hints": [
+    "Use pyotp library for TOTP generation and verification",
+    "Encrypt TOTP secrets with cryptography.fernet before storing",
+    "Generate backup codes with secrets.token_urlsafe and hash with bcrypt",
+    "Create browser fingerprints using user agent + IP + other headers",
+    "Implement rate limiting using Django's cache framework",
+    "Use Django signals to send email notifications for 2FA events",
+    "Create a custom authentication backend that checks 2FA status",
+    "Implement a middleware that redirects to 2FA verification when needed",
+    "Store 2FA verification status in user session with expiration",
+    "Provide an admin action to reset 2FA for locked accounts"
+  ],
+  "learning_resources": [
+    "https://github.com/pyauth/pyotp",
+    "https://tools.ietf.org/html/rfc6238",
+    "https://docs.djangoproject.com/en/stable/topics/auth/customizing/#authentication-backends",
+    "https://docs.djangoproject.com/en/stable/topics/http/middleware/"
+  ],
+  "tags": ["django", "authentication", "2fa", "totp", "security", "intermediate"],
+  "estimated_time_minutes": 50,
+  "patterns": [
+    {
+      "pattern_id": "django-authentication-013-pattern-1",
+      "name": "Complete Two-Factor Authentication System",
+      "description": "Full implementation of 2FA with TOTP, backup codes, trusted devices, and security auditing",
+      "example_code": "import base64\nimport secrets\nfrom datetime import datetime, timedelta\nfrom typing import List, Optional, Tuple\n\nimport bcrypt\nimport pyotp\nimport qrcode\nfrom cryptography.fernet import Fernet\nfrom django.db import models, transaction\nfrom django.utils import timezone\nfrom django.conf import settings\nfrom django.contrib.auth import get_user_model\nfrom django.core.cache import cache\nfrom django.core.mail import send_mail\n\nUser = get_user_model()\n\n\ndef get_encryption_key() -> bytes:\n    \"\"\"Get encryption key from settings\"\"\"\n    key = getattr(settings, 'TWO_FACTOR_ENCRYPTION_KEY', None)\n    if key:\n        return key.encode()\n    else:\n        # For development only\n        return Fernet.generate_key()\n\n\ncipher_suite = Fernet(get_encryption_key())\n\n\ndef encrypt_secret(secret: str) -> bytes:\n    \"\"\"Encrypt TOTP secret for storage\"\"\"\n    return cipher_suite.encrypt(secret.encode())\n\n\ndef decrypt_secret(encrypted_secret: bytes) -> str:\n    \"\"\"Decrypt TOTP secret\"\"\"\n    return cipher_suite.decrypt(encrypted_secret).decode()\n\n\ndef generate_backup_codes(count: int = 10) -> List[Tuple[str, str]]:\n    \"\"\"Generate backup codes and their hashes\"\"\"\n    codes = []\n    for _ in range(count):\n        # Generate 16-character code with dashes for readability\n        code = '-'.join([\n            secrets.token_urlsafe(4)[:4],\n            secrets.token_urlsafe(4)[:4],\n            secrets.token_urlsafe(4)[:4]\n        ]).upper()\n        \n        # Hash with bcrypt\n        code_hash = bcrypt.hashpw(code.encode(), bcrypt.gensalt()).decode()\n        \n        codes.append((code, code_hash))\n    \n    return codes\n\n\ndef create_browser_fingerprint(request) -> str:\n    \"\"\"Create a fingerprint for the browser/device\"\"\"\n    import hashlib\n    \n    components = [\n        request.META.get('HTTP_USER_AGENT', ''),\n        request.META.get('REMOTE_ADDR', ''),\n        request.META.get('HTTP_ACCEPT_LANGUAGE', ''),\n        request.META.get('HTTP_ACCEPT_ENCODING', ''),\n    ]\n    \n    fingerprint_string = '|'.join(components)\n    return hashlib.sha256(fingerprint_string.encode()).hexdigest()\n\n\nclass User2FAProfile(models.Model):\n    \"\"\"Store 2FA settings and secret for a user\"\"\"\n    \n    user = models.OneToOneField(\n        User,\n        on_delete=models.CASCADE,\n        related_name='two_factor_profile'\n    )\n    is_enabled = models.BooleanField(default=False)\n    secret_encrypted = models.BinaryField(null=True, blank=True)  # Encrypted TOTP secret\n    created_at = models.DateTimeField(auto_now_add=True)\n    last_used = models.DateTimeField(null=True, blank=True)\n    \n    # Security settings\n    require_2fa_for_sensitive = models.BooleanField(default=True)\n    failed_attempts = models.IntegerField(default=0)\n    locked_until = models.DateTimeField(null=True, blank=True)\n    \n    class Meta:\n        verbose_name = '2FA profile'\n        verbose_name_plural = '2FA profiles'\n    \n    def __str__(self):\n        return f\"{self.user.email} - 2FA: {self.is_enabled}\"\n    \n    @property\n    def is_locked(self) -> bool:\n        \"\"\"Check if 2FA is locked due to too many failed attempts\"\"\"\n        if self.locked_until:\n            return timezone.now() < self.locked_until\n        return False\n    \n    def enable_2fa(self) -> dict:\n        \"\"\"Enable 2FA for this user\"\"\"\n        with transaction.atomic():\n            # Generate new secret\n            secret = pyotp.random_base32()\n            self.secret_encrypted = encrypt_secret(secret)\n            self.is_enabled = True\n            self.failed_attempts = 0\n            self.locked_until = None\n            self.save()\n            \n            # Generate backup codes\n            backup_codes = self.generate_backup_codes()\n            \n            # Create QR code URL\n            totp = pyotp.TOTP(secret)\n            qr_code_url = totp.provisioning_uri(\n                name=self.user.email,\n                issuer_name=getattr(settings, 'APP_NAME', 'YourApp')\n            )\n            \n            # Log this action\n            TwoFactorAttempt.objects.create(\n                user=self.user,\n                attempt_type='enable',\n                ip_address='system',\n                user_agent='system',\n                success=True\n            )\n            \n            # Send email notification\n            self._send_2fa_enabled_email()\n            \n            return {\n                'secret': secret,\n                'qr_code_url': qr_code_url,\n                'backup_codes': [code for code, _ in backup_codes]\n            }\n    \n    def disable_2fa(self) -> None:\n        \"\"\"Disable 2FA for this user\"\"\"\n        with transaction.atomic():\n            self.is_enabled = False\n            self.secret_encrypted = None\n            self.save()\n            \n            # Delete all related data\n            AuthenticatorDevice.objects.filter(user=self.user).delete()\n            BackupCode.objects.filter(user=self.user).delete()\n            TrustedDevice.objects.filter(user=self.user).delete()\n            \n            # Log this action\n            TwoFactorAttempt.objects.create(\n                user=self.user,\n                attempt_type='disable',\n                ip_address='system',\n                user_agent='system',\n                success=True\n            )\n            \n            # Send email notification\n            self._send_2fa_disabled_email()\n    \n    def generate_backup_codes(self) -> List[Tuple[str, str]]:\n        \"\"\"Generate new backup codes for this user\"\"\"\n        with transaction.atomic():\n            # Mark old backup codes as used\n            BackupCode.objects.filter(\n                user=self.user,\n                is_used=False\n            ).update(is_used=True, used_at=timezone.now())\n            \n            # Generate new codes\n            codes = generate_backup_codes(10)\n            \n            # Store hashed codes\n            for code, code_hash in codes:\n                BackupCode.objects.create(\n                    user=self.user,\n                    code_hash=code_hash\n                )\n            \n            return codes\n    \n    def verify_totp(self, code: str, window: int = 1) -> bool:\n        \"\"\"Verify a TOTP code\"\"\"\n        # Check if 2FA is locked\n        if self.is_locked:\n            return False\n        \n        # Get decrypted secret\n        if not self.secret_encrypted:\n            return False\n        \n        secret = decrypt_secret(self.secret_encrypted)\n        totp = pyotp.TOTP(secret)\n        \n        # Verify code\n        is_valid = totp.verify(code, valid_window=window)\n        \n        # Update attempt tracking\n        self._record_attempt(is_valid)\n        \n        if is_valid:\n            self.last_used = timezone.now()\n            self.failed_attempts = 0\n            self.save()\n        \n        return is_valid\n    \n    def verify_backup_code(self, code: str) -> bool:\n        \"\"\"Verify and use a backup code\"\"\"\n        # Check if 2FA is locked\n        if self.is_locked:\n            return False\n        \n        # Find matching backup code\n        backup_codes = BackupCode.objects.filter(\n            user=self.user,\n            is_used=False\n        )\n        \n        for backup_code in backup_codes:\n            if bcrypt.checkpw(code.encode(), backup_code.code_hash.encode()):\n                # Mark as used\n                backup_code.mark_used()\n                \n                # Record successful attempt\n                self._record_attempt(True, 'backup_code')\n                \n                # Send notification email\n                self._send_backup_code_used_email()\n                \n                return True\n        \n        # Record failed attempt\n        self._record_attempt(False, 'backup_code')\n        return False\n    \n    def _record_attempt(self, success: bool, attempt_type: str = 'totp') -> None:\n        \"\"\"Record a 2FA attempt\"\"\"\n        # This would typically be called from a view with request info\n        # For simplicity, we'll create a basic record\n        TwoFactorAttempt.objects.create(\n            user=self.user,\n            attempt_type=attempt_type,\n            ip_address='recorded_in_view',  # Would come from request\n            user_agent='recorded_in_view',  # Would come from request\n            success=success\n        )\n        \n        if not success:\n            self.failed_attempts += 1\n            \n            # Lock after 10 failed attempts\n            if self.failed_attempts >= 10:\n                self.locked_until = timezone.now() + timedelta(hours=1)\n                self._send_2fa_locked_email()\n            \n            self.save()\n    \n    def _send_2fa_enabled_email(self) -> None:\n        \"\"\"Send email notification that 2FA was enabled\"\"\"\n        subject = 'Two-Factor Authentication Enabled'\n        message = f'''Hello {self.user.email},\\n\\nTwo-factor authentication has been enabled for your account.\\n\\nIf you did not enable this, please contact support immediately.'''\n        \n        send_mail(\n            subject,\n            message,\n            settings.DEFAULT_FROM_EMAIL,\n            [self.user.email],\n            fail_silently=True\n        )\n    \n    def _send_2fa_disabled_email(self) -> None:\n        \"\"\"Send email notification that 2FA was disabled\"\"\"\n        subject = 'Two-Factor Authentication Disabled'\n        message = f'''Hello {self.user.email},\\n\\nTwo-factor authentication has been disabled for your account.'''\n        \n        send_mail(\n            subject,\n            message,\n            settings.DEFAULT_FROM_EMAIL,\n            [self.user.email],\n            fail_silently=True\n        )\n    \n    def _send_backup_code_used_email(self) -> None:\n        \"\"\"Send email notification that a backup code was used\"\"\"\n        subject = 'Backup Code Used - Security Alert'\n        message = f'''Hello {self.user.email},\\n\\nA backup code was just used to access your account.\\n\\nIf this was not you, please change your password and review your account security immediately.'''\n        \n        send_mail(\n            subject,\n            message,\n            settings.DEFAULT_FROM_EMAIL,\n            [self.user.email],\n            fail_silently=True\n        )\n    \n    def _send_2fa_locked_email(self) -> None:\n        \"\"\"Send email notification that 2FA is locked\"\"\"\n        subject = 'Account Security - Too Many Failed Attempts'\n        message = f'''Hello {self.user.email},\\n\\nYour account has been temporarily locked due to too many failed two-factor authentication attempts.\\n\\nIt will be automatically unlocked in 1 hour.'''\n        \n        send_mail(\n            subject,\n            message,\n            settings.DEFAULT_FROM_EMAIL,\n            [self.user.email],\n            fail_silently=True\n        )\n\n\nclass AuthenticatorDevice(models.Model):\n    \"\"\"Track registered authenticator devices\"\"\"\n    \n    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='authenticator_devices')\n    device_name = models.CharField(max_length=100)  # e.g., \"iPhone Authenticator\"\n    device_id = models.CharField(max_length=100, unique=True)  # Unique device identifier\n    last_used = models.DateTimeField(auto_now=True)\n    is_active = models.BooleanField(default=True)\n    created_at = models.DateTimeField(auto_now_add=True)\n    \n    class Meta:\n        verbose_name = 'authenticator device'\n        verbose_name_plural = 'authenticator devices'\n    \n    def __str__(self):\n        return f\"{self.user.email} - {self.device_name}\"\n    \n    def revoke(self):\n        \"\"\"Revoke this device\"\"\"\n        self.is_active = False\n        self.save()\n\n\nclass BackupCode(models.Model):\n    \"\"\"Store hashed backup codes\"\"\"\n    \n    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='backup_codes')\n    code_hash = models.CharField(max_length=255)  # bcrypt hash\n    created_at = models.DateTimeField(auto_now_add=True)\n    used_at = models.DateTimeField(null=True, blank=True)\n    is_used = models.BooleanField(default=False)\n    \n    class Meta:\n        ordering = ['-created_at']\n        verbose_name = 'backup code'\n        verbose_name_plural = 'backup codes'\n    \n    def __str__(self):\n        return f\"{self.user.email} - {'Used' if self.is_used else 'Active'}\"\n    \n    def mark_used(self):\n        \"\"\"Mark this backup code as used\"\"\"\n        self.is_used = True\n        self.used_at = timezone.now()\n        self.save()\n    \n    def is_valid(self):\n        \"\"\"Check if backup code is still valid\"\"\"\n        return not self.is_used\n\n\nclass TwoFactorAttempt(models.Model):\n    \"\"\"Audit log for 2FA attempts\"\"\"\n    \n    ATTEMPT_TYPES = [\n        ('totp', 'TOTP Code'),\n        ('backup_code', 'Backup Code'),\n        ('enable', 'Enable 2FA'),\n        ('disable', 'Disable 2FA'),\n    ]\n    \n    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='two_factor_attempts')\n    attempt_type = models.CharField(max_length=20, choices=ATTEMPT_TYPES)\n    ip_address = models.GenericIPAddressField()\n    user_agent = models.CharField(max_length=500)\n    success = models.BooleanField(default=False)\n    created_at = models.DateTimeField(auto_now_add=True)\n    \n    class Meta:\n        ordering = ['-created_at']\n        indexes = [\n            models.Index(fields=['user', 'created_at']),\n            models.Index(fields=['ip_address', 'created_at']),\n        ]\n        verbose_name = '2FA attempt'\n        verbose_name_plural = '2FA attempts'\n    \n    def __str__(self):\n        status = 'SUCCESS' if self.success else 'FAILED'\n        return f\"{self.user.email} - {self.attempt_type} - {status}\"\n\n\nclass TrustedDevice(models.Model):\n    \"\"\"Remember devices that have passed 2FA\"\"\"\n    \n    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='trusted_devices')\n    device_id = models.CharField(max_length=100, db_index=True)\n    browser_fingerprint = models.CharField(max_length=64)  # SHA256\n    trusted_until = models.DateTimeField()\n    created_at = models.DateTimeField(auto_now_add=True)\n    \n    class Meta:\n        unique_together = ['user', 'device_id']\n        verbose_name = 'trusted device'\n        verbose_name_plural = 'trusted devices'\n    \n    def __str__(self):\n        return f\"{self.user.email} - {self.device_id}\"\n    \n    def is_trusted(self):\n        \"\"\"Check if device is still trusted\"\"\"\n        return timezone.now() < self.trusted_until\n    \n    @classmethod\n    def trust_device(cls, user, device_id, browser_fingerprint):\n        \"\"\"Trust a device for 30 days\"\"\"\n        trusted_until = timezone.now() + timedelta(days=30)\n        \n        device, created = cls.objects.update_or_create(\n            user=user,\n            device_id=device_id,\n            defaults={\n                'browser_fingerprint': browser_fingerprint,\n                'trusted_until': trusted_until\n            }\n        )\n        \n        return device\n\n\n# Helper functions\n\ndef setup_2fa(user: User) -> dict:\n    \"\"\"Setup 2FA for a user\"\"\"\n    # Get or create 2FA profile\n    profile, created = User2FAProfile.objects.get_or_create(user=user)\n    \n    # Enable 2FA\n    return profile.enable_2fa()\n\n\ndef verify_2fa(user: User, code: str, device_id: str = None, \n               browser_fingerprint: str = None) -> bool:\n    \"\"\"Verify 2FA code for a user\"\"\"\n    try:\n        profile = User2FAProfile.objects.get(user=user, is_enabled=True)\n    except User2FAProfile.DoesNotExist:\n        return False\n    \n    # Check if device is already trusted\n    if device_id and browser_fingerprint:\n        try:\n            trusted_device = TrustedDevice.objects.get(\n                user=user,\n                device_id=device_id,\n                browser_fingerprint=browser_fingerprint\n            )\n            if trusted_device.is_trusted():\n                # Update last used time\n                trusted_device.trusted_until = timezone.now() + timedelta(days=30)\n                trusted_device.save()\n                return True\n        except TrustedDevice.DoesNotExist:\n            pass\n    \n    # Try TOTP first\n    if profile.verify_totp(code):\n        # Trust this device if provided\n        if device_id and browser_fingerprint:\n            TrustedDevice.trust_device(user, device_id, browser_fingerprint)\n        return True\n    \n    # Try backup code\n    if profile.verify_backup_code(code):\n        return True\n    \n    return False\n\n\n# Rate limiting decorator for 2FA endpoints\nfrom functools import wraps\nfrom django.http import JsonResponse\n\n\ndef rate_limit_2fa(key_suffix: str, limit: int = 5, window: int = 900):\n    \"\"\"Rate limiting for 2FA attempts\"\"\"\n    def decorator(view_func):\n        @wraps(view_func)\n        def wrapped_view(request, *args, **kwargs):\n            if request.user.is_authenticated:\n                key = f\"2fa_rate_limit:{key_suffix}:{request.user.id}\"\n            else:\n                ip = request.META.get('REMOTE_ADDR', '')\n                key = f\"2fa_rate_limit:{key_suffix}:{ip}\"\n            \n            current = cache.get(key, 0)\n            \n            if current >= limit:\n                return JsonResponse(\n                    {'error': 'Too many attempts. Please try again later.'},\n                    status=429\n                )\n            \n            if not current:\n                cache.set(key, 1, window)\n            else:\n                cache.incr(key)\n            \n            return view_func(request, *args, **kwargs)\n        return wrapped_view\n    return decorator",
+      "required_imports": [
+        "pyotp",
+        "bcrypt",
+        "qrcode",
+        "base64",
+        "secrets",
+        "datetime",
+        "django.db.models",
+        "django.utils.timezone",
+        "django.contrib.auth",
+        "django.core.cache",
+        "cryptography.fernet"
+      ],
+      "required_structure": {
+        "classes": [
+          {
+            "name": "User2FAProfile",
+            "parent_class": "models.Model",
+            "required_fields": ["user", "is_enabled", "secret_encrypted", "created_at", "last_used", "failed_attempts", "locked_until"],
+            "required_methods": ["enable_2fa", "disable_2fa", "generate_backup_codes", "verify_totp", "verify_backup_code"]
+          },
+          {
+            "name": "AuthenticatorDevice",
+            "required_fields": ["user", "device_name", "device_id", "last_used", "is_active"],
+            "required_methods": ["revoke"]
+          },
+          {
+            "name": "BackupCode",
+            "required_fields": ["user", "code_hash", "created_at", "used_at", "is_used"],
+            "required_methods": ["mark_used", "is_valid"]
+          },
+          {
+            "name": "TwoFactorAttempt",
+            "required_fields": ["user", "attempt_type", "ip_address", "user_agent", "success", "created_at"]
+          },
+          {
+            "name": "TrustedDevice",
+            "required_meta": ["unique_together"],
+            "required_fields": ["user", "device_id", "browser_fingerprint", "trusted_until"],
+            "required_methods": ["is_trusted", "trust_device"]
+          }
+        ],
+        "functions": [
+          {
+            "name": "setup_2fa",
+            "params": ["user"],
+            "returns": "dict"
+          },
+          {
+            "name": "verify_2fa",
+            "params": ["user", "code", "device_id", "browser_fingerprint"],
+            "returns": "bool"
+          },
+          {
+            "name": "generate_backup_codes",
+            "params": ["count"],
+            "returns": "list"
+          },
+          {
+            "name": "rate_limit_2fa",
+            "params": ["key_suffix", "limit", "window"],
+            "returns": "decorator"
+          }
+        ]
+      },
+      "forbidden_patterns": [
+        "Storing TOTP secrets in plain text",
+        "Storing backup codes without hashing",
+        "No rate limiting on 2FA attempts",
+        "No audit logging of 2FA attempts",
+        "No email notifications for security events",
+        "Not encrypting TOTP secrets",
+        "No trusted device management",
+        "No account locking for failed attempts",
+        "No CSRF protection on 2FA endpoints"
+      ],
+      "is_primary": true,
+      "confidence_threshold": 85.00
+    }
+  ]
+}

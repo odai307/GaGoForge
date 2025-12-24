@@ -1,0 +1,58 @@
+# =========================
+# Node / React
+# =========================
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+dist/
+build/
+
+# =========================
+# Django / Python
+# =========================
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+.Python
+env/
+venv/
+.venv/
+pip-log.txt
+pip-delete-this-directory.txt
+db.sqlite3
+*.sqlite3
+staticfiles/
+media/
+
+# =========================
+# Django secrets
+# =========================
+.env
+.env.*
+*.env
+
+# =========================
+# Testing / Coverage
+# =========================
+htmlcov/
+.coverage
+.tox/
+.pytest_cache/
+
+# =========================
+# IDE / OS
+# =========================
+.vscode/
+.idea/
+*.swp
+.DS_Store
+Thumbs.db
+
+# =========================
+# Logs
+# =========================
+*.log
+

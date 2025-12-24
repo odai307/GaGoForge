@@ -1,0 +1,70 @@
+{
+  "problem_id": "django-signals-003",
+  "title": "Send Welcome Email on User Activation",
+  "slug": "send-welcome-email-on-user-activation",
+  "framework": "django",
+  "category": "signals",
+  "difficulty": "beginner",
+  "description": "In a SaaS application, when a user activates their account, you need to send them a welcome email with onboarding information.\n\n**Business Context:**\nUsers register with email verification. Once they verify their email (changing is_active from False to True), a welcome email should be sent automatically.\n\n**Given Models:**\n```python\n# models.py\nfrom django.contrib.auth.models import AbstractUser\nfrom django.db import models\nfrom django.core.mail import send_mail\nfrom django.conf import settings\n\nclass SaaSUser(AbstractUser):\n    company = models.CharField(max_length=100, blank=True)\n    phone = models.CharField(max_length=20, blank=True)\n    is_verified = models.BooleanField(default=False)\n    verification_date = models.DateTimeField(null=True, blank=True)\n    \n    def send_welcome_email(self):\n        \"\"\"Send welcome email to user\"\"\"\n        subject = f'Welcome to {settings.APP_NAME}'\n        message = f'''Hello {self.get_full_name() or self.username},\n        \nWelcome to {settings.APP_NAME}! We're excited to have you on board.\n        \nYour account has been successfully activated.\n        \nGet started by exploring our dashboard.\n        \nBest regards,\nThe {settings.APP_NAME} Team'''\n        \n        send_mail(\n            subject,\n            message,\n            settings.DEFAULT_FROM_EMAIL,\n            [self.email],\n            fail_silently=False,\n        )\n```\n\n**Requirements:**\n1. Create a signal that sends a welcome email when a user's is_verified field changes from False to True\n2. Only send the email when is_verified becomes True (not when it changes from True to False)\n3. Update the verification_date field when is_verified becomes True\n4. Use `post_save` signal to ensure all changes are saved first\n5. Avoid sending duplicate emails if the signal fires multiple times\n\n**Expected Behavior:**\n- When user.is_verified changes from False to True, send welcome email\n- Set verification_date to current time when verification happens\n- No email should be sent for other field changes\n- Email should use the user's send_welcome_email() method\n\n**Example Input/Output:**\n```python\n# Create an unverified user\nuser = SaaSUser.objects.create_user(\n    username='jane_doe',\n    email='jane@example.com',\n    password='securepass123',\n    is_verified=False\n)\n\n# Verify the user (triggers signal)\nuser.is_verified = True\nuser.save()\n\n# Expected results:\n# 1. verification_date is set to current time\n# 2. Welcome email is sent to jane@example.com\n# 3. User receives onboarding information\n```",
+  "description_preview": "Implement a signal that sends a welcome email and updates verification date when a user activates their account.",
+  "context_code": "# MODEL DEFINITIONS (for reference only - you need to create the signal)\n# This shows the SaaSUser model your signal will work with\n\nfrom django.contrib.auth.models import AbstractUser\nfrom django.db import models\nfrom django.core.mail import send_mail\nfrom django.conf import settings\n\nclass SaaSUser(AbstractUser):\n    company = models.CharField(max_length=100, blank=True)\n    phone = models.CharField(max_length=20, blank=True)\n    is_verified = models.BooleanField(default=False)\n    verification_date = models.DateTimeField(null=True, blank=True)\n    \n    def send_welcome_email(self):\n        \"\"\"Send welcome email to user\"\"\"\n        subject = f'Welcome to {settings.APP_NAME}'\n        message = f'''Hello {self.get_full_name() or self.username},\n        \nWelcome to {settings.APP_NAME}! We're excited to have you on board.\n        \nYour account has been successfully activated.\n        \nGet started by exploring our dashboard.\n        \nBest regards,\nThe {settings.APP_NAME} Team'''\n        \n        send_mail(\n            subject,\n            message,\n            settings.DEFAULT_FROM_EMAIL,\n            [self.email],\n            fail_silently=False,\n        )",
+  "starter_code": "",
+  "target_area": "signals.py",
+  "validation_spec": {
+    "required_imports": ["django.db.models.signals.post_save", "django.dispatch.receiver", "django.utils.timezone", ".models.SaaSUser"],
+    "required_structure": {
+      "functions": ["handle_user_verification"],
+      "has_signal_receiver": true,
+      "has_post_save_signal": true,
+      "signal_model": "SaaSUser",
+      "checks_field_change": true
+    },
+    "behavior_patterns": [
+      "def handle_user_verification(sender, instance, **kwargs):",
+      "try:",
+      "old_user = SaaSUser.objects.get(pk=instance.pk)",
+      "if not old_user.is_verified and instance.is_verified:",
+      "instance.verification_date = timezone.now()",
+      "instance.save(update_fields=['verification_date'])",
+      "instance.send_welcome_email()",
+      "except SaaSUser.DoesNotExist:",
+      "pass",
+      "@receiver(post_save, sender=SaaSUser)"
+    ]
+  },
+  "import_weight": 20.00,
+  "structure_weight": 35.00,
+  "behavior_weight": 45.00,
+  "passing_score": 75.00,
+  "hints": [
+    "You need to compare the old and new values of is_verified field",
+    "Use timezone.now() to set the verification date",
+    "Call save() with update_fields to avoid infinite signal loops",
+    "Use try-except to handle newly created users"
+  ],
+  "learning_resources": [
+    "https://docs.djangoproject.com/en/stable/ref/signals/#post-save",
+    "https://docs.djangoproject.com/en/stable/topics/email/"
+  ],
+  "tags": ["django", "signals", "email", "authentication", "beginner"],
+  "estimated_time_minutes": 25,
+  "patterns": [
+    {
+      "pattern_id": "django-signals-003-pattern-1",
+      "name": "Field Change Detection with Email Notification",
+      "description": "Detects verification status change and sends welcome email",
+      "example_code": "# signals.py\nfrom django.db.models.signals import post_save\nfrom django.dispatch import receiver\nfrom django.utils import timezone\nfrom .models import SaaSUser\n\n@receiver(post_save, sender=SaaSUser)\ndef handle_user_verification(sender, instance, **kwargs):\n    \"\"\"\n    Handle user verification: send welcome email and set verification date.\n    \"\"\"\n    try:\n        # Get the user from database to compare verification status\n        old_user = SaaSUser.objects.get(pk=instance.pk)\n        \n        # Check if user just got verified (was False, now True)\n        if not old_user.is_verified and instance.is_verified:\n            # Set verification date\n            instance.verification_date = timezone.now()\n            # Save only the verification_date to avoid infinite signal loop\n            instance.save(update_fields=['verification_date'])\n            \n            # Send welcome email\n            instance.send_welcome_email()\n    except SaaSUser.DoesNotExist:\n        # User is being created, not updated\n        pass",
+      "required_imports": ["django.db.models.signals.post_save", "django.dispatch.receiver", "django.utils.timezone", ".models.SaaSUser"],
+      "required_structure": {
+        "functions": ["handle_user_verification"],
+        "has_decorator": true,
+        "decorator_name": "receiver",
+        "signal_model": "SaaSUser",
+        "has_try_except": true
+      },
+      "forbidden_patterns": ["pre_save", "m2m_changed", "delete", "instance.save() without update_fields"],
+      "is_primary": true,
+      "confidence_threshold": 85.00
+    }
+  ]
+}

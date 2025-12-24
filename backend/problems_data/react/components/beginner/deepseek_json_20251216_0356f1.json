@@ -1,0 +1,67 @@
+{
+  "problem_id": "react-components-001",
+  "title": "Create a Reusable User Profile Card Component",
+  "slug": "create-reusable-user-profile-card-component",
+  "framework": "react",
+  "category": "components",
+  "difficulty": "beginner",
+  "description": "Create a reusable UserProfileCard component that displays user information with proper prop handling and conditional rendering.\n\n**Requirements:**\n1. Create a `UserProfileCard` component that accepts props:\n   - `name` (string, required)\n   - `email` (string, required)\n   - `avatarUrl` (string, optional - shows default if not provided)\n   - `bio` (string, optional)\n   - `isOnline` (boolean, optional - shows online status)\n   - `followersCount` (number, optional)\n   - `onFollow` (function, optional - callback for follow button)\n2. The component should display:\n   - User avatar (image or default placeholder)\n   - User name in a heading\n   - Email address\n   - Bio text if provided\n   - Online status indicator (green dot if online)\n   - Followers count if provided\n   - Follow button if `onFollow` callback is provided\n3. Implement proper prop validation and default values\n\n**Component Structure:**\n```jsx\n<UserProfileCard\n  name=\"John Doe\"\n  email=\"john@example.com\"\n  avatarUrl=\"https://example.com/avatar.jpg\"\n  bio=\"Software developer passionate about React\"\n  isOnline={true}\n  followersCount={1234}\n  onFollow={() => console.log('Followed!')}\n/>\n```\n\n**Styling Requirements:**\n- Card should have clean, modern design\n- Avatar should be circular\n- Online status should be a green dot\n- Follow button should have hover effect\n- Responsive layout\n\n**Expected Behavior:**\n- Component renders all provided information\n- Missing optional props are handled gracefully\n- Online status shows only when `isOnline` is true\n- Follow button only appears when `onFollow` is provided\n- Default avatar shows when no `avatarUrl` is provided",
+  "description_preview": "Build a reusable user profile card component with props, conditional rendering, and proper styling",
+  "context_code": "// Default avatar image (for reference)\nconst DEFAULT_AVATAR = 'https://via.placeholder.com/100/007bff/ffffff?text=User';\n\n// Example usage patterns (for reference):\n// <UserProfileCard name=\"Alice\" email=\"alice@example.com\" />\n// <UserProfileCard \n//   name=\"Bob\" \n//   email=\"bob@example.com\" \n//   isOnline={true} \n//   followersCount={500}\n// />",
+  "starter_code": "",
+  "target_area": "UserProfileCard component with props, conditional rendering, and styling",
+  "validation_spec": {
+    "required_imports": ["react"],
+    "required_structure": {
+      "functions": [{
+        "name": "UserProfileCard",
+        "type": "functional_component",
+        "has_export": true,
+        "has_prop_types": false
+      }]
+    },
+    "behavior_patterns": [
+      "prop destructuring in function parameters",
+      "conditional rendering with logical AND operator",
+      "default parameter values",
+      "event handler callback",
+      "inline style usage or className application"
+    ]
+  },
+  "import_weight": 10.00,
+  "structure_weight": 45.00,
+  "behavior_weight": 45.00,
+  "passing_score": 75.00,
+  "hints": [
+    "Use destructuring in the function parameters to access props easily",
+    "Set default values for optional props in the parameter destructuring",
+    "Use the logical AND (&&) operator for conditional rendering",
+    "Create a default avatar image to show when no avatarUrl is provided",
+    "Remember to handle the onClick event for the follow button properly"
+  ],
+  "learning_resources": [
+    "https://react.dev/learn/passing-props-to-a-component",
+    "https://react.dev/learn/conditional-rendering"
+  ],
+  "tags": ["react", "components", "props", "conditional-rendering", "reusable", "beginner"],
+  "estimated_time_minutes": 25,
+  "patterns": [
+    {
+      "pattern_id": "react-components-001-pattern-1",
+      "name": "Reusable Profile Card with Props",
+      "description": "Complete user profile card component with prop handling, conditional rendering, and styling",
+      "example_code": "import React from 'react';\n\nconst DEFAULT_AVATAR = 'https://via.placeholder.com/100/007bff/ffffff?text=User';\n\nexport default function UserProfileCard({\n  name,\n  email,\n  avatarUrl = DEFAULT_AVATAR,\n  bio,\n  isOnline = false,\n  followersCount,\n  onFollow\n}) {\n  return (\n    <div style={{\n      border: '1px solid #e0e0e0',\n      borderRadius: '12px',\n      padding: '24px',\n      maxWidth: '320px',\n      backgroundColor: '#ffffff',\n      boxShadow: '0 4px 12px rgba(0, 0, 0, 0.1)',\n      transition: 'transform 0.2s ease, box-shadow 0.2s ease',\n      ':hover': {\n        transform: 'translateY(-4px)',\n        boxShadow: '0 8px 24px rgba(0, 0, 0, 0.15)'\n      }\n    }}>\n      {/* Avatar Section */}\n      <div style={{ position: 'relative', marginBottom: '16px' }}>\n        <img \n          src={avatarUrl} \n          alt={`${name}'s avatar`}\n          style={{\n            width: '100px',\n            height: '100px',\n            borderRadius: '50%',\n            objectFit: 'cover',\n            border: '3px solid #f0f0f0'\n          }}\n        />\n        \n        {/* Online Status Indicator */}\n        {isOnline && (\n          <div style={{\n            position: 'absolute',\n            bottom: '10px',\n            right: '10px',\n            width: '20px',\n            height: '20px',\n            backgroundColor: '#4CAF50',\n            borderRadius: '50%',\n            border: '3px solid white'\n          }} />\n        )}\n      </div>\n      \n      {/* User Info Section */}\n      <div>\n        <h2 style={{\n          margin: '0 0 8px 0',\n          fontSize: '24px',\n          color: '#333'\n        }}>\n          {name}\n        </h2>\n        \n        <p style={{\n          margin: '0 0 12px 0',\n          color: '#666',\n          fontSize: '14px'\n        }}>\n          {email}\n        </p>\n        \n        {/* Bio */}\n        {bio && (\n          <p style={{\n            margin: '0 0 16px 0',\n            color: '#555',\n            lineHeight: '1.5',\n            fontSize: '15px'\n          }}>\n            {bio}\n          </p>\n        )}\n        \n        {/* Followers Count */}\n        {followersCount !== undefined && (\n          <div style={{\n            marginBottom: '16px',\n            color: '#777',\n            fontSize: '14px'\n          }}>\n            <strong>{followersCount.toLocaleString()}</strong> followers\n          </div>\n        )}\n        \n        {/* Follow Button */}\n        {onFollow && (\n          <button\n            onClick={onFollow}\n            style={{\n              width: '100%',\n              padding: '12px 24px',\n              backgroundColor: '#007bff',\n              color: 'white',\n              border: 'none',\n              borderRadius: '6px',\n              fontSize: '16px',\n              fontWeight: '600',\n              cursor: 'pointer',\n              transition: 'background-color 0.2s ease',\n              ':hover': {\n                backgroundColor: '#0056b3'\n              }\n            }}\n          >\n            Follow\n          </button>\n        )}\n      </div>\n    </div>\n  );\n}\n\n// Note: The CSS-in-JS hover styles would need to be implemented with a CSS-in-JS library\n// For plain React, you might use className and CSS classes instead",
+      "required_imports": ["react"],
+      "required_structure": {
+        "functions": [{
+          "name": "UserProfileCard",
+          "type": "functional_component",
+          "has_export": true
+        }]
+      },
+      "forbidden_patterns": ["defaultProps", "PropTypes without import", "class component"],
+      "is_primary": true,
+      "confidence_threshold": 85.00
+    }
+  ]
+}

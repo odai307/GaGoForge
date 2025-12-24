@@ -1,0 +1,125 @@
+{
+  "problem_id": "react-hooks-011",
+  "title": "Implement useLocalStorage Custom Hook",
+  "slug": "implement-use-local-storage-custom-hook",
+  "framework": "react",
+  "category": "hooks",
+  "difficulty": "intermediate",
+  "description": "Create a custom hook `useLocalStorage` that synchronizes state with localStorage.\n\n**Business Scenario:**\nYou're building a settings panel for a SaaS dashboard where users can customize their interface preferences (theme, layout, notifications). These settings should persist between browser sessions.\n\n**Requirements:**\n1. Create a `useLocalStorage` hook that accepts a key and initial value\n2. The hook should return an array with:\n   - Current value (state)\n   - Setter function to update both state and localStorage\n3. On initial load, check if value exists in localStorage, otherwise use initial value\n4. Handle JSON serialization/deserialization automatically\n5. If localStorage is not available (SSR), fall back to initial value\n6. The setter function should accept either a value or an updater function\n7. TypeScript support should be included for typed values\n\n**Expected Behavior:**\n- State updates should automatically sync to localStorage\n- Page refresh should restore the previous state from localStorage\n- Changing the key should reset the state (optional enhancement)\n- Hook should be reusable across multiple components\n\n**Example Usage:**\n```typescript\nconst [theme, setTheme] = useLocalStorage('dashboard-theme', 'light');\n\n// Update value\nsetTheme('dark'); // Saves to localStorage automatically\n\n// Functional update\nsetTheme(prev => prev === 'light' ? 'dark' : 'light');\n```\n\n**Expected Output Structure:**\nYour hook should work with any serializable value and handle edge cases gracefully.",
+  "description_preview": "Build a custom hook that synchronizes React state with localStorage for persistent user preferences",
+  "context_code": "// React is available globally - no imports needed in context code\n// This is a complementary example showing how the hook would be used\n\n// Example component using the hook (for reference only - you need to create the hook itself)\nfunction ThemeSelector() {\n  // This shows what your hook should enable\n  // const [theme, setTheme] = useLocalStorage('theme', 'light');\n  \n  return (\n    <div>\n      {/* Implementation would go here */}\n    </div>\n  );\n}",
+  "starter_code": "",
+  "target_area": "useLocalStorage custom hook implementation",
+  "validation_spec": {
+    "required_imports": ["react"],
+    "required_structure": {
+      "functions": [
+        {
+          "name": "useLocalStorage",
+          "type": "custom_hook",
+          "params": ["key", "initialValue"],
+          "returns_array": true
+        }
+      ]
+    },
+    "behavior_patterns": [
+      {
+        "type": "hook_call",
+        "hook": "useState",
+        "min_calls": 1,
+        "description": "Must use useState to manage local state"
+      },
+      {
+        "type": "hook_call",
+        "hook": "useEffect",
+        "min_calls": 1,
+        "description": "Must use useEffect for localStorage synchronization"
+      },
+      {
+        "type": "custom_hook",
+        "hook_name": "useLocalStorage",
+        "must_use_react_hooks": true,
+        "must_return": true,
+        "description": "Custom hook must be defined and use React hooks"
+      },
+      {
+        "type": "local_storage_access",
+        "operation": "getItem",
+        "description": "Must access localStorage.getItem()"
+      },
+      {
+        "type": "local_storage_access", 
+        "operation": "setItem",
+        "description": "Must use localStorage.setItem()"
+      },
+      {
+        "type": "json_parsing",
+        "operation": "JSON.parse",
+        "description": "Must parse JSON from localStorage"
+      },
+      {
+        "type": "json_stringify",
+        "operation": "JSON.stringify",
+        "description": "Must stringify values for storage"
+      },
+      {
+        "type": "return_statement",
+        "returns": {
+          "type": "array",
+          "min_length": 2
+        },
+        "description": "Must return array with [value, setter]"
+      },
+      {
+        "type": "error_handling",
+        "pattern": "try_catch",
+        "description": "Should include error handling for JSON parsing"
+      }
+    ],
+    "difficulty": "intermediate",
+    "framework": "react"
+  },
+  "import_weight": 10.00,
+  "structure_weight": 25.00,
+  "behavior_weight": 65.00,
+  "passing_score": 85.00,
+  "hints": [
+    "Think about how to read from localStorage on component mount and write on state changes",
+    "Use JSON.stringify() before storing and JSON.parse() when retrieving from localStorage",
+    "Remember to handle the case where localStorage might not be available (SSR)",
+    "The setter function should update both React state and localStorage simultaneously"
+  ],
+  "learning_resources": [
+    "https://react.dev/reference/react/useState",
+    "https://react.dev/reference/react/useEffect",
+    "https://developer.mozilla.org/en-US/docs/Web/API/Window/localStorage"
+  ],
+  "tags": ["hooks", "custom-hooks", "localStorage", "state-persistence", "react"],
+  "estimated_time_minutes": 35,
+  "patterns": [
+    {
+      "pattern_id": "react-hooks-011-pattern-1",
+      "name": "Basic useLocalStorage Implementation",
+      "description": "Standard implementation with error handling and SSR support",
+      "example_code": "import { useState, useEffect, useCallback } from 'react';\n\nfunction useLocalStorage(key, initialValue) {\n  // Get stored value or use initial\n  const readValue = useCallback(() => {\n    if (typeof window === 'undefined') {\n      return initialValue;\n    }\n    \n    try {\n      const item = window.localStorage.getItem(key);\n      return item ? JSON.parse(item) : initialValue;\n    } catch (error) {\n      console.warn(`Error reading localStorage key \\\"${key}\\\":`, error);\n      return initialValue;\n    }\n  }, [key, initialValue]);\n  \n  // State to store our value\n  const [storedValue, setStoredValue] = useState(readValue);\n  \n  // Return a wrapped version of useState's setter function that\n  // persists the new value to localStorage.\n  const setValue = useCallback((value) => {\n    try {\n      // Allow value to be a function so we have same API as useState\n      const valueToStore = value instanceof Function ? value(storedValue) : value;\n      \n      // Save state\n      setStoredValue(valueToStore);\n      \n      // Save to localStorage\n      if (typeof window !== 'undefined') {\n        window.localStorage.setItem(key, JSON.stringify(valueToStore));\n      }\n    } catch (error) {\n      console.warn(`Error setting localStorage key \\\"${key}\\\":`, error);\n    }\n  }, [key, storedValue]);\n  \n  // Sync changes across tabs\n  useEffect(() => {\n    const handleStorageChange = (e) => {\n      if (e.key === key && e.newValue) {\n        try {\n          setStoredValue(JSON.parse(e.newValue));\n        } catch (error) {\n          console.warn(`Error parsing localStorage value for key \\\"${key}\\\":`, error);\n        }\n      }\n    };\n    \n    window.addEventListener('storage', handleStorageChange);\n    return () => window.removeEventListener('storage', handleStorageChange);\n  }, [key]);\n  \n  // Initial read from localStorage\n  useEffect(() => {\n    setStoredValue(readValue());\n  }, [readValue]);\n  \n  return [storedValue, setValue];\n}\n\nexport default useLocalStorage;",
+      "required_imports": ["react"],
+      "required_structure": {
+        "functions": [
+          {
+            "name": "useLocalStorage",
+            "type": "custom_hook",
+            "params": ["key", "initialValue"],
+            "returns_array": true
+          }
+        ]
+      },
+      "forbidden_patterns": [
+        "direct_mutation_of_state",
+        "missing_error_handling",
+        "no_ssr_check"
+      ],
+      "is_primary": true,
+      "confidence_threshold": 85.00
+    }
+  ]
+}

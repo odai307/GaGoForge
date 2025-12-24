@@ -1,0 +1,117 @@
+{
+  "problem_id": "react-routing-001",
+  "title": "Create a Basic Navigation Menu with React Router",
+  "slug": "create-basic-navigation-menu-with-react-router",
+  "framework": "react",
+  "category": "routing",
+  "difficulty": "beginner",
+  "description": "Implement a basic navigation system using React Router that allows users to switch between different pages in a single-page application.\n\n**Requirements:**\n1. Create a component named `App` that sets up the routing structure\n2. Install and use React Router v6 (BrowserRouter, Routes, Route, Link)\n3. Create three page components:\n   - `HomePage`: Displays \"Welcome to Our Website!\"\n   - `AboutPage`: Displays \"About Us - Learn more about our company.\"\n   - `ContactPage`: Displays \"Contact Us - Get in touch with our team.\"\n4. Create a navigation menu with links to all three pages\n5. Each page should be accessible at its own URL:\n   - `/` for Home\n   - `/about` for About\n   - `/contact` for Contact\n\n**Implementation Details:**\n- The App component should be the main entry point\n- Use BrowserRouter to wrap the entire application\n- Create a navigation bar that stays visible on all pages\n- Each Link should have appropriate styling when active\n- Ensure proper nesting of Routes inside Routes component\n- Each page component should be a simple functional component\n\n**Expected Behavior:**\n- Navigation menu appears at the top of every page\n- Clicking links changes the URL and displays the corresponding page\n- Browser back/forward buttons work correctly\n- Each page shows unique content based on the route\n\n**Note:** This is a single-page application - page changes should not cause full page reloads.",
+  "description_preview": "Set up basic page navigation using React Router with Home, About, and Contact pages",
+  "context_code": "",
+  "starter_code": "",
+  "target_area": "App component with routing configuration",
+  "validation_spec": {
+    "required_imports": [
+      "react",
+      "react-router-dom.BrowserRouter", 
+      "react-router-dom.Routes",
+      "react-router-dom.Route", 
+      "react-router-dom.Link"
+    ],
+    "required_structure": {
+      "functions": [
+        {
+          "name": "App",
+          "type": "functional_component",
+          "has_export": true,
+          "has_prop_types": false
+        },
+        {
+          "name": "HomePage",
+          "type": "functional_component",
+          "has_export": false,
+          "has_prop_types": false
+        },
+        {
+          "name": "AboutPage",
+          "type": "functional_component",
+          "has_export": false,
+          "has_prop_types": false
+        },
+        {
+          "name": "ContactPage",
+          "type": "functional_component",
+          "has_export": false,
+          "has_prop_types": false
+        }
+      ]
+    },
+    "behavior_patterns": [
+      {"type": "routing", "routing_type": "react-router"},
+      {"type": "routing", "routing_type": "route_definition", "path": "/"},
+      {"type": "routing", "routing_type": "route_definition", "path": "/about"},
+      {"type": "routing", "routing_type": "route_definition", "path": "/contact"},
+      {"type": "routing", "routing_type": "navigation", "method": "link_component"}
+    ]
+  },
+  "import_weight": 20.00,
+  "structure_weight": 40.00,
+  "behavior_weight": 40.00,
+  "passing_score": 75.00,
+  "hints": [
+    "Start by installing react-router-dom: `npm install react-router-dom`",
+    "Wrap your entire app with BrowserRouter component",
+    "Use the Routes component to define your route structure",
+    "Each Route should have a path prop and an element prop pointing to your component",
+    "Use Link components for navigation instead of anchor tags to prevent page reloads"
+  ],
+  "learning_resources": [
+    "https://reactrouter.com/en/main/start/tutorial",
+    "https://reactrouter.com/en/main/components/browser-router"
+  ],
+  "tags": ["react", "routing", "router", "navigation", "beginner"],
+  "estimated_time_minutes": 25,
+  "patterns": [
+    {
+      "pattern_id": "react-routing-001-pattern-1",
+      "name": "Basic React Router Setup",
+      "description": "Complete routing setup with BrowserRouter, Routes, Route, and Link components",
+      "example_code": "import React from 'react';\nimport { BrowserRouter, Routes, Route, Link } from 'react-router-dom';\n\n// Page Components\nfunction HomePage() {\n  return (\n    <div>\n      <h1>Welcome to Our Website!</h1>\n      <p>This is the home page of our application.</p>\n    </div>\n  );\n}\n\nfunction AboutPage() {\n  return (\n    <div>\n      <h1>About Us</h1>\n      <p>Learn more about our company and what we do.</p>\n    </div>\n  );\n}\n\nfunction ContactPage() {\n  return (\n    <div>\n      <h1>Contact Us</h1>\n      <p>Get in touch with our team for any inquiries.</p>\n    </div>\n  );\n}\n\n// Navigation Component\nfunction Navigation() {\n  return (\n    <nav style={{ padding: '10px', backgroundColor: '#f0f0f0' }}>\n      <ul style={{ listStyle: 'none', display: 'flex', gap: '20px' }}>\n        <li>\n          <Link to=\"/\" style={{ textDecoration: 'none', color: '#333' }}>\n            Home\n          </Link>\n        </li>\n        <li>\n          <Link to=\"/about\" style={{ textDecoration: 'none', color: '#333' }}>\n            About\n          </Link>\n        </li>\n        <li>\n          <Link to=\"/contact\" style={{ textDecoration: 'none', color: '#333' }}>\n            Contact\n          </Link>\n        </li>\n      </ul>\n    </nav>\n  );\n}\n\n// Main App Component\nexport default function App() {\n  return (\n    <BrowserRouter>\n      <Navigation />\n      <div style={{ padding: '20px' }}>\n        <Routes>\n          <Route path=\"/\" element={<HomePage />} />\n          <Route path=\"/about\" element={<AboutPage />} />\n          <Route path=\"/contact\" element={<ContactPage />} />\n        </Routes>\n      </div>\n    </BrowserRouter>\n  );\n}",
+      "required_imports": [
+        "react",
+        "react-router-dom.BrowserRouter", 
+        "react-router-dom.Routes",
+        "react-router-dom.Route", 
+        "react-router-dom.Link"
+      ],
+      "required_structure": {
+        "functions": [
+          {
+            "name": "App",
+            "type": "functional_component",
+            "has_export": true
+          },
+          {
+            "name": "HomePage",
+            "type": "functional_component"
+          },
+          {
+            "name": "AboutPage",
+            "type": "functional_component"
+          },
+          {
+            "name": "ContactPage",
+            "type": "functional_component"
+          },
+          {
+            "name": "Navigation",
+            "type": "functional_component"
+          }
+        ]
+      },
+      "forbidden_patterns": ["<a href", "window.location", "hashchange"],
+      "is_primary": true,
+      "confidence_threshold": 85.00
+    }
+  ]
+}

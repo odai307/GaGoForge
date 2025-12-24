@@ -1,0 +1,169 @@
+{
+  "problem_id": "django-views-001",
+  "title": "Create Basic Book API Views",
+  "slug": "create-basic-book-api-views",
+  "framework": "django",
+  "category": "views",
+  "difficulty": "beginner",
+  "description": "Create Django REST Framework API views for a Book model with basic CRUD operations.\n\n**Business Scenario:**\nYou're building a library API that needs to expose endpoints for managing books.\n\n**Model and Serializer Definitions:**\n```python\n# models.py\nfrom django.db import models\n\nclass Book(models.Model):\n    title = models.CharField(max_length=200)\n    author = models.CharField(max_length=100)\n    isbn = models.CharField(max_length=13, unique=True)\n    publication_year = models.IntegerField()\n    price = models.DecimalField(max_digits=6, decimal_places=2)\n    in_stock = models.BooleanField(default=True)\n    created_at = models.DateTimeField(auto_now_add=True)\n    updated_at = models.DateTimeField(auto_now=True)\n    \n    def __str__(self):\n        return self.title\n\n# serializers.py\nfrom rest_framework import serializers\nfrom .models import Book\n\nclass BookSerializer(serializers.ModelSerializer):\n    class Meta:\n        model = Book\n        fields = '__all__'\n        read_only_fields = ['created_at', 'updated_at']\n```\n\n**Requirements:**\nCreate the following API views in `views.py`:\n\n1. **BookListCreateView**: API view for listing all books and creating new books\n   - GET: Return list of all books\n   - POST: Create a new book\n   - Use appropriate DRF generic view\n\n2. **BookDetailView**: API view for retrieving, updating, and deleting a single book\n   - GET: Return details of a specific book\n   - PUT: Update a book\n   - PATCH: Partially update a book\n   - DELETE: Delete a book\n   - Use appropriate DRF generic view\n\n3. **BookSearchView**: API view for searching books by title or author\n   - GET only\n   - Accept query parameter 'q' for search term\n   - Search in both title and author fields (case-insensitive)\n   - Return filtered books\n   - Use APIView or GenericAPIView\n\n4. **BookStatsView**: API view for getting book statistics\n   - GET only\n   - Return JSON with:\n     - total_books: Total number of books\n     - available_books: Number of books in stock\n     - average_price: Average price of all books\n   - Use APIView\n\n**Expected Behavior:**\n- All views should use appropriate DRF classes\n- Proper HTTP methods should be supported\n- Search view should handle empty/no results\n- Statistics view should return calculated data\n- Use proper URL patterns (you'll need to create urls.py)\n\n**Example URLs:**\n```\nGET    /api/books/           # List all books\nPOST   /api/books/           # Create new book\nGET    /api/books/1/         # Get book details\nPUT    /api/books/1/         # Update book\nGET    /api/books/search/?q=python  # Search books\nGET    /api/books/stats/     # Get statistics\n```",
+  "description_preview": "Create Django REST Framework views for Book model with CRUD, search, and statistics endpoints",
+  "context_code": "# MODEL AND SERIALIZER DEFINITIONS (for reference only)\n# You need to create the views in views.py\n\n# models.py\nfrom django.db import models\n\nclass Book(models.Model):\n    title = models.CharField(max_length=200)\n    author = models.CharField(max_length=100)\n    isbn = models.CharField(max_length=13, unique=True)\n    publication_year = models.IntegerField()\n    price = models.DecimalField(max_digits=6, decimal_places=2)\n    in_stock = models.BooleanField(default=True)\n    created_at = models.DateTimeField(auto_now_add=True)\n    updated_at = models.DateTimeField(auto_now=True)\n    \n    def __str__(self):\n        return self.title\n\n# serializers.py\nfrom rest_framework import serializers\nfrom .models import Book\n\nclass BookSerializer(serializers.ModelSerializer):\n    class Meta:\n        model = Book\n        fields = '__all__'\n        read_only_fields = ['created_at', 'updated_at']",
+  "starter_code": "",
+  "target_area": "DRF API views implementation",
+  "validation_spec": {
+    "required_imports": [
+      "rest_framework.generics",
+      "rest_framework.views",
+      "rest_framework.response",
+      "rest_framework.status",
+      "django.db.models",
+      "django.shortcuts"
+    ],
+    "required_structure": {
+      "classes": [
+        {
+          "name": "BookListCreateView",
+          "parent_class": "generics.ListCreateAPIView",
+          "methods": ["get_queryset", "get_serializer_class"]
+        },
+        {
+          "name": "BookDetailView",
+          "parent_class": "generics.RetrieveUpdateDestroyAPIView",
+          "methods": ["get_queryset", "get_serializer_class"]
+        },
+        {
+          "name": "BookSearchView",
+          "parent_class": "generics.ListAPIView",
+          "methods": ["get_queryset"]
+        },
+        {
+          "name": "BookStatsView",
+          "parent_class": "views.APIView",
+          "methods": ["get"]
+        }
+      ]
+    },
+    "behavior_patterns": [
+      {
+        "type": "view_class",
+        "class_name": "BookListCreateView",
+        "parent_class": "ListCreateAPIView",
+        "description": "Must use ListCreateAPIView for list and create operations"
+      },
+      {
+        "type": "view_class",
+        "class_name": "BookDetailView",
+        "parent_class": "RetrieveUpdateDestroyAPIView",
+        "description": "Must use RetrieveUpdateDestroyAPIView for detail operations"
+      },
+      {
+        "type": "view_method",
+        "method_name": "get_queryset",
+        "view_class": "BookListCreateView",
+        "description": "Must implement get_queryset method"
+      },
+      {
+        "type": "view_method",
+        "method_name": "get_serializer_class",
+        "view_class": "BookListCreateView",
+        "description": "Must implement get_serializer_class method or serializer_class attribute"
+      },
+      {
+        "type": "search_view",
+        "view_class": "BookSearchView",
+        "search_field": "q",
+        "description": "Search view must filter by query parameter 'q'"
+      },
+      {
+        "type": "aggregate_view",
+        "view_class": "BookStatsView",
+        "aggregates": ["Count", "Avg"],
+        "description": "Stats view must use aggregates for calculations"
+      },
+      {
+        "type": "filter_operation",
+        "operation": "filter",
+        "view_class": "BookSearchView",
+        "description": "Search view must filter using Q objects or filter()"
+      },
+      {
+        "type": "response_format",
+        "view_class": "BookStatsView",
+        "format": "json",
+        "description": "Stats view must return Response with JSON data"
+      },
+      {
+        "type": "queryset_operation",
+        "operation": "all",
+        "view_class": "BookListCreateView",
+        "description": "List view must return all books"
+      }
+    ],
+    "difficulty": "beginner",
+    "framework": "django"
+  },
+  "import_weight": 15.00,
+  "structure_weight": 40.00,
+  "behavior_weight": 45.00,
+  "passing_score": 75.00,
+  "hints": [
+    "Use generics.ListCreateAPIView for combined list/create functionality",
+    "For search, override get_queryset to filter based on query parameters",
+    "Use Q objects (from django.db.models) for OR conditions in search",
+    "In stats view, use Response() from rest_framework.response to return JSON"
+  ],
+  "learning_resources": [
+    "https://www.django-rest-framework.org/api-guide/generic-views/",
+    "https://www.django-rest-framework.org/api-guide/views/",
+    "https://www.django-rest-framework.org/api-guide/requests/#query_params"
+  ],
+  "tags": ["django", "views", "drf", "api", "crud", "beginner"],
+  "estimated_time_minutes": 30,
+  "patterns": [
+    {
+      "pattern_id": "django-views-001-pattern-1",
+      "name": "Complete Book API Views",
+      "description": "All required views with proper DRF generic views implementation",
+      "example_code": "from rest_framework import generics, views, status\nfrom rest_framework.response import Response\nfrom django.db.models import Q, Count, Avg\nfrom django.shortcuts import get_object_or_404\nfrom .models import Book\nfrom .serializers import BookSerializer\n\nclass BookListCreateView(generics.ListCreateAPIView):\n    \"\"\"\n    API endpoint for listing all books and creating new books.\n    \"\"\"\n    queryset = Book.objects.all().order_by('title')\n    serializer_class = BookSerializer\n\nclass BookDetailView(generics.RetrieveUpdateDestroyAPIView):\n    \"\"\"\n    API endpoint for retrieving, updating, and deleting a book.\n    \"\"\"\n    queryset = Book.objects.all()\n    serializer_class = BookSerializer\n    lookup_field = 'pk'\n\nclass BookSearchView(generics.ListAPIView):\n    \"\"\"\n    API endpoint for searching books by title or author.\n    \"\"\"\n    serializer_class = BookSerializer\n    \n    def get_queryset(self):\n        \"\"\"\n        Return books filtered by search query.\n        \"\"\"\n        queryset = Book.objects.all().order_by('title')\n        \n        # Get search query from request parameters\n        search_query = self.request.query_params.get('q', '')\n        \n        if search_query:\n            # Search in title OR author (case-insensitive)\n            queryset = queryset.filter(\n                Q(title__icontains=search_query) | \n                Q(author__icontains=search_query)\n            )\n        \n        return queryset\n    \n    def list(self, request, *args, **kwargs):\n        \"\"\"\n        Override to provide custom response format.\n        \"\"\"\n        queryset = self.get_queryset()\n        \n        if not queryset.exists():\n            search_query = request.query_params.get('q', '')\n            if search_query:\n                return Response({\n                    'message': f'No books found for \"{search_query}\"',\n                    'results': []\n                }, status=status.HTTP_200_OK)\n        \n        serializer = self.get_serializer(queryset, many=True)\n        return Response({\n            'count': queryset.count(),\n            'results': serializer.data\n        })\n\nclass BookStatsView(views.APIView):\n    \"\"\"\n    API endpoint for getting book statistics.\n    \"\"\"\n    \n    def get(self, request, format=None):\n        \"\"\"\n        Return book statistics.\n        \"\"\"\n        # Calculate statistics using aggregates\n        stats = Book.objects.aggregate(\n            total_books=Count('id'),\n            available_books=Count('id', filter=Q(in_stock=True)),\n            average_price=Avg('price')\n        )\n        \n        # Format the response\n        response_data = {\n            'total_books': stats['total_books'] or 0,\n            'available_books': stats['available_books'] or 0,\n            'average_price': float(stats['average_price'] or 0)\n        }\n        \n        return Response(response_data)",
+      "required_imports": [
+        "rest_framework.generics",
+        "rest_framework.views",
+        "rest_framework.response",
+        "rest_framework.status",
+        "django.db.models",
+        "django.shortcuts"
+      ],
+      "required_structure": {
+        "classes": [
+          {
+            "name": "BookListCreateView",
+            "parent_class": "generics.ListCreateAPIView",
+            "methods": ["get_queryset", "get_serializer_class"]
+          },
+          {
+            "name": "BookDetailView",
+            "parent_class": "generics.RetrieveUpdateDestroyAPIView",
+            "methods": ["get_queryset", "get_serializer_class"]
+          },
+          {
+            "name": "BookSearchView",
+            "parent_class": "generics.ListAPIView",
+            "methods": ["get_queryset", "list"]
+          },
+          {
+            "name": "BookStatsView",
+            "parent_class": "views.APIView",
+            "methods": ["get"]
+          }
+        ]
+      },
+      "forbidden_patterns": [
+        "function_based_views_only",
+        "no_serializer_class",
+        "hardcoded_responses"
+      ],
+      "is_primary": true,
+      "confidence_threshold": 85.00
+    }
+  ]
+}

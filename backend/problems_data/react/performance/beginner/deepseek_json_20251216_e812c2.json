@@ -1,0 +1,81 @@
+{
+  "problem_id": "react-performance-001",
+  "title": "Memoize Expensive Product Calculations",
+  "slug": "memoize-expensive-product-calculations",
+  "framework": "react",
+  "category": "performance",
+  "difficulty": "beginner",
+  "description": "You're building an e-commerce dashboard that displays product statistics. The current implementation recalculates expensive statistics on every render, causing performance issues.\n\n**Business Requirements:**\n1. Display a list of products with name, price, and category\n2. Calculate and display total value of all products\n3. Calculate and display average product price\n4. Calculate and display most expensive product\n5. These calculations should only recompute when the product list changes\n\n**Given Product Data:**\n```javascript\nconst products = [\n  { id: 1, name: 'Laptop', price: 999, category: 'electronics' },\n  { id: 2, name: 'T-Shirt', price: 25, category: 'clothing' },\n  { id: 3, name: 'Coffee Mug', price: 15, category: 'home' },\n  { id: 4, name: 'Headphones', price: 199, category: 'electronics' },\n  { id: 5, name: 'Jeans', price: 45, category: 'clothing' }\n];\n```\n\n**Expected Behavior:**\n- Total value: Sum of all product prices\n- Average price: Total value divided by number of products\n- Most expensive: Product with highest price\n- Calculations should use memoization to avoid unnecessary recomputation\n\n**Performance Requirement:**\nAll calculations must be memoized using React's `useMemo` hook to prevent recalculation on every render.",
+  "description_preview": "Use useMemo to optimize expensive product calculations in an e-commerce dashboard",
+  "context_code": "// PRODUCT DATA (for reference only - you need to create the component)\nconst products = [\n  { id: 1, name: 'Laptop', price: 999, category: 'electronics' },\n  { id: 2, name: 'T-Shirt', price: 25, category: 'clothing' },\n  { id: 3, name: 'Coffee Mug', price: 15, category: 'home' },\n  { id: 4, name: 'Headphones', price: 199, category: 'electronics' },\n  { id: 5, name: 'Jeans', price: 45, category: 'clothing' }\n];",
+  "starter_code": "",
+  "target_area": "ProductStatistics component with memoized calculations",
+  "validation_spec": {
+    "required_imports": ["react"],
+    "required_structure": {
+      "functions": [
+        {
+          "name": "ProductStatistics",
+          "type": "functional_component",
+          "has_export": true
+        }
+      ]
+    },
+    "behavior_patterns": [
+      {
+        "type": "hook_call",
+        "hook": "useMemo",
+        "min_calls": 3
+      },
+      {
+        "type": "memoization",
+        "memo_type": "use_memo"
+      },
+      "Total value calculation memoized",
+      "Average price calculation memoized",
+      "Most expensive product memoized",
+      "JSX displays calculated statistics"
+    ]
+  },
+  "import_weight": 15.00,
+  "structure_weight": 35.00,
+  "behavior_weight": 50.00,
+  "passing_score": 75.00,
+  "hints": [
+    "Use React's useMemo hook to memoize expensive calculations",
+    "The dependency array for useMemo should include the products array",
+    "Create separate useMemo calls for total value, average price, and most expensive product",
+    "Display the calculated values in your JSX with clear labels"
+  ],
+  "learning_resources": [
+    "https://react.dev/reference/react/useMemo",
+    "https://react.dev/learn/referencing-values-with-refs#differences-between-refs-and-state"
+  ],
+  "tags": ["react", "performance", "hooks", "memoization", "beginner"],
+  "estimated_time_minutes": 20,
+  "patterns": [
+    {
+      "pattern_id": "react-performance-001-pattern-1",
+      "name": "useMemo Pattern",
+      "description": "Proper use of useMemo for expensive calculations",
+      "example_code": "import React, { useMemo } from 'react';\n\nconst products = [\n  { id: 1, name: 'Laptop', price: 999, category: 'electronics' },\n  { id: 2, name: 'T-Shirt', price: 25, category: 'clothing' },\n  { id: 3, name: 'Coffee Mug', price: 15, category: 'home' },\n  { id: 4, name: 'Headphones', price: 199, category: 'electronics' },\n  { id: 5, name: 'Jeans', price: 45, category: 'clothing' }\n];\n\nexport function ProductStatistics() {\n  const totalValue = useMemo(() => {\n    console.log('Calculating total value...');\n    return products.reduce((sum, product) => sum + product.price, 0);\n  }, [products]);\n\n  const averagePrice = useMemo(() => {\n    console.log('Calculating average price...');\n    return products.length > 0 ? totalValue / products.length : 0;\n  }, [products, totalValue]);\n\n  const mostExpensive = useMemo(() => {\n    console.log('Finding most expensive product...');\n    return products.reduce((max, product) => \n      product.price > max.price ? product : max\n    , products[0]);\n  }, [products]);\n\n  return (\n    <div className=\"product-stats\">\n      <h2>Product Statistics</h2>\n      <div className=\"stat\">\n        <strong>Total Value:</strong> ${totalValue.toFixed(2)}\n      </div>\n      <div className=\"stat\">\n        <strong>Average Price:</strong> ${averagePrice.toFixed(2)}\n      </div>\n      <div className=\"stat\">\n        <strong>Most Expensive:</strong> {mostExpensive.name} (${mostExpensive.price})\n      </div>\n      <div className=\"product-count\">\n        <strong>Total Products:</strong> {products.length}\n      </div>\n    </div>\n  );\n}",
+      "required_imports": ["react"],
+      "required_structure": {
+        "functions": [
+          {
+            "name": "ProductStatistics",
+            "type": "functional_component",
+            "has_export": true
+          }
+        ]
+      },
+      "forbidden_patterns": [
+        "Calculations in render without memoization",
+        "Empty dependency arrays in useMemo",
+        "Missing dependencies in useMemo arrays"
+      ],
+      "is_primary": true,
+      "confidence_threshold": 85.00
+    }
+  ]
+}

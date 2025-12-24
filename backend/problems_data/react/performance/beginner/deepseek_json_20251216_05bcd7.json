@@ -1,0 +1,92 @@
+{
+  "problem_id": "react-performance-002",
+  "title": "Optimize Filtered List with useMemo and useCallback",
+  "slug": "optimize-filtered-list-with-usememo-and-usecallback",
+  "framework": "react",
+  "category": "performance",
+  "difficulty": "beginner",
+  "description": "You're building a product filtering component that allows users to filter products by category. The current implementation recreates filter functions and filtered lists on every render, causing unnecessary re-renders.\n\n**Business Requirements:**\n1. Display a list of products with filtering by category\n2. Show filter buttons for each unique category\n3. When a category button is clicked, only show products from that category\n4. Provide a 'Show All' button to reset filters\n5. Filtered list and filter functions should be memoized to prevent unnecessary recalculations\n\n**Given Product Data:**\n```javascript\nconst initialProducts = [\n  { id: 1, name: 'Laptop', category: 'electronics', price: 999 },\n  { id: 2, name: 'T-Shirt', category: 'clothing', price: 25 },\n  { id: 3, name: 'Coffee Mug', category: 'home', price: 15 },\n  { id: 4, name: 'Headphones', category: 'electronics', price: 199 },\n  { id: 5, name: 'Jeans', category: 'clothing', price: 45 },\n  { id: 6, name: 'Desk Lamp', category: 'home', price: 35 }\n];\n```\n\n**Expected Behavior:**\n- Initial display shows all products\n- Clicking a category button filters to that category\n- Clicking 'Show All' resets to all products\n- Filter functions should be stable (not recreated on every render)\n- Filtered list should only recalculate when products or filter changes\n\n**Performance Requirements:**\n1. Use `useMemo` to memoize the filtered product list\n2. Use `useCallback` to memoize filter handler functions\n3. Extract unique categories with memoization",
+  "description_preview": "Use useMemo and useCallback to optimize product filtering with stable functions and memoized lists",
+  "context_code": "// PRODUCT DATA (for reference only - you need to create the component)\nconst initialProducts = [\n  { id: 1, name: 'Laptop', category: 'electronics', price: 999 },\n  { id: 2, name: 'T-Shirt', category: 'clothing', price: 25 },\n  { id: 3, name: 'Coffee Mug', category: 'home', price: 15 },\n  { id: 4, name: 'Headphones', category: 'electronics', price: 199 },\n  { id: 5, name: 'Jeans', category: 'clothing', price: 45 },\n  { id: 6, name: 'Desk Lamp', category: 'home', price: 35 }\n];",
+  "starter_code": "",
+  "target_area": "ProductFilter component with memoized filtering",
+  "validation_spec": {
+    "required_imports": ["react"],
+    "required_structure": {
+      "functions": [
+        {
+          "name": "ProductFilter",
+          "type": "functional_component",
+          "has_export": true
+        }
+      ]
+    },
+    "behavior_patterns": [
+      {
+        "type": "state_management",
+        "state_type": "useState"
+      },
+      {
+        "type": "hook_call",
+        "hook": "useMemo",
+        "min_calls": 2
+      },
+      {
+        "type": "hook_call",
+        "hook": "useCallback",
+        "min_calls": 2
+      },
+      {
+        "type": "event_handler",
+        "event_type": "onClick",
+        "handler_style": "function_reference"
+      },
+      "Filtered products memoized with useMemo",
+      "Filter handler functions memoized with useCallback",
+      "Unique categories extracted with memoization"
+    ]
+  },
+  "import_weight": 15.00,
+  "structure_weight": 35.00,
+  "behavior_weight": 50.00,
+  "passing_score": 75.00,
+  "hints": [
+    "Use useState to manage the current filter category",
+    "Use useMemo to memoize the list of unique categories and filtered products",
+    "Use useCallback to create stable filter handler functions",
+    "The filter handlers should update the filter state",
+    "Conditionally render products based on the current filter"
+  ],
+  "learning_resources": [
+    "https://react.dev/reference/react/useMemo",
+    "https://react.dev/reference/react/useCallback",
+    "https://react.dev/learn/escape-hatches#memoizing-a-function"
+  ],
+  "tags": ["react", "performance", "hooks", "memoization", "filtering", "beginner"],
+  "estimated_time_minutes": 25,
+  "patterns": [
+    {
+      "pattern_id": "react-performance-002-pattern-1",
+      "name": "Memoized Filter Pattern",
+      "description": "Proper use of useMemo and useCallback for filtering optimization",
+      "example_code": "import React, { useState, useMemo, useCallback } from 'react';\n\nconst initialProducts = [\n  { id: 1, name: 'Laptop', category: 'electronics', price: 999 },\n  { id: 2, name: 'T-Shirt', category: 'clothing', price: 25 },\n  { id: 3, name: 'Coffee Mug', category: 'home', price: 15 },\n  { id: 4, name: 'Headphones', category: 'electronics', price: 199 },\n  { id: 5, name: 'Jeans', category: 'clothing', price: 45 },\n  { id: 6, name: 'Desk Lamp', category: 'home', price: 35 }\n];\n\nexport function ProductFilter() {\n  const [filter, setFilter] = useState('all');\n  \n  // Memoize unique categories\n  const categories = useMemo(() => {\n    const uniqueCategories = new Set(initialProducts.map(p => p.category));\n    return ['all', ...Array.from(uniqueCategories)];\n  }, []);\n  \n  // Memoize filtered products\n  const filteredProducts = useMemo(() => {\n    console.log('Filtering products...');\n    if (filter === 'all') {\n      return initialProducts;\n    }\n    return initialProducts.filter(product => product.category === filter);\n  }, [filter]);\n  \n  // Memoize filter handlers\n  const handleFilterClick = useCallback((category) => {\n    setFilter(category);\n  }, []);\n  \n  const handleResetFilter = useCallback(() => {\n    setFilter('all');\n  }, []);\n  \n  return (\n    <div className=\"product-filter\">\n      <h2>Product Filter</h2>\n      \n      <div className=\"filter-buttons\">\n        {categories.map(category => (\n          <button\n            key={category}\n            onClick={() => handleFilterClick(category)}\n            className={filter === category ? 'active' : ''}\n          >\n            {category.charAt(0).toUpperCase() + category.slice(1)}\n          </button>\n        ))}\n        <button onClick={handleResetFilter}>\n          Reset Filters\n        </button>\n      </div>\n      \n      <div className=\"product-count\">\n        Showing {filteredProducts.length} of {initialProducts.length} products\n      </div>\n      \n      <div className=\"product-list\">\n        {filteredProducts.map(product => (\n          <div key={product.id} className=\"product-item\">\n            <h3>{product.name}</h3>\n            <p>Category: {product.category}</p>\n            <p>Price: ${product.price}</p>\n          </div>\n        ))}\n      </div>\n    </div>\n  );\n}",
+      "required_imports": ["react"],
+      "required_structure": {
+        "functions": [
+          {
+            "name": "ProductFilter",
+            "type": "functional_component",
+            "has_export": true
+          }
+        ]
+      },
+      "forbidden_patterns": [
+        "Inline arrow functions in onClick handlers",
+        "Filter calculations in render without memoization",
+        "Creating new functions on every render"
+      ],
+      "is_primary": true,
+      "confidence_threshold": 85.00
+    }
+  ]
+}

@@ -1,0 +1,96 @@
+{
+  "problem_id": "django-orm_queries-011",
+  "title": "Build Blog Post Analytics Query",
+  "slug": "build-blog-post-analytics-query",
+  "framework": "django",
+  "category": "orm_queries",
+  "difficulty": "intermediate",
+  "description": "You're building a blog analytics dashboard for a content platform. The system tracks blog posts, authors, comments, and likes.\n\n**Models (for reference):**\n```python\nfrom django.db import models\nfrom django.contrib.auth.models import User\n\nclass Author(models.Model):\n    user = models.OneToOneField(User, on_delete=models.CASCADE)\n    bio = models.TextField()\n    join_date = models.DateTimeField(auto_now_add=True)\n\nclass Category(models.Model):\n    name = models.CharField(max_length=100)\n    description = models.TextField()\n\nclass Post(models.Model):\n    title = models.CharField(max_length=200)\n    content = models.TextField()\n    author = models.ForeignKey(Author, on_delete=models.CASCADE, related_name='posts')\n    category = models.ForeignKey(Category, on_delete=models.SET_NULL, null=True, related_name='posts')\n    publish_date = models.DateTimeField()\n    is_published = models.BooleanField(default=True)\n\nclass Comment(models.Model):\n    post = models.ForeignKey(Post, on_delete=models.CASCADE, related_name='comments')\n    user = models.ForeignKey(User, on_delete=models.CASCADE)\n    text = models.TextField()\n    created_at = models.DateTimeField(auto_now_add=True)\n    is_approved = models.BooleanField(default=True)\n\nclass Like(models.Model):\n    post = models.ForeignKey(Post, on_delete=models.CASCADE, related_name='likes')\n    user = models.ForeignKey(User, on_delete=models.CASCADE)\n    created_at = models.DateTimeField(auto_now_add=True)\n```\n\n**Requirements:**\nCreate a Django ORM query function that returns analytics data for blog posts published in the last 30 days.\n\n1. Return a QuerySet of posts with the following annotations:\n   - `comment_count`: Number of approved comments\n   - `like_count`: Number of likes\n   - `author_name`: Author's username (through the User model)\n   - `category_name`: Category name\n\n2. Filter criteria:\n   - Only published posts (`is_published=True`)\n   - Published within the last 30 days (from current date)\n   - With at least 1 comment\n\n3. Ordering:\n   - Sort by like_count (descending)\n   - Then by comment_count (descending)\n\n4. Performance:\n   - Use `select_related` for ForeignKey relationships\n   - Use `prefetch_related` for reverse relationships where appropriate\n   - Use Django's `Count` and `F` expressions for aggregations\n\n**Expected Output Structure:**\nThe function should return a QuerySet where each post object has the annotated fields accessible.\n\n**Example Usage:**\n```python\nanalytics = get_post_analytics()\nfor post in analytics:\n    print(f\"{post.title}: {post.like_count} likes, {post.comment_count} comments\")\n    print(f\"Author: {post.author_name}, Category: {post.category_name}\")\n```",
+  "description_preview": "Create an optimized ORM query to generate blog post analytics with annotations and proper filtering.",
+  "context_code": "# MODEL DEFINITIONS (for reference only - you need to create the query function)\n# These models are already defined in the project\nfrom django.db import models\nfrom django.contrib.auth.models import User\n\n# Models are defined as shown in the description above\n# You don't need to recreate them, just reference them in your query",
+  "starter_code": "",
+  "target_area": "Create the get_post_analytics() function with optimized ORM queries",
+  "validation_spec": {
+    "required_imports": [
+      "django.db.models",
+      "django.db.models.functions",
+      "django.utils.timezone",
+      "datetime"
+    ],
+    "required_structure": {
+      "functions": [
+        {
+          "name": "get_post_analytics",
+          "params": [],
+          "returns": "QuerySet"
+        }
+      ]
+    },
+    "behavior_patterns": [
+      "Uses select_related for author__user and category",
+      "Uses prefetch_related for comments and likes",
+      "Filters by is_published=True",
+      "Filters by publish_date >= timezone.now() - timedelta(days=30)",
+      "Uses Count aggregation for comments with is_approved=True filter",
+      "Uses Count aggregation for likes",
+      "Annotates author_name using F expression on author__user__username",
+      "Annotates category_name using F expression on category__name",
+      "Filters annotated comment_count >= 1",
+      "Orders by like_count descending then comment_count descending",
+      "Returns QuerySet not list"
+    ]
+  },
+  "import_weight": 15.00,
+  "structure_weight": 30.00,
+  "behavior_weight": 55.00,
+  "passing_score": 80.00,
+  "hints": [
+    "Start by importing necessary modules: models, timezone, and datetime",
+    "Use select_related() for ForeignKey relationships (author, category) to reduce queries",
+    "Use Count() aggregation with filter parameter for counting approved comments",
+    "Use F() expressions to reference field values from related models",
+    "Filter by date using timezone.now() and timedelta for the last 30 days",
+    "Chain annotate() calls to add multiple calculated fields",
+    "Remember to filter the final QuerySet to only include posts with comments",
+    "Order by the annotated fields using order_by() with '-' prefix for descending"
+  ],
+  "learning_resources": [
+    "https://docs.djangoproject.com/en/stable/topics/db/aggregation/",
+    "https://docs.djangoproject.com/en/stable/ref/models/querysets/#select-related",
+    "https://docs.djangoproject.com/en/stable/ref/models/querysets/#annotate",
+    "https://docs.djangoproject.com/en/stable/ref/models/expressions/#f-expressions"
+  ],
+  "tags": ["django", "orm_queries", "aggregation", "annotations", "intermediate"],
+  "estimated_time_minutes": 35,
+  "patterns": [
+    {
+      "pattern_id": "django-orm_queries-011-pattern-1",
+      "name": "Optimized Analytics Query",
+      "description": "Complete solution using Django ORM annotations, select_related, and prefetch_related",
+      "example_code": "from django.db.models import Count, F\nfrom django.utils import timezone\nfrom datetime import timedelta\n\ndef get_post_analytics():\n    \"\"\"\n    Returns analytics for blog posts published in the last 30 days.\n    \"\"\"\n    thirty_days_ago = timezone.now() - timedelta(days=30)\n    \n    return Post.objects\\\n        .select_related('author__user', 'category')\\\n        .prefetch_related('comments', 'likes')\\\n        .filter(\n            is_published=True,\n            publish_date__gte=thirty_days_ago\n        )\\\n        .annotate(\n            comment_count=Count('comments', filter=models.Q(comments__is_approved=True)),\n            like_count=Count('likes'),\n            author_name=F('author__user__username'),\n            category_name=F('category__name')\n        )\\\n        .filter(comment_count__gte=1)\\\n        .order_by('-like_count', '-comment_count')",
+      "required_imports": [
+        "django.db.models",
+        "django.db.models.functions",
+        "django.utils.timezone",
+        "datetime"
+      ],
+      "required_structure": {
+        "functions": [
+          {
+            "name": "get_post_analytics",
+            "params": [],
+            "returns": "QuerySet"
+          }
+        ]
+      },
+      "forbidden_patterns": [
+        "Using raw SQL",
+        "Making multiple database queries in a loop",
+        "Converting QuerySet to list before filtering",
+        "Using .all() without optimization"
+      ],
+      "is_primary": true,
+      "confidence_threshold": 85.00
+    }
+  ]
+}

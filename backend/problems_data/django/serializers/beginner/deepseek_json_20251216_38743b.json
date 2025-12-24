@@ -1,0 +1,135 @@
+{
+  "problem_id": "django-serializers-001",
+  "title": "Create a Basic Book Serializer",
+  "slug": "create-basic-book-serializer",
+  "framework": "django",
+  "category": "serializers",
+  "difficulty": "beginner",
+  "description": "Create a Django REST Framework serializer for a Book model with basic field validation.\n\n**Business Scenario:**\nYou're building a library management system. You need to create a serializer to handle Book data for your REST API.\n\n**Model Definition:**\n```python\nfrom django.db import models\n\nclass Book(models.Model):\n    title = models.CharField(max_length=200)\n    author = models.CharField(max_length=100)\n    isbn = models.CharField(max_length=13, unique=True)  # ISBN-13 format\n    publication_date = models.DateField()\n    price = models.DecimalField(max_digits=6, decimal_places=2)\n    in_stock = models.BooleanField(default=True)\n    created_at = models.DateTimeField(auto_now_add=True)\n    updated_at = models.DateTimeField(auto_now=True)\n    \n    def __str__(self):\n        return self.title\n```\n\n**Requirements:**\n1. Create a BookSerializer class that inherits from ModelSerializer\n2. Include all model fields in the serializer\n3. Add the following validation rules:\n   - `title`: Required, minimum 1 character\n   - `author`: Required, minimum 2 characters\n   - `isbn`: Required, must be exactly 13 characters\n   - `publication_date`: Required, cannot be in the future\n   - `price`: Required, must be positive (greater than 0)\n4. The serializer should use the Meta class with appropriate configuration\n5. Exclude `created_at` and `updated_at` from serialization (read-only fields)\n\n**Expected Behavior:**\n- Serializer should validate all field requirements\n- Invalid data should return appropriate error messages\n- Valid data should create or update Book instances\n- Read-only fields should not be writable\n\n**Example Input/Output:**\n```python\n# Valid data\nvalid_data = {\n    'title': 'The Great Gatsby',\n    'author': 'F. Scott Fitzgerald',\n    'isbn': '9780743273565',\n    'publication_date': '1925-04-10',\n    'price': '12.99',\n    'in_stock': True\n}\n\n# Should validate successfully\n\n# Invalid data\ninvalid_data = {\n    'title': '',  # Empty title\n    'author': 'A',  # Too short\n    'isbn': '123',  # Wrong length\n    'publication_date': '2025-12-31',  # Future date\n    'price': '-5.00'  # Negative price\n}\n\n# Should return validation errors for each field\n```",
+  "description_preview": "Create a Django REST Framework ModelSerializer for a Book model with field validation",
+  "context_code": "# MODEL DEFINITIONS (for reference only - you need to create the serializer)\nfrom django.db import models\n\nclass Book(models.Model):\n    title = models.CharField(max_length=200)\n    author = models.CharField(max_length=100)\n    isbn = models.CharField(max_length=13, unique=True)\n    publication_date = models.DateField()\n    price = models.DecimalField(max_digits=6, decimal_places=2)\n    in_stock = models.BooleanField(default=True)\n    created_at = models.DateTimeField(auto_now_add=True)\n    updated_at = models.DateTimeField(auto_now=True)\n    \n    def __str__(self):\n        return self.title",
+  "starter_code": "",
+  "target_area": "BookSerializer class implementation",
+  "validation_spec": {
+    "required_imports": ["rest_framework.serializers", "django.utils.timezone"],
+    "required_structure": {
+      "classes": [
+        {
+          "name": "BookSerializer",
+          "parent_class": "serializers.ModelSerializer",
+          "has_meta_class": true,
+          "meta_class_fields": ["fields", "read_only_fields"],
+          "methods": ["validate_title", "validate_author", "validate_isbn", "validate_publication_date", "validate_price"]
+        }
+      ]
+    },
+    "behavior_patterns": [
+      {
+        "type": "serializer",
+        "description": "Serializer class must inherit from ModelSerializer"
+      },
+      {
+        "type": "model_field",
+        "field_type": "CharField",
+        "min_count": 3,
+        "description": "Must include CharField serializers for title, author, and isbn"
+      },
+      {
+        "type": "model_field",
+        "field_type": "DateField",
+        "description": "Must include DateField serializer for publication_date"
+      },
+      {
+        "type": "model_field", 
+        "field_type": "DecimalField",
+        "description": "Must include DecimalField serializer for price"
+      },
+      {
+        "type": "model_field",
+        "field_type": "BooleanField",
+        "description": "Must include BooleanField serializer for in_stock"
+      },
+      {
+        "type": "validation_method",
+        "method_name": "validate_title",
+        "description": "Must implement title validation method"
+      },
+      {
+        "type": "validation_method",
+        "method_name": "validate_author",
+        "description": "Must implement author validation method"
+      },
+      {
+        "type": "validation_method",
+        "method_name": "validate_isbn",
+        "description": "Must implement ISBN validation method"
+      },
+      {
+        "type": "validation_method", 
+        "method_name": "validate_publication_date",
+        "description": "Must implement publication date validation method"
+      },
+      {
+        "type": "validation_method",
+        "method_name": "validate_price",
+        "description": "Must implement price validation method"
+      },
+      {
+        "type": "meta_class",
+        "options": ["fields", "read_only_fields"],
+        "description": "Must include Meta class with fields and read_only_fields"
+      },
+      {
+        "type": "read_only_fields",
+        "field_count": 2,
+        "description": "Must mark created_at and updated_at as read-only"
+      }
+    ],
+    "difficulty": "beginner",
+    "framework": "django"
+  },
+  "import_weight": 15.00,
+  "structure_weight": 40.00,
+  "behavior_weight": 45.00,
+  "passing_score": 75.00,
+  "hints": [
+    "Start by creating a class that inherits from serializers.ModelSerializer",
+    "Use the Meta class to specify which model and fields to include",
+    "Create validate_<fieldname> methods for each field that needs custom validation",
+    "For date validation, compare with timezone.now().date() to check if it's in the future"
+  ],
+  "learning_resources": [
+    "https://www.django-rest-framework.org/api-guide/serializers/",
+    "https://www.django-rest-framework.org/api-guide/serializers/#modelserializer",
+    "https://www.django-rest-framework.org/api-guide/serializers/#field-level-validation"
+  ],
+  "tags": ["django", "serializers", "modelserializer", "validation", "beginner"],
+  "estimated_time_minutes": 20,
+  "patterns": [
+    {
+      "pattern_id": "django-serializers-001-pattern-1",
+      "name": "Basic Book Serializer with Validation",
+      "description": "Complete ModelSerializer implementation with field validation",
+      "example_code": "from rest_framework import serializers\nfrom django.utils import timezone\nfrom .models import Book\n\nclass BookSerializer(serializers.ModelSerializer):\n    class Meta:\n        model = Book\n        fields = ['id', 'title', 'author', 'isbn', 'publication_date', 'price', 'in_stock', 'created_at', 'updated_at']\n        read_only_fields = ['created_at', 'updated_at']\n    \n    def validate_title(self, value):\n        \"\"\"Validate that title is not empty and has minimum length.\"\"\"\n        if not value or not value.strip():\n            raise serializers.ValidationError(\"Title cannot be empty.\")\n        \n        if len(value.strip()) < 1:\n            raise serializers.ValidationError(\"Title must be at least 1 character long.\")\n        \n        return value.strip()\n    \n    def validate_author(self, value):\n        \"\"\"Validate that author name has minimum length.\"\"\"\n        if not value or not value.strip():\n            raise serializers.ValidationError(\"Author cannot be empty.\")\n        \n        if len(value.strip()) < 2:\n            raise serializers.ValidationError(\"Author name must be at least 2 characters long.\")\n        \n        return value.strip()\n    \n    def validate_isbn(self, value):\n        \"\"\"Validate ISBN format (must be exactly 13 characters).\"\"\"\n        if not value:\n            raise serializers.ValidationError(\"ISBN cannot be empty.\")\n        \n        # Remove any hyphens or spaces\n        clean_isbn = value.replace('-', '').replace(' ', '')\n        \n        if len(clean_isbn) != 13:\n            raise serializers.ValidationError(\"ISBN must be exactly 13 characters long.\")\n        \n        # Check if all characters are digits\n        if not clean_isbn.isdigit():\n            raise serializers.ValidationError(\"ISBN must contain only digits.\")\n        \n        return clean_isbn\n    \n    def validate_publication_date(self, value):\n        \"\"\"Validate that publication date is not in the future.\"\"\"\n        if not value:\n            raise serializers.ValidationError(\"Publication date is required.\")\n        \n        today = timezone.now().date()\n        if value > today:\n            raise serializers.ValidationError(\"Publication date cannot be in the future.\")\n        \n        return value\n    \n    def validate_price(self, value):\n        \"\"\"Validate that price is positive.\"\"\"\n        if value is None:\n            raise serializers.ValidationError(\"Price is required.\")\n        \n        if value <= 0:\n            raise serializers.ValidationError(\"Price must be greater than 0.\")\n        \n        return value",
+      "required_imports": ["rest_framework.serializers", "django.utils.timezone"],
+      "required_structure": {
+        "classes": [
+          {
+            "name": "BookSerializer",
+            "parent_class": "serializers.ModelSerializer",
+            "has_meta_class": true,
+            "meta_class_fields": ["fields", "read_only_fields"],
+            "methods": ["validate_title", "validate_author", "validate_isbn", "validate_publication_date", "validate_price"]
+          }
+        ]
+      },
+      "forbidden_patterns": [
+        "no_validation_methods",
+        "missing_meta_class",
+        "fields_not_specified"
+      ],
+      "is_primary": true,
+      "confidence_threshold": 85.00
+    }
+  ]
+}

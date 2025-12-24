@@ -1,0 +1,120 @@
+{
+  "problem_id": "react-forms-012",
+  "title": "Build a Dynamic Field Array Form",
+  "slug": "build-dynamic-field-array-form",
+  "framework": "react",
+  "category": "forms",
+  "difficulty": "intermediate",
+  "description": "Create a form that allows users to dynamically add and remove groups of related fields, commonly used for skills lists, work experience, or product variants.\n\n**Business Scenario:**\nYou're building a job application form where candidates can add multiple work experiences. Each experience entry includes:\n- Company name\n- Job title\n- Start and end dates\n- Description\n\nUsers should be able to add new experience entries and remove existing ones.\n\n**Requirements:**\n1. Create a form that starts with one empty experience entry\n2. Each entry should have:\n   - Company name (required, text input)\n   - Job title (required, text input)\n   - Start date (required, date input)\n   - End date (optional, date input, must be after start date if provided)\n   - Description (optional, textarea)\n3. Add \"Add Experience\" button to append new empty entries\n4. Each entry should have a \"Remove\" button (except the last one)\n5. Validate each entry individually\n6. Calculate total years of experience from all entries\n7. Show validation errors per field\n8. Handle form submission with all experiences\n\n**Expected Behavior:**\n- Users can add unlimited experience entries\n- Users can remove any entry except the last one\n- Validation runs on each entry's fields\n- Date validation ensures end date is after start date\n- Form shows total experience calculated from dates\n- Each entry has its own remove button\n\n**Example Structure:**\n```\nWork Experience #1\n[Company] [Title]\n[Start Date] [End Date]\n[Description]\n[Remove]\n\nWork Experience #2\n[Company] [Title]\n[Start Date] [End Date]\n[Description]\n[Remove]\n\n[Add Experience]\nTotal Experience: 5 years\n```",
+  "description_preview": "Create a form with dynamically addable/removable field groups for work experience entries",
+  "context_code": "// Experience entry type (for reference only)\ninterface Experience {\n  id: number; // Unique identifier for React keys\n  company: string;\n  title: string;\n  startDate: string; // YYYY-MM-DD format\n  endDate: string; // YYYY-MM-DD format or empty\n  description: string;\n}\n\n// You need to build the complete dynamic form component",
+  "starter_code": "",
+  "target_area": "DynamicExperienceForm component",
+  "validation_spec": {
+    "required_imports": ["react"],
+    "required_structure": {
+      "functions": [
+        {
+          "name": "DynamicExperienceForm",
+          "type": "functional_component",
+          "params": [],
+          "has_return": true
+        }
+      ]
+    },
+    "behavior_patterns": [
+      {
+        "type": "hook_call",
+        "hook": "useState",
+        "min_calls": 2,
+        "description": "Must manage experiences array and validation errors"
+      },
+      {
+        "type": "form_handling",
+        "form_type": "controlled",
+        "description": "Must use controlled components for dynamic fields"
+      },
+      {
+        "type": "dynamic_array_management",
+        "operation": "add",
+        "description": "Must be able to add new experience entries"
+      },
+      {
+        "type": "dynamic_array_management",
+        "operation": "remove",
+        "description": "Must be able to remove experience entries"
+      },
+      {
+        "type": "form_validation",
+        "validation_type": "date_validation",
+        "description": "Must validate date ranges (end date after start date)"
+      },
+      {
+        "type": "event_handler",
+        "event_type": "onChange",
+        "handler_style": "inline",
+        "description": "Must handle input changes for dynamic fields"
+      },
+      {
+        "type": "jsx_elements",
+        "required_elements": ["input", "textarea", "button", "form"],
+        "description": "Must use appropriate form elements"
+      },
+      {
+        "type": "conditional_rendering",
+        "conditional_type": "ternary",
+        "description": "Must conditionally show remove buttons and validation"
+      },
+      {
+        "type": "calculation_logic",
+        "pattern": "date_calculation",
+        "description": "Must calculate total experience from dates"
+      }
+    ],
+    "difficulty": "intermediate",
+    "framework": "react"
+  },
+  "import_weight": 10.00,
+  "structure_weight": 25.00,
+  "behavior_weight": 65.00,
+  "passing_score": 85.00,
+  "hints": [
+    "Store experiences in state as an array of objects, each with a unique id",
+    "Use array methods (map, filter) to render and manage the dynamic fields",
+    "When adding/removing entries, preserve the data of other entries",
+    "Calculate total months/years of experience by parsing date strings"
+  ],
+  "learning_resources": [
+    "https://react.dev/learn/updating-arrays-in-state",
+    "https://react.dev/learn/rendering-lists",
+    "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Date"
+  ],
+  "tags": ["forms", "dynamic-fields", "field-arrays", "validation", "react"],
+  "estimated_time_minutes": 40,
+  "patterns": [
+    {
+      "pattern_id": "react-forms-012-pattern-1",
+      "name": "Dynamic Field Array Form",
+      "description": "Complete implementation with add/remove functionality and validation",
+      "example_code": "import React, { useState } from 'react';\n\ninterface Experience {\n  id: number;\n  company: string;\n  title: string;\n  startDate: string;\n  endDate: string;\n  description: string;\n}\n\ninterface FieldErrors {\n  company?: string;\n  title?: string;\n  startDate?: string;\n  endDate?: string;\n}\n\nconst DynamicExperienceForm: React.FC = () => {\n  const [experiences, setExperiences] = useState<Experience[]>([\n    { id: 1, company: '', title: '', startDate: '', endDate: '', description: '' }\n  ]);\n  const [errors, setErrors] = useState<Record<number, FieldErrors>>({});\n  const [isSubmitting, setIsSubmitting] = useState(false);\n  const [submitMessage, setSubmitMessage] = useState('');\n  \n  const addExperience = () => {\n    const newId = experiences.length > 0 \n      ? Math.max(...experiences.map(e => e.id)) + 1 \n      : 1;\n    \n    setExperiences(prev => [\n      ...prev,\n      { id: newId, company: '', title: '', startDate: '', endDate: '', description: '' }\n    ]);\n  };\n  \n  const removeExperience = (id: number) => {\n    if (experiences.length <= 1) return;\n    \n    setExperiences(prev => prev.filter(exp => exp.id !== id));\n    \n    // Remove errors for deleted experience\n    setErrors(prev => {\n      const newErrors = { ...prev };\n      delete newErrors[id];\n      return newErrors;\n    });\n  };\n  \n  const updateExperience = (id: number, field: keyof Experience, value: string) => {\n    setExperiences(prev => \n      prev.map(exp => \n        exp.id === id ? { ...exp, [field]: value } : exp\n      )\n    );\n    \n    // Clear error for this field when user types\n    if (errors[id]?.[field]) {\n      setErrors(prev => ({\n        ...prev,\n        [id]: {\n          ...prev[id],\n          [field]: undefined\n        }\n      }));\n    }\n  };\n  \n  const validateExperience = (exp: Experience): FieldErrors => {\n    const expErrors: FieldErrors = {};\n    \n    if (!exp.company.trim()) {\n      expErrors.company = 'Company name is required';\n    }\n    \n    if (!exp.title.trim()) {\n      expErrors.title = 'Job title is required';\n    }\n    \n    if (!exp.startDate) {\n      expErrors.startDate = 'Start date is required';\n    }\n    \n    if (exp.endDate && exp.startDate) {\n      const start = new Date(exp.startDate);\n      const end = new Date(exp.endDate);\n      \n      if (end < start) {\n        expErrors.endDate = 'End date must be after start date';\n      }\n    }\n    \n    return expErrors;\n  };\n  \n  const validateAllExperiences = (): boolean => {\n    const newErrors: Record<number, FieldErrors> = {};\n    let isValid = true;\n    \n    experiences.forEach(exp => {\n      const expErrors = validateExperience(exp);\n      if (Object.keys(expErrors).length > 0) {\n        newErrors[exp.id] = expErrors;\n        isValid = false;\n      }\n    });\n    \n    setErrors(newErrors);\n    return isValid;\n  };\n  \n  const calculateTotalExperience = (): string => {\n    let totalMonths = 0;\n    \n    experiences.forEach(exp => {\n      if (exp.startDate) {\n        const start = new Date(exp.startDate);\n        const end = exp.endDate ? new Date(exp.endDate) : new Date();\n        \n        if (end >= start) {\n          const years = end.getFullYear() - start.getFullYear();\n          const months = end.getMonth() - start.getMonth();\n          totalMonths += years * 12 + months;\n        }\n      }\n    });\n    \n    const years = Math.floor(totalMonths / 12);\n    const months = totalMonths % 12;\n    \n    if (years === 0) {\n      return `${months} month${months !== 1 ? 's' : ''}`;\n    } else if (months === 0) {\n      return `${years} year${years !== 1 ? 's' : ''}`;\n    } else {\n      return `${years} year${years !== 1 ? 's' : ''}, ${months} month${months !== 1 ? 's' : ''}`;\n    }\n  };\n  \n  const handleSubmit = async (e: React.FormEvent) => {\n    e.preventDefault();\n    \n    if (!validateAllExperiences()) {\n      setSubmitMessage('Please fix all errors before submitting.');\n      return;\n    }\n    \n    setIsSubmitting(true);\n    setSubmitMessage('');\n    \n    try {\n      // Simulate API call\n      await new Promise(resolve => setTimeout(resolve, 1000));\n      \n      setSubmitMessage(`Application submitted successfully with ${experiences.length} experience(s)!`);\n      console.log('Form data:', experiences);\n      \n      // Reset after successful submission\n      setTimeout(() => {\n        setExperiences([\n          { id: 1, company: '', title: '', startDate: '', endDate: '', description: '' }\n        ]);\n        setErrors({});\n        setSubmitMessage('');\n      }, 2000);\n    } catch (error) {\n      setSubmitMessage('Submission failed. Please try again.');\n    } finally {\n      setIsSubmitting(false);\n    }\n  };\n  \n  const totalExperience = calculateTotalExperience();\n  \n  return (\n    <form onSubmit={handleSubmit}>\n      <h2>Work Experience</h2>\n      \n      {experiences.map((exp, index) => (\n        <div \n          key={exp.id} \n          style={{\n            border: '1px solid #ccc',\n            padding: '15px',\n            marginBottom: '15px',\n            borderRadius: '5px'\n          }}\n        >\n          <h3>Work Experience #{index + 1}</h3>\n          \n          <div>\n            <label>Company Name:</label>\n            <input\n              type=\"text\"\n              value={exp.company}\n              onChange={(e) => updateExperience(exp.id, 'company', e.target.value)}\n              placeholder=\"Enter company name\"\n            />\n            {errors[exp.id]?.company && (\n              <span style={{ color: 'red', display: 'block' }}>{errors[exp.id].company}</span>\n            )}\n          </div>\n          \n          <div>\n            <label>Job Title:</label>\n            <input\n              type=\"text\"\n              value={exp.title}\n              onChange={(e) => updateExperience(exp.id, 'title', e.target.value)}\n              placeholder=\"Enter job title\"\n            />\n            {errors[exp.id]?.title && (\n              <span style={{ color: 'red', display: 'block' }}>{errors[exp.id].title}</span>\n            )}\n          </div>\n          \n          <div>\n            <label>Start Date:</label>\n            <input\n              type=\"date\"\n              value={exp.startDate}\n              onChange={(e) => updateExperience(exp.id, 'startDate', e.target.value)}\n            />\n            {errors[exp.id]?.startDate && (\n              <span style={{ color: 'red', display: 'block' }}>{errors[exp.id].startDate}</span>\n            )}\n          </div>\n          \n          <div>\n            <label>End Date (leave empty if current):</label>\n            <input\n              type=\"date\"\n              value={exp.endDate}\n              onChange={(e) => updateExperience(exp.id, 'endDate', e.target.value)}\n            />\n            {errors[exp.id]?.endDate && (\n              <span style={{ color: 'red', display: 'block' }}>{errors[exp.id].endDate}</span>\n            )}\n          </div>\n          \n          <div>\n            <label>Description (optional):</label>\n            <textarea\n              value={exp.description}\n              onChange={(e) => updateExperience(exp.id, 'description', e.target.value)}\n              placeholder=\"Describe your role and responsibilities\"\n              rows={3}\n            />\n          </div>\n          \n          {experiences.length > 1 && (\n            <button\n              type=\"button\"\n              onClick={() => removeExperience(exp.id)}\n              style={{\n                backgroundColor: '#ff6b6b',\n                color: 'white',\n                border: 'none',\n                padding: '5px 10px',\n                borderRadius: '3px',\n                cursor: 'pointer'\n              }}\n            >\n              Remove Experience\n            </button>\n          )}\n        </div>\n      ))}\n      \n      <div>\n        <button\n          type=\"button\"\n          onClick={addExperience}\n          style={{\n            backgroundColor: '#4CAF50',\n            color: 'white',\n            border: 'none',\n            padding: '10px 20px',\n            borderRadius: '5px',\n            cursor: 'pointer',\n            marginBottom: '20px'\n          }}\n        >\n          + Add Experience\n        </button>\n      </div>\n      \n      <div>\n        <strong>Total Experience: {totalExperience}</strong>\n      </div>\n      \n      <div>\n        <button \n          type=\"submit\" \n          disabled={isSubmitting}\n          style={{\n            backgroundColor: '#2196F3',\n            color: 'white',\n            border: 'none',\n            padding: '10px 30px',\n            borderRadius: '5px',\n            cursor: 'pointer',\n            fontSize: '16px',\n            marginTop: '20px'\n          }}\n        >\n          {isSubmitting ? 'Submitting...' : 'Submit Application'}\n        </button>\n      </div>\n      \n      {submitMessage && (\n        <div style={{\n          marginTop: '20px',\n          padding: '10px',\n          backgroundColor: submitMessage.includes('successful') ? 'lightgreen' : 'lightcoral',\n          borderRadius: '5px'\n        }}>\n          {submitMessage}\n        </div>\n      )}\n    </form>\n  );\n};\n\nexport default DynamicExperienceForm;",
+      "required_imports": ["react"],
+      "required_structure": {
+        "functions": [
+          {
+            "name": "DynamicExperienceForm",
+            "type": "functional_component",
+            "params": [],
+            "has_return": true
+          }
+        ]
+      },
+      "forbidden_patterns": [
+        "no_unique_keys",
+        "missing_validation",
+        "hardcoded_array_length"
+      ],
+      "is_primary": true,
+      "confidence_threshold": 85.00
+    }
+  ]
+}

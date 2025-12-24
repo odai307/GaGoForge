@@ -1,0 +1,196 @@
+{
+  "problem_id": "react-state_management-011",
+  "title": "Build a Shopping Cart with Context API and useReducer",
+  "slug": "shopping-cart-with-context-api-and-usereducer",
+  "framework": "react",
+  "category": "state_management",
+  "difficulty": "intermediate",
+  "description": "Create a complete shopping cart system for an e-commerce application using React Context API and useReducer. The system should manage cart state globally and support all standard cart operations.\n\n**Requirements:**\n1. Create a CartContext using React.createContext\n2. Implement a CartProvider component that wraps the application\n3. Use useReducer to manage cart state with actions for add, remove, update quantity, and clear cart\n4. Create a custom useCart hook for accessing cart state and dispatch\n5. Implement the following cart operations:\n   - Add item to cart (increment quantity if exists)\n   - Remove item from cart\n   - Update item quantity\n   - Clear entire cart\n   - Calculate cart total price\n6. Cart items should have: id, name, price, quantity, imageUrl\n7. Implement a Cart component that displays all items and allows quantity updates\n8. Create a CartSummary component that shows total items, total price, and clear cart button\n\n**Expected Behavior:**\n- Cart state should be accessible from any component via useCart hook\n- Adding existing item should increment quantity, not create duplicate\n- Quantity should have minimum of 1 and maximum of 10 per item\n- Cart total should update automatically when items change\n- Cart should persist data during page refresh (bonus, not required)\n\n**Example Cart Item:**\n```javascript\n{\n  id: 'prod_001',\n  name: 'Wireless Headphones',\n  price: 99.99,\n  quantity: 2,\n  imageUrl: '/images/headphones.jpg'\n}\n```",
+  "description_preview": "Implement a shopping cart system using React Context API and useReducer with global state management and complex state transitions.",
+  "context_code": "// PRODUCT DEFINITIONS (for reference only - you need to create the Context system)\n// Product interface:\n// {\n//   id: string,\n//   name: string,\n//   price: number,\n//   quantity: number,\n//   imageUrl: string\n// }\n\n// Cart state structure:\n// {\n//   items: Product[],\n//   totalItems: number,\n//   totalPrice: number\n// }\n\n// Cart actions:\n// ADD_ITEM, REMOVE_ITEM, UPDATE_QUANTITY, CLEAR_CART",
+  "starter_code": "",
+  "target_area": "Complete shopping cart system with Context API and useReducer",
+  "validation_spec": {
+    "required_imports": ["react"],
+    "required_structure": {
+      "functions": [
+        {
+          "name": "CartProvider",
+          "type": "functional_component",
+          "has_export": true,
+          "description": "Context provider component"
+        },
+        {
+          "name": "useCart",
+          "type": "custom_hook",
+          "has_export": true,
+          "description": "Custom hook for accessing cart context"
+        },
+        {
+          "name": "cartReducer",
+          "has_export": true,
+          "description": "Reducer function for cart state management"
+        }
+      ],
+      "classes": [],
+      "variables": [
+        {
+          "name": "CartContext",
+          "type": "context",
+          "has_export": true
+        }
+      ]
+    },
+    "behavior_patterns": [
+      {
+        "type": "constructor_call",
+        "class": "createContext",
+        "object": "React",
+        "context": "top_level",
+        "description": "Must create CartContext using React.createContext"
+      },
+      {
+        "type": "hook_call",
+        "hook": "useReducer",
+        "min_calls": 1,
+        "context": "CartProvider",
+        "description": "CartProvider must use useReducer for state management"
+      },
+      {
+        "type": "custom_hook",
+        "hook_name": "useCart",
+        "must_use_react_hooks": true,
+        "must_return": true,
+        "description": "Must create custom useCart hook using useContext"
+      },
+      {
+        "type": "state_management",
+        "state_type": "useReducer",
+        "actions": ["ADD_ITEM", "REMOVE_ITEM", "UPDATE_QUANTITY", "CLEAR_CART"],
+        "description": "Reducer must handle add, remove, update quantity, and clear actions"
+      },
+      {
+        "type": "method_call",
+        "object": "dispatch",
+        "method": "call",
+        "context": "event_handler",
+        "description": "Must dispatch actions from event handlers"
+      },
+      {
+        "type": "context_usage",
+        "context_type": "provider",
+        "component_name": "CartProvider",
+        "description": "Must provide CartContext.Provider with value prop"
+      },
+      {
+        "type": "context_usage",
+        "context_type": "use_context",
+        "hook_name": "useCart",
+        "description": "useCart hook must call useContext(CartContext)"
+      },
+      {
+        "type": "state_variable",
+        "variable_pattern": "items",
+        "data_structure": "array",
+        "description": "Cart state must contain items array"
+      },
+      {
+        "type": "derived_state",
+        "calculation": "totalPrice",
+        "uses_state": ["items"],
+        "description": "Must calculate totalPrice from items array"
+      },
+      {
+        "type": "derived_state",
+        "calculation": "totalItems",
+        "uses_state": ["items"],
+        "description": "Must calculate totalItems from items array"
+      },
+      {
+        "type": "event_handler",
+        "event_type": "onClick",
+        "handler_action": "dispatch",
+        "description": "Cart operations must dispatch actions via event handlers"
+      },
+      {
+        "type": "conditional_rendering",
+        "conditional_type": "logical_and",
+        "uses_state": ["items"],
+        "description": "Must conditionally render based on cart items length"
+      }
+    ],
+    "difficulty": "intermediate",
+    "framework": "react",
+    "import_weight": 10.00,
+    "structure_weight": 30.00,
+    "behavior_weight": 60.00,
+    "passing_score": 82.00
+  },
+  "import_weight": 10.00,
+  "structure_weight": 30.00,
+  "behavior_weight": 60.00,
+  "passing_score": 82.00,
+  "hints": [
+    "Start by creating CartContext with React.createContext() and export it",
+    "Implement cartReducer that handles ADD_ITEM, REMOVE_ITEM, UPDATE_QUANTITY, and CLEAR_CART actions",
+    "Create CartProvider component that uses useReducer with cartReducer and provides the context",
+    "Implement useCart custom hook that calls useContext(CartContext) - this is your public API",
+    "For ADD_ITEM action, check if item already exists in cart and increment quantity instead of adding duplicate",
+    "Calculate derived state (totalItems, totalPrice) in the reducer or in CartProvider",
+    "Create helper functions in CartProvider to dispatch actions (addToCart, removeFromCart, etc.)",
+    "Use CartProvider at the top level of your app and access cart via useCart hook in child components"
+  ],
+  "learning_resources": [
+    "https://react.dev/reference/react/useReducer",
+    "https://react.dev/reference/react/createContext",
+    "https://react.dev/learn/scaling-up-with-reducer-and-context",
+    "https://react.dev/learn/passing-data-deeply-with-context"
+  ],
+  "tags": ["react", "state_management", "context", "reducer", "shopping-cart", "intermediate"],
+  "estimated_time_minutes": 45,
+  "patterns": [
+    {
+      "pattern_id": "react-state_management-011-pattern-1",
+      "name": "Context + Reducer Shopping Cart",
+      "description": "Complete shopping cart implementation using Context API and useReducer with derived state calculations",
+      "example_code": "import React, { createContext, useContext, useReducer, useMemo } from 'react';\n\n// Create Context\nconst CartContext = createContext();\n\n// Initial state\nconst initialState = {\n  items: [],\n  totalItems: 0,\n  totalPrice: 0\n};\n\n// Action types\nconst ActionTypes = {\n  ADD_ITEM: 'ADD_ITEM',\n  REMOVE_ITEM: 'REMOVE_ITEM',\n  UPDATE_QUANTITY: 'UPDATE_QUANTITY',\n  CLEAR_CART: 'CLEAR_CART'\n};\n\n// Reducer function\nconst cartReducer = (state, action) => {\n  switch (action.type) {\n    case ActionTypes.ADD_ITEM: {\n      const existingItemIndex = state.items.findIndex(item => item.id === action.payload.id);\n      \n      if (existingItemIndex >= 0) {\n        // Item exists, update quantity\n        const updatedItems = [...state.items];\n        updatedItems[existingItemIndex] = {\n          ...updatedItems[existingItemIndex],\n          quantity: Math.min(updatedItems[existingItemIndex].quantity + 1, 10)\n        };\n        \n        const totalItems = updatedItems.reduce((sum, item) => sum + item.quantity, 0);\n        const totalPrice = updatedItems.reduce((sum, item) => sum + (item.price * item.quantity), 0);\n        \n        return {\n          ...state,\n          items: updatedItems,\n          totalItems,\n          totalPrice\n        };\n      } else {\n        // New item\n        const newItem = { ...action.payload, quantity: 1 };\n        const updatedItems = [...state.items, newItem];\n        \n        const totalItems = updatedItems.reduce((sum, item) => sum + item.quantity, 0);\n        const totalPrice = updatedItems.reduce((sum, item) => sum + (item.price * item.quantity), 0);\n        \n        return {\n          ...state,\n          items: updatedItems,\n          totalItems,\n          totalPrice\n        };\n      }\n    }\n    \n    case ActionTypes.REMOVE_ITEM: {\n      const updatedItems = state.items.filter(item => item.id !== action.payload);\n      \n      const totalItems = updatedItems.reduce((sum, item) => sum + item.quantity, 0);\n      const totalPrice = updatedItems.reduce((sum, item) => sum + (item.price * item.quantity), 0);\n      \n      return {\n        ...state,\n        items: updatedItems,\n        totalItems,\n        totalPrice\n      };\n    }\n    \n    case ActionTypes.UPDATE_QUANTITY: {\n      const { id, quantity } = action.payload;\n      const updatedItems = state.items.map(item => \n        item.id === id \n          ? { ...item, quantity: Math.max(1, Math.min(10, quantity)) }\n          : item\n      );\n      \n      const totalItems = updatedItems.reduce((sum, item) => sum + item.quantity, 0);\n      const totalPrice = updatedItems.reduce((sum, item) => sum + (item.price * item.quantity), 0);\n      \n      return {\n        ...state,\n        items: updatedItems,\n        totalItems,\n        totalPrice\n      };\n    }\n    \n    case ActionTypes.CLEAR_CART:\n      return initialState;\n    \n    default:\n      return state;\n  }\n};\n\n// Provider Component\nconst CartProvider = ({ children }) => {\n  const [state, dispatch] = useReducer(cartReducer, initialState);\n  \n  // Action creators\n  const addToCart = (item) => {\n    dispatch({ type: ActionTypes.ADD_ITEM, payload: item });\n  };\n  \n  const removeFromCart = (itemId) => {\n    dispatch({ type: ActionTypes.REMOVE_ITEM, payload: itemId });\n  };\n  \n  const updateQuantity = (itemId, quantity) => {\n    dispatch({ type: ActionTypes.UPDATE_QUANTITY, payload: { id: itemId, quantity } });\n  };\n  \n  const clearCart = () => {\n    dispatch({ type: ActionTypes.CLEAR_CART });\n  };\n  \n  const value = useMemo(() => ({\n    ...state,\n    addToCart,\n    removeFromCart,\n    updateQuantity,\n    clearCart\n  }), [state]);\n  \n  return (\n    <CartContext.Provider value={value}>\n      {children}\n    </CartContext.Provider>\n  );\n};\n\n// Custom hook\nconst useCart = () => {\n  const context = useContext(CartContext);\n  if (!context) {\n    throw new Error('useCart must be used within CartProvider');\n  }\n  return context;\n};\n\nexport { CartProvider, useCart, CartContext };\n\n// Example Cart Component (not part of validation, just for reference)\n/*\nconst Cart = () => {\n  const { items, totalPrice, totalItems, removeFromCart, updateQuantity, clearCart } = useCart();\n  \n  return (\n    <div className=\"cart\">\n      <h2>Shopping Cart ({totalItems} items)</h2>\n      \n      {items.length === 0 ? (\n        <p>Your cart is empty</p>\n      ) : (\n        <>\n          <div className=\"cart-items\">\n            {items.map(item => (\n              <div key={item.id} className=\"cart-item\">\n                <img src={item.imageUrl} alt={item.name} />\n                <div>\n                  <h3>{item.name}</h3>\n                  <p>${item.price}</p>\n                  <input\n                    type=\"number\"\n                    min=\"1\"\n                    max=\"10\"\n                    value={item.quantity}\n                    onChange={(e) => updateQuantity(item.id, parseInt(e.target.value))}\n                  />\n                  <button onClick={() => removeFromCart(item.id)}>Remove</button>\n                </div>\n              </div>\n            ))}\n          </div>\n          \n          <div className=\"cart-summary\">\n            <p>Total: ${totalPrice.toFixed(2)}</p>\n            <button onClick={clearCart}>Clear Cart</button>\n            <button>Checkout</button>\n          </div>\n        </>\n      )}\n    </div>\n  );\n};\n*/",
+      "required_imports": ["react"],
+      "required_structure": {
+        "functions": [
+          {
+            "name": "CartProvider",
+            "type": "functional_component",
+            "has_export": true
+          },
+          {
+            "name": "useCart",
+            "type": "custom_hook",
+            "has_export": true
+          },
+          {
+            "name": "cartReducer",
+            "has_export": true
+          }
+        ],
+        "variables": [
+          {
+            "name": "CartContext",
+            "type": "context",
+            "has_export": true
+          }
+        ]
+      },
+      "forbidden_patterns": [
+        "Using useState instead of useReducer for complex cart logic",
+        "Not providing CartContext.Provider",
+        "Missing custom hook for context access",
+        "Directly mutating state in reducer",
+        "Not calculating derived state (totalItems, totalPrice)",
+        "Using prop drilling instead of Context",
+        "No error handling for useCart outside provider"
+      ],
+      "is_primary": true,
+      "confidence_threshold": 85.00
+    }
+  ]
+}

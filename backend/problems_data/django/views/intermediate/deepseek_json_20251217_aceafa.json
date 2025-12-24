@@ -1,0 +1,175 @@
+{
+  "problem_id": "django-views-013",
+  "title": "Build Real-time Dashboard with Caching and WebSocket Updates",
+  "slug": "build-real-time-dashboard-with-caching-and-websocket-updates",
+  "framework": "django",
+  "category": "views",
+  "difficulty": "intermediate",
+  "description": "You're building a real-time monitoring dashboard for an e-commerce platform. The dashboard displays live metrics, recent activities, and system status with automatic updates.\n\n**Dashboard Components:**\n\n1. **Live Metrics Panel:**\n   - Current active users\n   - Orders in last 5 minutes\n   - Revenue today\n   - Average order value\n   - Conversion rate\n\n2. **Recent Activity Feed:**\n   - New user registrations\n   - Completed orders\n   - Customer support tickets\n   - Inventory updates\n   - System alerts\n\n3. **System Status:**\n   - API response times\n   - Database load\n   - Cache hit rate\n   - Error rate\n   - Uptime percentage\n\n4. **Charts & Graphs:**\n   - Revenue trends (last 7 days)\n   - User growth (monthly)\n   - Top selling products\n   - Traffic sources\n   - Geographic distribution\n\n**Requirements:**\n\n1. **View Implementation:**\n   - Use TemplateView as base\n   - Implement multiple template fragments\n   - Handle AJAX updates for real-time data\n   - Provide WebSocket endpoint for push updates\n\n2. **Caching Strategy:**\n   - Cache expensive queries (5 minutes)\n   - Cache template fragments\n   - Implement cache invalidation on data changes\n   - Use different cache backends for different data types\n\n3. **Real-time Updates:**\n   - WebSocket connection for live metrics\n   - AJAX polling fallback for older browsers\n   - Server-Sent Events (SSE) for activity feed\n   - Optimize update frequency based on data type\n\n4. **Performance Optimization:**\n   - Database query optimization\n   - Selective caching based on user role\n   - Lazy loading for charts\n   - CDN for static assets\n   - Gzip compression for responses\n\n5. **Security & Scaling:**\n   - Rate limiting for update endpoints\n   - Authentication for WebSocket connections\n   - Data filtering based on user permissions\n   - Horizontal scaling considerations\n   - Load balancing for WebSocket connections\n\n**Models (simplified):**\n```python\nclass Metric(models.Model):\n    \"\"\"Stores historical metrics\"\"\"\n    name = models.CharField(max_length=100)\n    value = models.FloatField()\n    timestamp = models.DateTimeField(auto_now_add=True)\n    metadata = models.JSONField(default=dict)\n\nclass ActivityLog(models.Model):\n    \"\"\"System activity log\"\"\"\n    ACTIVITY_TYPES = [\n        ('user_registered', 'User Registered'),\n        ('order_placed', 'Order Placed'),\n        ('order_completed', 'Order Completed'),\n        ('ticket_created', 'Support Ticket Created'),\n        ('inventory_updated', 'Inventory Updated'),\n        ('system_alert', 'System Alert'),\n    ]\n    \n    activity_type = models.CharField(max_length=50, choices=ACTIVITY_TYPES)\n    user = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True)\n    description = models.TextField()\n    metadata = models.JSONField(default=dict)\n    created_at = models.DateTimeField(auto_now_add=True)\n    is_read = models.BooleanField(default=False)  # For admin notifications\n\nclass DashboardCache(models.Model):\n    \"\"\"Manual cache for dashboard data\"\"\"\n    cache_key = models.CharField(max_length=255, unique=True)\n    data = models.JSONField()\n    expires_at = models.DateTimeField()\n    created_at = models.DateTimeField(auto_now_add=True)\n    last_accessed = models.DateTimeField(auto_now=True)\n```\n\n**Expected Features:**\n- Dashboard loads in under 2 seconds\n- Real-time updates without page refresh\n- Responsive design for mobile/desktop\n- Export functionality for reports\n- Custom date range selection\n- Role-based data access\n- Offline capability for cached data\n\n**Technical Constraints:**\n- Must use Django Channels for WebSockets\n- Implement proper cache warming\n- Handle concurrent WebSocket connections\n- Graceful degradation when real-time features unavailable\n- Optimize for 1000+ concurrent users",
+  "description_preview": "Create a real-time dashboard with TemplateView, caching, WebSocket updates, and performance optimizations.",
+  "context_code": "# MODELS AND SETTINGS (for reference only)\n# These models are already defined\nfrom django.db import models\nfrom django.contrib.auth.models import User\n\n# Models defined as above\n# You need to create the dashboard views, caching system, and WebSocket handlers",
+  "starter_code": "",
+  "target_area": "Create the dashboard TemplateView, caching system, WebSocket handlers, and real-time update endpoints",
+  "validation_spec": {
+    "required_imports": [
+      "django.views.generic",
+      "channels.generic.websocket",
+      "django.core.cache",
+      "django.views.decorators.cache",
+      "django.views.decorators.vary",
+      "json",
+      "asyncio",
+      "datetime"
+    ],
+    "required_structure": {
+      "classes": [
+        {
+          "name": "DashboardView",
+          "parent_class": "TemplateView",
+          "required_methods": ["get_context_data", "get_template_names", "get_cache_key", "get_cached_data"]
+        },
+        {
+          "name": "DashboardConsumer",
+          "parent_class": "AsyncWebsocketConsumer",
+          "required_methods": ["connect", "disconnect", "receive", "send_updates", "broadcast_update"]
+        },
+        {
+          "name": "MetricsCache",
+          "required_methods": ["get_metrics", "update_metrics", "invalidate_metrics", "warm_cache"]
+        },
+        {
+          "name": "RealTimeUpdateHandler",
+          "required_methods": ["subscribe", "unsubscribe", "broadcast", "get_subscribers"]
+        },
+        {
+          "name": "ActivityFeedView",
+          "parent_class": "View",
+          "required_methods": ["get", "get_activities", "format_activity"]
+        }
+      ],
+      "functions": [
+        {
+          "name": "generate_cache_key",
+          "params": ["user", "component", "time_range"],
+          "returns": "str"
+        },
+        {
+          "name": "calculate_metrics",
+          "params": ["time_range", "filters"],
+          "returns": "dict"
+        }
+      ]
+    },
+    "behavior_patterns": [
+      "Uses TemplateView with multiple template fragments",
+      "Implements fragment caching for dashboard components",
+      "Provides WebSocket endpoint for real-time updates",
+      "Uses AJAX fallback for browsers without WebSocket support",
+      "Implements cache warming for frequently accessed data",
+      "Handles cache invalidation on data changes",
+      "Provides Server-Sent Events for activity feed",
+      "Optimizes database queries with select_related/prefetch_related",
+      "Uses Django Channels for WebSocket handling",
+      "Implements authentication for WebSocket connections",
+      "Provides rate limiting for update endpoints",
+      "Handles concurrent WebSocket connections efficiently",
+      "Uses Redis for caching and WebSocket channel layers",
+      "Implements graceful degradation for real-time features",
+      "Provides export functionality for dashboard data"
+    ]
+  },
+  "import_weight": 15.00,
+  "structure_weight": 35.00,
+  "behavior_weight": 50.00,
+  "passing_score": 80.00,
+  "hints": [
+    "Use Django's TemplateView with get_context_data() for initial data",
+    "Implement fragment caching with django.core.cache",
+    "Use Django Channels for WebSocket support (install channels, channels-redis)",
+    "Create separate cache keys for different dashboard components",
+    "Use Celery or async tasks for cache warming",
+    "Implement WebSocket authentication using Django's session or token auth",
+    "Use Redis as channel layer for WebSocket broadcasting",
+    "Create AJAX endpoints with JSON responses for fallback",
+    "Optimize queries with Django's annotate() and aggregate()",
+    "Use Django's cache framework with different timeouts for different data"
+  ],
+  "learning_resources": [
+    "https://docs.djangoproject.com/en/stable/topics/cache/",
+    "https://channels.readthedocs.io/en/stable/",
+    "https://docs.djangoproject.com/en/stable/topics/http/decorators/#vary-on-headers",
+    "https://docs.djangoproject.com/en/stable/topics/class-based-views/"
+  ],
+  "tags": ["django", "views", "templateview", "caching", "websockets", "realtime", "intermediate"],
+  "estimated_time_minutes": 55,
+  "patterns": [
+    {
+      "pattern_id": "django-views-013-pattern-1",
+      "name": "Real-time Dashboard with Caching and WebSockets",
+      "description": "Complete implementation of real-time dashboard with caching, WebSocket updates, and performance optimizations",
+      "example_code": "import json\nimport asyncio\nfrom datetime import datetime, timedelta\nfrom typing import Dict, List, Optional, Any\n\nfrom asgiref.sync import sync_to_async, async_to_sync\nfrom channels.generic.websocket import AsyncWebsocketConsumer\nfrom channels.layers import get_channel_layer\nfrom django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin\nfrom django.core.cache import cache\nfrom django.db import models\nfrom django.db.models import Count, Sum, Avg, F, Q\nfrom django.http import JsonResponse\nfrom django.utils import timezone\nfrom django.utils.decorators import method_decorator\nfrom django.views.decorators.cache import cache_page, cache_control\nfrom django.views.decorators.vary import vary_on_cookie, vary_on_headers\nfrom django.views.generic import TemplateView, View\n\nfrom .models import Metric, ActivityLog, DashboardCache\n\n\nclass MetricsCache:\n    \"\"\"Cache manager for dashboard metrics\"\"\"\n    \n    CACHE_PREFIX = 'dashboard_metrics'\n    CACHE_TIMEOUT = 300  # 5 minutes\n    \n    @classmethod\n    def generate_cache_key(cls, user_id: int, component: str, time_range: str) -> str:\n        \"\"\"Generate cache key for metrics\"\"\"\n        return f\"{cls.CACHE_PREFIX}:{user_id}:{component}:{time_range}\"\n    \n    @classmethod\n    def get_metrics(cls, user_id: int, component: str, time_range: str = 'today') -> Dict:\n        \"\"\"Get cached metrics or calculate if not cached\"\"\"\n        cache_key = cls.generate_cache_key(user_id, component, time_range)\n        cached_data = cache.get(cache_key)\n        \n        if cached_data is not None:\n            return cached_data\n        \n        # Calculate metrics\n        metrics = cls.calculate_metrics(component, time_range)\n        \n        # Cache the results\n        cache.set(cache_key, metrics, cls.CACHE_TIMEOUT)\n        \n        return metrics\n    \n    @classmethod\n    def calculate_metrics(cls, component: str, time_range: str) -> Dict:\n        \"\"\"Calculate metrics for a component\"\"\"\n        now = timezone.now()\n        \n        if component == 'live_metrics':\n            if time_range == 'today':\n                start_time = now.replace(hour=0, minute=0, second=0, microsecond=0)\n                end_time = now\n            elif time_range == 'last_hour':\n                start_time = now - timedelta(hours=1)\n                end_time = now\n            elif time_range == 'last_5_minutes':\n                start_time = now - timedelta(minutes=5)\n                end_time = now\n            else:\n                start_time = now - timedelta(days=1)\n                end_time = now\n            \n            # Calculate live metrics (simplified - would use actual models)\n            return {\n                'active_users': cls._get_active_users(start_time, end_time),\n                'orders_count': cls._get_orders_count(start_time, end_time),\n                'revenue': cls._get_revenue(start_time, end_time),\n                'avg_order_value': cls._get_avg_order_value(start_time, end_time),\n                'conversion_rate': cls._get_conversion_rate(start_time, end_time),\n                'timestamp': now.isoformat()\n            }\n        \n        elif component == 'system_status':\n            return {\n                'api_response_time': cls._get_api_response_time(),\n                'database_load': cls._get_database_load(),\n                'cache_hit_rate': cls._get_cache_hit_rate(),\n                'error_rate': cls._get_error_rate(),\n                'uptime_percentage': cls._get_uptime_percentage(),\n                'timestamp': now.isoformat()\n            }\n        \n        return {}\n    \n    @classmethod\n    def _get_active_users(cls, start_time, end_time):\n        \"\"\"Get active users count\"\"\"\n        # Simplified - would query User model with last_login filter\n        from django.contrib.auth.models import User\n        return User.objects.filter(\n            last_login__range=(start_time, end_time)\n        ).count()\n    \n    @classmethod\n    def _get_orders_count(cls, start_time, end_time):\n        \"\"\"Get orders count\"\"\"\n        # Simplified - would query Order model\n        return 42  # Example value\n    \n    @classmethod\n    def _get_revenue(cls, start_time, end_time):\n        \"\"\"Get revenue\"\"\"\n        # Simplified - would query Order model with sum\n        return 12500.50  # Example value\n    \n    @classmethod\n    def _get_avg_order_value(cls, start_time, end_time):\n        \"\"\"Get average order value\"\"\"\n        # Simplified calculation\n        orders = cls._get_orders_count(start_time, end_time)\n        revenue = cls._get_revenue(start_time, end_time)\n        return revenue / orders if orders > 0 else 0\n    \n    @classmethod\n    def _get_conversion_rate(cls, start_time, end_time):\n        \"\"\"Get conversion rate\"\"\"\n        # Simplified - would calculate from sessions and orders\n        return 2.5  # Example value\n    \n    @classmethod\n    def _get_api_response_time(cls):\n        \"\"\"Get API response time\"\"\"\n        # Would query metrics table\n        return 125  # milliseconds\n    \n    @classmethod\n    def _get_database_load(cls):\n        \"\"\"Get database load\"\"\"\n        return 65  # percentage\n    \n    @classmethod\n    def _get_cache_hit_rate(cls):\n        \"\"\"Get cache hit rate\"\"\"\n        return 92  # percentage\n    \n    @classmethod\n    def _get_error_rate(cls):\n        \"\"\"Get error rate\"\"\"\n        return 0.5  # percentage\n    \n    @classmethod\n    def _get_uptime_percentage(cls):\n        \"\"\"Get uptime percentage\"\"\"\n        return 99.95  # percentage\n    \n    @classmethod\n    def update_metrics(cls, user_id: int, component: str, data: Dict):\n        \"\"\"Update metrics cache\"\"\"\n        cache_key = cls.generate_cache_key(user_id, component, 'today')\n        cache.set(cache_key, data, cls.CACHE_TIMEOUT)\n    \n    @classmethod\n    def invalidate_metrics(cls, user_id: Optional[int] = None, component: Optional[str] = None):\n        \"\"\"Invalidate metrics cache\"\"\"\n        if user_id and component:\n            # Invalidate specific cache\n            cache_key = cls.generate_cache_key(user_id, component, 'today')\n            cache.delete(cache_key)\n        else:\n            # Invalidate all dashboard caches\n            cache.delete_many(keys=cache.keys('dashboard_metrics:*'))\n    \n    @classmethod\n    def warm_cache(cls, user_ids: List[int]):\n        \"\"\"Warm cache for users\"\"\"\n        components = ['live_metrics', 'system_status', 'recent_activity']\n        time_ranges = ['today', 'last_hour', 'last_week']\n        \n        for user_id in user_ids:\n            for component in components:\n                for time_range in time_ranges:\n                    cls.get_metrics(user_id, component, time_range)\n\n\nclass RealTimeUpdateHandler:\n    \"\"\"Handler for real-time updates\"\"\"\n    \n    CHANNEL_GROUP_PREFIX = 'dashboard_updates'\n    \n    @classmethod\n    def get_channel_group_name(cls, user_id: int) -> str:\n        \"\"\"Get channel group name for user\"\"\"\n        return f\"{cls.CHANNEL_GROUP_PREFIX}_{user_id}\"\n    \n    @classmethod\n    async def subscribe(cls, user_id: int, websocket):\n        \"\"\"Subscribe user to updates\"\"\"\n        channel_layer = get_channel_layer()\n        group_name = cls.get_channel_group_name(user_id)\n        \n        await channel_layer.group_add(\n            group_name,\n            websocket.channel_name\n        )\n    \n    @classmethod\n    async def unsubscribe(cls, user_id: int, websocket):\n        \"\"\"Unsubscribe user from updates\"\"\"\n        channel_layer = get_channel_layer()\n        group_name = cls.get_channel_group_name(user_id)\n        \n        await channel_layer.group_discard(\n            group_name,\n            websocket.channel_name\n        )\n    \n    @classmethod\n    async def broadcast(cls, user_id: int, update_type: str, data: Dict):\n        \"\"\"Broadcast update to user\"\"\"\n        channel_layer = get_channel_layer()\n        group_name = cls.get_channel_group_name(user_id)\n        \n        await channel_layer.group_send(\n            group_name,\n            {\n                'type': 'send_update',\n                'update_type': update_type,\n                'data': data\n            }\n        )\n    \n    @classmethod\n    def broadcast_sync(cls, user_id: int, update_type: str, data: Dict):\n        \"\"\"Sync version of broadcast\"\"\"\n        async_to_sync(cls.broadcast)(user_id, update_type, data)\n\n\nclass DashboardConsumer(AsyncWebsocketConsumer):\n    \"\"\"WebSocket consumer for dashboard updates\"\"\"\n    \n    async def connect(self):\n        \"\"\"Handle WebSocket connection\"\"\"\n        self.user = self.scope['user']\n        \n        if not self.user.is_authenticated:\n            await self.close()\n            return\n        \n        self.user_id = self.user.id\n        self.group_name = RealTimeUpdateHandler.get_channel_group_name(self.user_id)\n        \n        # Accept connection\n        await self.accept()\n        \n        # Subscribe to updates\n        await RealTimeUpdateHandler.subscribe(self.user_id, self)\n        \n        # Send initial data\n        await self.send_initial_data()\n    \n    async def disconnect(self, close_code):\n        \"\"\"Handle WebSocket disconnection\"\"\"\n        if hasattr(self, 'user_id'):\n            await RealTimeUpdateHandler.unsubscribe(self.user_id, self)\n    \n    async def receive(self, text_data):\n        \"\"\"Handle received messages\"\"\"\n        try:\n            data = json.loads(text_data)\n            message_type = data.get('type')\n            \n            if message_type == 'ping':\n                await self.send(json.dumps({'type': 'pong', 'timestamp': timezone.now().isoformat()}))\n            elif message_type == 'request_update':\n                component = data.get('component')\n                time_range = data.get('time_range', 'today')\n                await self.send_component_update(component, time_range)\n            elif message_type == 'set_filter':\n                filters = data.get('filters', {})\n                await self.handle_filters(filters)\n            \n        except json.JSONDecodeError:\n            await self.send(json.dumps({'type': 'error', 'message': 'Invalid JSON'}))\n    \n    async def send_update(self, event):\n        \"\"\"Send update to WebSocket\"\"\"\n        await self.send(text_data=json.dumps({\n            'type': 'update',\n            'update_type': event['update_type'],\n            'data': event['data'],\n            'timestamp': timezone.now().isoformat()\n        }))\n    \n    async def send_initial_data(self):\n        \"\"\"Send initial dashboard data\"\"\"\n        # Get cached metrics\n        live_metrics = await sync_to_async(MetricsCache.get_metrics)(\n            self.user_id, 'live_metrics', 'today'\n        )\n        system_status = await sync_to_async(MetricsCache.get_metrics)(\n            self.user_id, 'system_status', 'today'\n        )\n        \n        await self.send(json.dumps({\n            'type': 'initial_data',\n            'live_metrics': live_metrics,\n            'system_status': system_status,\n            'timestamp': timezone.now().isoformat()\n        }))\n    \n    async def send_component_update(self, component: str, time_range: str):\n        \"\"\"Send update for specific component\"\"\"\n        metrics = await sync_to_async(MetricsCache.get_metrics)(\n            self.user_id, component, time_range\n        )\n        \n        await self.send(json.dumps({\n            'type': 'component_update',\n            'component': component,\n            'data': metrics,\n            'timestamp': timezone.now().isoformat()\n        }))\n    \n    async def handle_filters(self, filters: Dict):\n        \"\"\"Handle filter updates\"\"\"\n        # Store filters in session or cache\n        cache_key = f'dashboard_filters:{self.user_id}'\n        cache.set(cache_key, filters, 3600)  # 1 hour\n        \n        # Recalculate metrics with new filters\n        MetricsCache.invalidate_metrics(self.user_id, 'live_metrics')\n        \n        # Send updated metrics\n        await self.send_component_update('live_metrics', 'today')\n\n\nclass DashboardView(LoginRequiredMixin, TemplateView):\n    \"\"\"Main dashboard view\"\"\"\n    \n    template_name = 'dashboard/main.html'\n    \n    @method_decorator(cache_control(max_age=60, public=True))\n    @method_decorator(vary_on_cookie)\n    def dispatch(self, *args, **kwargs):\n        return super().dispatch(*args, **kwargs)\n    \n    def get_context_data(self, **kwargs):\n        \"\"\"Get context data for template\"\"\"\n        context = super().get_context_data(**kwargs)\n        user = self.request.user\n        \n        # Get cached metrics\n        live_metrics = MetricsCache.get_metrics(user.id, 'live_metrics', 'today')\n        system_status = MetricsCache.get_metrics(user.id, 'system_status', 'today')\n        \n        # Get recent activities\n        recent_activities = self.get_recent_activities(user)\n        \n        # Get chart data\n        revenue_data = self.get_revenue_data('last_7_days')\n        user_growth_data = self.get_user_growth_data('this_month')\n        \n        context.update({\n            'live_metrics': live_metrics,\n            'system_status': system_status,\n            'recent_activities': recent_activities,\n            'revenue_data': revenue_data,\n            'user_growth_data': user_growth_data,\n            'user_id': user.id,\n            'websocket_url': self.get_websocket_url(),\n            'use_websocket': self.request.headers.get('Sec-WebSocket-Key') is not None,\n        })\n        \n        return context\n    \n    def get_recent_activities(self, user, limit: int = 10) -> List[Dict]:\n        \"\"\"Get recent activities for dashboard\"\"\"\n        # Check cache first\n        cache_key = f'dashboard_activities:{user.id}'\n        cached = cache.get(cache_key)\n        \n        if cached is not None:\n            return cached\n        \n        # Get activities from database\n        activities = ActivityLog.objects\\\n            .select_related('user')\\\n            .order_by('-created_at')[:limit]\n        \n        # Format activities\n        formatted = []\n        for activity in activities:\n            formatted.append({\n                'id': activity.id,\n                'type': activity.activity_type,\n                'description': activity.description,\n                'user': activity.user.username if activity.user else 'System',\n                'timestamp': activity.created_at.isoformat(),\n                'metadata': activity.metadata,\n                'is_read': activity.is_read\n            })\n        \n        # Cache for 1 minute\n        cache.set(cache_key, formatted, 60)\n        \n        return formatted\n    \n    def get_revenue_data(self, time_range: str) -> List[Dict]:\n        \"\"\"Get revenue data for charts\"\"\"\n        cache_key = f'revenue_data:{time_range}'\n        cached = cache.get(cache_key)\n        \n        if cached is not None:\n            return cached\n        \n        # Calculate revenue data (simplified)\n        # In production, would query Order model\n        now = timezone.now()\n        data = []\n        \n        if time_range == 'last_7_days':\n            for i in range(7):\n                date = now - timedelta(days=6-i)\n                revenue = 1000 + (i * 200)  # Example data\n                data.append({\n                    'date': date.strftime('%Y-%m-%d'),\n                    'revenue': revenue\n                })\n        \n        # Cache for 5 minutes\n        cache.set(cache_key, data, 300)\n        \n        return data\n    \n    def get_user_growth_data(self, time_range: str) -> List[Dict]:\n        \"\"\"Get user growth data for charts\"\"\"\n        cache_key = f'user_growth:{time_range}'\n        cached = cache.get(cache_key)\n        \n        if cached is not None:\n            return cached\n        \n        # Calculate user growth (simplified)\n        from django.contrib.auth.models import User\n        \n        data = []\n        if time_range == 'this_month':\n            start_of_month = now.replace(day=1, hour=0, minute=0, second=0, microsecond=0)\n            \n            # Get daily user counts\n            for i in range(now.day):\n                date = start_of_month + timedelta(days=i)\n                next_date = date + timedelta(days=1)\n                \n                count = User.objects.filter(\n                    date_joined__range=(date, next_date)\n                ).count()\n                \n                data.append({\n                    'date': date.strftime('%Y-%m-%d'),\n                    'count': count\n                })\n        \n        # Cache for 5 minutes\n        cache.set(cache_key, data, 300)\n        \n        return data\n    \n    def get_websocket_url(self) -> str:\n        \"\"\"Get WebSocket URL\"\"\"\n        # Determine WebSocket URL based on request\n        if self.request.is_secure():\n            ws_protocol = 'wss'\n        else:\n            ws_protocol = 'ws'\n        \n        host = self.request.get_host()\n        return f\"{ws_protocol}://{host}/ws/dashboard/\"\n\n\nclass DashboardUpdateView(LoginRequiredMixin, View):\n    \"\"\"AJAX endpoint for dashboard updates\"\"\"\n    \n    def get(self, request, *args, **kwargs):\n        \"\"\"Handle GET request for updates\"\"\"\n        component = request.GET.get('component', 'live_metrics')\n        time_range = request.GET.get('time_range', 'today')\n        \n        # Get metrics\n        metrics = MetricsCache.get_metrics(request.user.id, component, time_range)\n        \n        return JsonResponse({\n            'success': True,\n            'component': component,\n            'data': metrics,\n            'timestamp': timezone.now().isoformat()\n        })\n    \n    def post(self, request, *args, **kwargs):\n        \"\"\"Handle POST request for manual updates\"\"\"\n        action = request.POST.get('action')\n        \n        if action == 'refresh':\n            # Invalidate cache and refresh\n            component = request.POST.get('component')\n            MetricsCache.invalidate_metrics(request.user.id, component)\n            \n            return JsonResponse({\n                'success': True,\n                'message': 'Cache invalidated, refreshing...'\n            })\n        \n        elif action == 'mark_read':\n            # Mark activities as read\n            activity_ids = request.POST.getlist('activity_ids[]')\n            ActivityLog.objects.filter(\n                id__in=activity_ids,\n                is_read=False\n            ).update(is_read=True)\n            \n            # Invalidate activities cache\n            cache_key = f'dashboard_activities:{request.user.id}'\n            cache.delete(cache_key)\n            \n            return JsonResponse({'success': True})\n        \n        return JsonResponse({'success': False, 'error': 'Invalid action'}, status=400)\n\n\nclass ActivityStreamView(LoginRequiredMixin, View):\n    \"\"\"Server-Sent Events (SSE) for activity stream\"\"\"\n    \n    def get(self, request, *args, **kwargs):\n        \"\"\"Handle SSE connection\"\"\"\n        response = HttpResponse(\n            self.generate_event_stream(request.user),\n            content_type='text/event-stream'\n        )\n        response['Cache-Control'] = 'no-cache'\n        response['X-Accel-Buffering'] = 'no'  # Disable buffering for nginx\n        return response\n    \n    def generate_event_stream(self, user):\n        \"\"\"Generate SSE events\"\"\"\n        last_event_id = 0\n        \n        while True:\n            # Check for new activities\n            new_activities = ActivityLog.objects.filter(\n                created_at__gt=timezone.now() - timedelta(seconds=10),\n                is_read=False\n            ).order_by('-created_at')[:5]\n            \n            for activity in new_activities:\n                event_id = activity.id\n                \n                if event_id > last_event_id:\n                    event_data = {\n                        'id': event_id,\n                        'type': activity.activity_type,\n                        'data': {\n                            'description': activity.description,\n                            'user': activity.user.username if activity.user else 'System',\n                            'timestamp': activity.created_at.isoformat()\n                        }\n                    }\n                    \n                    yield f\"id: {event_id}\\n\"\n                    yield f\"event: {activity.activity_type}\\n\"\n                    yield f\"data: {json.dumps(event_data)}\\n\\n\"\n                    \n                    last_event_id = event_id\n            \n            # Keep connection alive\n            yield f\"id: {int(timezone.now().timestamp())}\\n\"\n            yield \"event: heartbeat\\n\"\n            yield \"data: {\\\"timestamp\\\": \\\"\" + timezone.now().isoformat() + \"\\\"}\\n\\n\"\n            \n            # Sleep for 2 seconds\n            time.sleep(2)",
+      "required_imports": [
+        "django.views.generic",
+        "channels.generic.websocket",
+        "channels.layers",
+        "django.core.cache",
+        "django.utils.timezone",
+        "django.http",
+        "json",
+        "asgiref.sync",
+        "datetime",
+        "time"
+      ],
+      "required_structure": {
+        "classes": [
+          {
+            "name": "MetricsCache",
+            "required_methods": ["get_metrics", "calculate_metrics", "update_metrics", "invalidate_metrics", "warm_cache"]
+          },
+          {
+            "name": "RealTimeUpdateHandler",
+            "required_methods": ["subscribe", "unsubscribe", "broadcast", "get_channel_group_name"]
+          },
+          {
+            "name": "DashboardConsumer",
+            "parent_class": "AsyncWebsocketConsumer",
+            "required_methods": ["connect", "disconnect", "receive", "send_update", "send_initial_data"]
+          },
+          {
+            "name": "DashboardView",
+            "parent_class": "TemplateView",
+            "required_mixins": ["LoginRequiredMixin"],
+            "required_methods": ["get_context_data", "get_recent_activities", "get_revenue_data", "get_user_growth_data"]
+          },
+          {
+            "name": "DashboardUpdateView",
+            "parent_class": "View",
+            "required_mixins": ["LoginRequiredMixin"],
+            "required_methods": ["get", "post"]
+          }
+        ],
+        "functions": [
+          {
+            "name": "generate_cache_key",
+            "params": ["user", "component", "time_range"],
+            "returns": "str"
+          }
+        ]
+      },
+      "forbidden_patterns": [
+        "No caching for expensive queries",
+        "Not using Django Channels for WebSockets",
+        "No fallback for browsers without WebSocket support",
+        "Not implementing authentication for WebSocket connections",
+        "No rate limiting for update endpoints",
+        "Storing large data in cache without expiration",
+        "Not handling cache invalidation properly",
+        "No performance optimization for database queries",
+        "Not using template fragments for caching",
+        "No graceful degradation when real-time features fail"
+      ],
+      "is_primary": true,
+      "confidence_threshold": 85.00
+    }
+  ]
+}

@@ -1,0 +1,87 @@
+{
+  "problem_id": "django-serializers-011",
+  "title": "Create Nested Product Serializer with Categories and Reviews",
+  "slug": "create-nested-product-serializer-with-categories-and-reviews",
+  "framework": "django",
+  "category": "serializers",
+  "difficulty": "intermediate",
+  "description": "Build a comprehensive product serializer for an e-commerce API that includes nested category information and review statistics.\n\n**Business Context:**\nYour e-commerce API needs to return detailed product information including nested category data, review statistics, and calculated fields. The API should efficiently handle read operations while maintaining clean separation of concerns.\n\n**Given Models:**\n```python\n# models.py\nfrom django.db import models\nfrom django.contrib.auth.models import User\n\nclass Category(models.Model):\n    name = models.CharField(max_length=100, unique=True)\n    slug = models.SlugField(unique=True)\n    description = models.TextField(blank=True)\n    parent = models.ForeignKey('self', on_delete=models.SET_NULL, null=True, blank=True, related_name='children')\n    \n    def __str__(self):\n        return self.name\n\nclass Product(models.Model):\n    name = models.CharField(max_length=200)\n    slug = models.SlugField(unique=True)\n    description = models.TextField()\n    price = models.DecimalField(max_digits=10, decimal_places=2)\n    category = models.ForeignKey(Category, on_delete=models.PROTECT, related_name='products')\n    sku = models.CharField(max_length=50, unique=True)\n    stock_quantity = models.PositiveIntegerField(default=0)\n    is_active = models.BooleanField(default=True)\n    created_at = models.DateTimeField(auto_now_add=True)\n    updated_at = models.DateTimeField(auto_now=True)\n    \n    def __str__(self):\n        return self.name\n    \n    @property\n    def is_in_stock(self):\n        return self.stock_quantity > 0\n    \n    @property\n    def discount_price(self):\n        # 10% discount for demonstration\n        return self.price * 0.9 if self.price else None\n\nclass ProductReview(models.Model):\n    RATING_CHOICES = [(i, str(i)) for i in range(1, 6)]\n    \n    product = models.ForeignKey(Product, on_delete=models.CASCADE, related_name='reviews')\n    user = models.ForeignKey(User, on_delete=models.CASCADE)\n    rating = models.PositiveSmallIntegerField(choices=RATING_CHOICES)\n    comment = models.TextField(max_length=1000)\n    created_at = models.DateTimeField(auto_now_add=True)\n    is_approved = models.BooleanField(default=False)\n    \n    class Meta:\n        unique_together = ['product', 'user']\n    \n    def __str__(self):\n        return f\"{self.user.username}'s review of {self.product.name}\"\n```\n\n**Requirements:**\n1. Create a `CategorySerializer` that includes only: id, name, slug\n2. Create a `ProductSerializer` that includes:\n   - All model fields except: id (use read-only), created_at, updated_at\n   - Nested `CategorySerializer` for the category field (read-only)\n   - Calculated fields: is_in_stock (from property), discount_price (from property)\n   - Review statistics: average_rating (calculated from approved reviews), review_count\n   - Field validation: price must be positive, stock_quantity cannot be negative\n   - Custom field: `availability_status` (choices: 'In Stock', 'Low Stock', 'Out of Stock')\n3. Add validation methods:\n   - Ensure SKU is unique (Model validation handles this, but add explicit check)\n   - Validate that price is reasonable (not > $10,000)\n4. Configure fields:\n   - Make slug read-only when updating\n   - Exclude is_active from write operations (can only be set via admin)\n   - Add help text for description field\n5. Optimize queries using `select_related` and `prefetch_related` in the view context\n\n**Expected Behavior:**\n```python\n# API Response should include:\n{\n    \"id\": 1,\n    \"name\": \"Wireless Headphones\",\n    \"slug\": \"wireless-headphones\",\n    \"description\": \"High-quality wireless headphones...\",\n    \"price\": \"99.99\",\n    \"category\": {\n        \"id\": 5,\n        \"name\": \"Electronics\",\n        \"slug\": \"electronics\"\n    },\n    \"sku\": \"WH-2023-001\",\n    \"stock_quantity\": 50,\n    \"is_active\": true,\n    \"is_in_stock\": true,\n    \"discount_price\": \"89.99\",\n    \"average_rating\": 4.5,\n    \"review_count\": 42,\n    \"availability_status\": \"In Stock\"\n}\n```\n\n**Performance Considerations:**\n- Avoid N+1 queries when serializing multiple products with categories\n- Calculate review statistics efficiently\n- Use appropriate field types to minimize data transfer\n\n**Edge Cases to Handle:**\n- Products with no reviews (average_rating should be null)\n- Products with zero stock quantity\n- Categories with hierarchical relationships (only show immediate parent info)\n- Large price values should be properly validated",
+  "description_preview": "Create a nested product serializer with category information, review statistics, and calculated fields for an e-commerce API.",
+  "context_code": "# CONTEXT CODE (for reference only - you need to create serializers)\n# This shows the models your serializers will work with\n\nfrom django.db import models\nfrom django.contrib.auth.models import User\n\nclass Category(models.Model):\n    name = models.CharField(max_length=100, unique=True)\n    slug = models.SlugField(unique=True)\n    description = models.TextField(blank=True)\n    parent = models.ForeignKey('self', on_delete=models.SET_NULL, null=True, blank=True, related_name='children')\n    \n    def __str__(self):\n        return self.name\n\nclass Product(models.Model):\n    name = models.CharField(max_length=200)\n    slug = models.SlugField(unique=True)\n    description = models.TextField()\n    price = models.DecimalField(max_digits=10, decimal_places=2)\n    category = models.ForeignKey(Category, on_delete=models.PROTECT, related_name='products')\n    sku = models.CharField(max_length=50, unique=True)\n    stock_quantity = models.PositiveIntegerField(default=0)\n    is_active = models.BooleanField(default=True)\n    created_at = models.DateTimeField(auto_now_add=True)\n    updated_at = models.DateTimeField(auto_now=True)\n    \n    def __str__(self):\n        return self.name\n    \n    @property\n    def is_in_stock(self):\n        return self.stock_quantity > 0\n    \n    @property\n    def discount_price(self):\n        return self.price * 0.9 if self.price else None\n\nclass ProductReview(models.Model):\n    RATING_CHOICES = [(i, str(i)) for i in range(1, 6)]\n    \n    product = models.ForeignKey(Product, on_delete=models.CASCADE, related_name='reviews')\n    user = models.ForeignKey(User, on_delete=models.CASCADE)\n    rating = models.PositiveSmallIntegerField(choices=RATING_CHOICES)\n    comment = models.TextField(max_length=1000)\n    created_at = models.DateTimeField(auto_now_add=True)\n    is_approved = models.BooleanField(default=False)\n    \n    class Meta:\n        unique_together = ['product', 'user']\n    \n    def __str__(self):\n        return f\"{self.user.username}'s review of {self.product.name}\"\n\n# You need to import:\n# from rest_framework import serializers\n# from .models import Category, Product, ProductReview",
+  "starter_code": "",
+  "target_area": "serializers.py",
+  "validation_spec": {
+    "required_imports": ["rest_framework.serializers", ".models.Category", ".models.Product", ".models.ProductReview", "django.db.models.Avg", "django.db.models.Count", "django.db.models.Q"],
+    "required_structure": {
+      "serializer_classes": ["CategorySerializer", "ProductSerializer"],
+      "nested_serializer": true,
+      "read_only_fields": true,
+      "calculated_fields": true,
+      "validation_methods": true
+    },
+    "behavior_patterns": [
+      "class CategorySerializer(serializers.ModelSerializer):",
+      "class Meta:",
+      "model = Category",
+      "fields = ['id', 'name', 'slug']",
+      "class ProductSerializer(serializers.ModelSerializer):",
+      "category = CategorySerializer(read_only=True)",
+      "is_in_stock = serializers.ReadOnlyField()",
+      "discount_price = serializers.DecimalField",
+      "read_only=True",
+      "max_digits=12",
+      "decimal_places=2",
+      "average_rating = serializers.SerializerMethodField()",
+      "review_count = serializers.SerializerMethodField()",
+      "availability_status = serializers.SerializerMethodField()",
+      "def get_average_rating(self, obj):",
+      "reviews = obj.reviews.filter(is_approved=True)",
+      "if reviews.exists():",
+      "return reviews.aggregate(Avg('rating'))",
+      "def validate_price(self, value):",
+      "if value <= 0:",
+      "raise serializers.ValidationError",
+      "if value > 10000:",
+      "raise serializers.ValidationError",
+      "class Meta:",
+      "model = Product",
+      "read_only_fields = ['slug', 'is_active']",
+      "exclude = ['created_at', 'updated_at']"
+    ]
+  },
+  "import_weight": 10.00,
+  "structure_weight": 35.00,
+  "behavior_weight": 55.00,
+  "passing_score": 80.00,
+  "hints": [
+    "Use ModelSerializer for both serializers with appropriate Meta classes",
+    "For calculated fields, use SerializerMethodField or ReadOnlyField",
+    "Remember to handle the case where there are no approved reviews (return None)",
+    "Use select_related and prefetch_related in your view's queryset to optimize queries"
+  ],
+  "learning_resources": [
+    "https://www.django-rest-framework.org/api-guide/serializers/#modelserializer",
+    "https://www.django-rest-framework.org/api-guide/relations/#nested-relationships"
+  ],
+  "tags": ["django", "serializers", "rest-framework", "nested", "intermediate"],
+  "estimated_time_minutes": 35,
+  "patterns": [
+    {
+      "pattern_id": "django-serializers-011-pattern-1",
+      "name": "Nested ModelSerializer with Calculated Fields",
+      "description": "Comprehensive product serializer with nested category, review stats, and validation",
+      "example_code": "# serializers.py\nfrom rest_framework import serializers\nfrom django.db.models import Avg, Count, Q\nfrom .models import Category, Product, ProductReview\n\nclass CategorySerializer(serializers.ModelSerializer):\n    \"\"\"Serializer for Category model with minimal fields.\"\"\"\n    class Meta:\n        model = Category\n        fields = ['id', 'name', 'slug']\n        read_only_fields = ['slug']\n\nclass ProductSerializer(serializers.ModelSerializer):\n    \"\"\"Comprehensive serializer for Product model with nested data and stats.\"\"\"\n    \n    # Nested serializer for category\n    category = CategorySerializer(read_only=True)\n    \n    # Model properties as read-only fields\n    is_in_stock = serializers.BooleanField(read_only=True)\n    discount_price = serializers.DecimalField(\n        max_digits=12, \n        decimal_places=2, \n        read_only=True\n    )\n    \n    # Calculated fields\n    average_rating = serializers.SerializerMethodField()\n    review_count = serializers.SerializerMethodField()\n    availability_status = serializers.SerializerMethodField()\n    \n    class Meta:\n        model = Product\n        fields = [\n            'id', 'name', 'slug', 'description', 'price', 'category',\n            'sku', 'stock_quantity', 'is_active', 'is_in_stock',\n            'discount_price', 'average_rating', 'review_count',\n            'availability_status'\n        ]\n        read_only_fields = ['slug', 'is_active', 'is_in_stock', 'discount_price']\n        extra_kwargs = {\n            'description': {\n                'help_text': 'Detailed product description'\n            },\n            'price': {\n                'min_value': 0.01,\n                'max_digits': 10,\n                'decimal_places': 2\n            }\n        }\n    \n    def get_average_rating(self, obj):\n        \"\"\"Calculate average rating from approved reviews.\"\"\"\n        approved_reviews = obj.reviews.filter(is_approved=True)\n        if approved_reviews.exists():\n            result = approved_reviews.aggregate(avg_rating=Avg('rating'))\n            return round(result['avg_rating'], 2)\n        return None\n    \n    def get_review_count(self, obj):\n        \"\"\"Count approved reviews.\"\"\"\n        return obj.reviews.filter(is_approved=True).count()\n    \n    def get_availability_status(self, obj):\n        \"\"\"Determine availability status based on stock quantity.\"\"\"\n        if obj.stock_quantity > 10:\n            return 'In Stock'\n        elif obj.stock_quantity > 0:\n            return 'Low Stock'\n        else:\n            return 'Out of Stock'\n    \n    def validate_price(self, value):\n        \"\"\"Validate price is reasonable.\"\"\"\n        if value <= 0:\n            raise serializers.ValidationError(\"Price must be greater than zero.\")\n        if value > 10000:\n            raise serializers.ValidationError(\"Price cannot exceed $10,000.\")\n        return value\n    \n    def validate_stock_quantity(self, value):\n        \"\"\"Validate stock quantity is non-negative.\"\"\"\n        if value < 0:\n            raise serializers.ValidationError(\"Stock quantity cannot be negative.\")\n        return value\n    \n    def validate_sku(self, value):\n        \"\"\"Validate SKU uniqueness (additional to model validation).\"\"\"\n        # Check if SKU already exists (excluding current instance for updates)\n        instance = self.instance\n        if instance:\n            exists = Product.objects.filter(sku=value).exclude(pk=instance.pk).exists()\n        else:\n            exists = Product.objects.filter(sku=value).exists()\n        \n        if exists:\n            raise serializers.ValidationError(\"SKU must be unique.\")\n        return value",
+      "required_imports": ["rest_framework.serializers", ".models.Category", ".models.Product", "django.db.models.Avg", "django.db.models.Count"],
+      "required_structure": {
+        "serializer_classes": ["CategorySerializer", "ProductSerializer"],
+        "has_nested_serializer": true,
+        "has_serializer_method_fields": true,
+        "has_validation_methods": true,
+        "has_meta_class": true
+      },
+      "forbidden_patterns": ["fields = '__all__'", "no validation", "hardcoded field values"],
+      "is_primary": true,
+      "confidence_threshold": 85.00
+    }
+  ]
+}

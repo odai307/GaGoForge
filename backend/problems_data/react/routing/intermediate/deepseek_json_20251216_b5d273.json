@@ -1,0 +1,237 @@
+{
+  "problem_id": "react-routing-013",
+  "title": "Build a Multi-Step Form Wizard with URL Persistence and Progress Tracking",
+  "slug": "multi-step-form-wizard-with-url-persistence-progress-tracking",
+  "framework": "react",
+  "category": "routing",
+  "difficulty": "intermediate",
+  "description": "Create a multi-step form wizard that uses URL routing for each step, persists form data across steps, and provides progress tracking with the ability to navigate between steps directly.\n\n**Requirements:**\n1. Implement a form wizard with the following features:\n   - Each step has its own URL (e.g., /form/step1, /form/step2)\n   - Form data persists across steps using URL params or state management\n   - Progress bar showing current step and completion\n   - Ability to navigate between steps (next, previous, jump to specific step)\n   - Form validation at each step\n   - Summary page showing all entered data\n   - Ability to save progress and resume later\n2. Routing structure:\n   - /form - redirects to first step or shows landing\n   - /form/:stepId - individual step pages (1 through N)\n   - /form/review - summary/review page\n   - /form/confirmation - success confirmation page\n3. Form features:\n   - Step validation before allowing navigation\n   - Auto-save form data to localStorage/sessionStorage\n   - Load previously saved data on revisit\n   - Clear form data on successful submission\n   - Form data sharing between steps via context or state\n4. UI requirements:\n   - Progress indicator with clickable steps\n   - Step navigation buttons (Next, Previous, Save & Exit)\n   - Form validation error display\n   - Responsive design for all form steps\n   - Loading states for data persistence\n\n**Expected Behavior:**\n- Users can navigate directly to any step via URL\n- Form data persists when navigating between steps\n- Progress bar updates based on completed steps\n- Validation prevents moving to next step with invalid data\n- Users can save progress and resume later\n- Summary page shows all entered data before submission\n- Confirmation page appears after successful submission\n\n**Example Form Structure:**\n```javascript\nconst formSteps = [\n  { id: 'personal', title: 'Personal Info', fields: ['name', 'email', 'phone'] },\n  { id: 'address', title: 'Address', fields: ['street', 'city', 'zip'] },\n  { id: 'preferences', title: 'Preferences', fields: ['newsletter', 'notifications'] },\n  { id: 'review', title: 'Review', component: ReviewStep },\n  { id: 'confirmation', title: 'Confirmation', component: ConfirmationStep }\n];\n```",
+  "description_preview": "Create a multi-step form wizard with URL-based routing, data persistence, progress tracking, and validation.",
+  "context_code": "// FORM WIZARD STRUCTURE (for reference only)\n// Step configuration:\n// [\n//   { id: 'step1', title: 'Step 1', path: '/form/step1', fields: [...] },\n//   { id: 'step2', title: 'Step 2', path: '/form/step2', fields: [...] },\n//   { id: 'review', title: 'Review', path: '/form/review', component: ReviewStep },\n//   { id: 'confirmation', title: 'Confirmation', path: '/form/confirmation' }\n// ]\n//\n// Form data structure:\n// {\n//   personal: { name: '', email: '', phone: '' },\n//   address: { street: '', city: '', zip: '' },\n//   preferences: { newsletter: false, notifications: true }\n// }\n//\n// Progress tracking:\n// - Current step index\n// - Completed steps array\n// - Validation status per step\n//\n// URL patterns:\n// - /form (landing/redirect)\n// - /form/:stepId (individual steps)\n// - /form/review (summary)\n// - /form/confirmation (success)",
+  "starter_code": "",
+  "target_area": "Complete multi-step form wizard with routing, data persistence, and progress tracking",
+  "validation_spec": {
+    "required_imports": ["react-router-dom", "react"],
+    "required_structure": {
+      "functions": [
+        {
+          "name": "FormWizard",
+          "type": "functional_component",
+          "has_export": true,
+          "description": "Main form wizard component"
+        },
+        {
+          "name": "FormProvider",
+          "type": "functional_component",
+          "has_export": true,
+          "description": "Context provider for form data"
+        },
+        {
+          "name": "useFormWizard",
+          "type": "custom_hook",
+          "has_export": true,
+          "description": "Custom hook for form wizard logic"
+        },
+        {
+          "name": "StepRouter",
+          "type": "functional_component",
+          "has_export": true,
+          "description": "Router for individual form steps"
+        }
+      ],
+      "variables": [
+        {
+          "name": "FormContext",
+          "type": "context",
+          "has_export": true
+        }
+      ]
+    },
+    "behavior_patterns": [
+      {
+        "type": "dynamic_routing",
+        "pattern": "/form/:stepId",
+        "parameter": "stepId",
+        "description": "Must use dynamic route parameter for step IDs"
+      },
+      {
+        "type": "hook_call",
+        "hook": "useParams",
+        "context": "step_component",
+        "description": "Must use useParams to get current stepId from URL"
+      },
+      {
+        "type": "hook_call",
+        "hook": "useNavigate",
+        "min_calls": 3,
+        "description": "Must use useNavigate for step navigation"
+      },
+      {
+        "type": "hook_call",
+        "hook": "useLocation",
+        "context": "form_state",
+        "description": "Should use useLocation to track form state in URL"
+      },
+      {
+        "type": "context_usage",
+        "context_type": "provider",
+        "purpose": "form_data",
+        "description": "Must provide FormContext for sharing form data between steps"
+      },
+      {
+        "type": "persistence",
+        "storage_type": "localStorage",
+        "key": "form_wizard_data",
+        "description": "Must persist form data to localStorage"
+      },
+      {
+        "type": "form_validation",
+        "scope": "per_step",
+        "blocks_navigation": true,
+        "description": "Must validate each step before allowing navigation"
+      },
+      {
+        "type": "progress_tracking",
+        "component": "progress_bar",
+        "updates": "on_step_change",
+        "description": "Must show progress bar that updates with step completion"
+      },
+      {
+        "type": "navigation",
+        "feature": "step_jumping",
+        "enabled_for": "completed_steps",
+        "description": "Must allow jumping to completed steps via progress indicator"
+      },
+      {
+        "type": "event_handler",
+        "event_type": "onSubmit",
+        "handler_action": "next_step",
+        "validates": true,
+        "description": "Form submission must validate and navigate to next step"
+      },
+      {
+        "type": "event_handler",
+        "event_type": "onClick",
+        "handler_action": "previous_step",
+        "element": "back_button",
+        "description": "Must handle back button to navigate to previous step"
+      },
+      {
+        "type": "conditional_rendering",
+        "based_on": "step_index",
+        "shows": "different_components",
+        "description": "Must render different form components based on current step"
+      },
+      {
+        "type": "url_synchronization",
+        "data_includes": ["step", "form_data"],
+        "method": "search_params",
+        "description": "Should synchronize form state with URL search params"
+      },
+      {
+        "type": "data_persistence",
+        "feature": "auto_save",
+        "trigger": "on_change",
+        "delay": 500,
+        "description": "Should auto-save form data with debouncing"
+      },
+      {
+        "type": "error_handling",
+        "feature": "validation_errors",
+        "display": "inline",
+        "clears_on_fix": true,
+        "description": "Must display validation errors and clear when fixed"
+      },
+      {
+        "type": "routing",
+        "pattern": "nested_routes",
+        "parent": "/form",
+        "children": [":stepId", "review", "confirmation"],
+        "description": "Must use nested routes under /form parent"
+      }
+    ],
+    "difficulty": "intermediate",
+    "framework": "react",
+    "import_weight": 10.00,
+    "structure_weight": 35.00,
+    "behavior_weight": 55.00,
+    "passing_score": 85.00
+  },
+  "import_weight": 10.00,
+  "structure_weight": 35.00,
+  "behavior_weight": 55.00,
+  "passing_score": 85.00,
+  "hints": [
+    "Create a FormContext to manage form data across all steps",
+    "Define step configuration array with id, title, path, and component for each step",
+    "Use useParams to get current stepId from URL and determine which step to show",
+    "Implement a progress bar component that maps over steps and shows completion status",
+    "Store form data in localStorage with auto-save on field changes (debounced)",
+    "Load saved form data on component mount to resume where user left off",
+    "Use useNavigate to programmatically navigate between steps",
+    "Implement step validation before allowing navigation to next step",
+    "Create a review step that displays all entered data before submission",
+    "Use URL search params to encode form state for sharing/deep linking",
+    "Make progress steps clickable to jump to completed steps",
+    "Clear form data from localStorage on successful submission"
+  ],
+  "learning_resources": [
+    "https://reactrouter.com/en/main/hooks/use-params",
+    "https://reactrouter.com/en/main/hooks/use-navigate",
+    "https://react.dev/reference/react/useContext",
+    "https://react-hook-form.com/"
+  ],
+  "tags": ["react", "routing", "forms", "wizard", "multi-step", "progress", "persistence", "intermediate"],
+  "estimated_time_minutes": 60,
+  "patterns": [
+    {
+      "pattern_id": "react-routing-013-pattern-1",
+      "name": "Multi-Step Form Wizard with URL Routing",
+      "description": "Complete form wizard implementation with URL-based steps, data persistence, and progress tracking",
+      "example_code": "import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';\nimport {\n  BrowserRouter,\n  Routes,\n  Route,\n  useParams,\n  useNavigate,\n  Navigate,\n  Link,\n  Outlet\n} from 'react-router-dom';\n\n// Create Form Context\nconst FormContext = createContext();\n\n// Form Provider Component\nconst FormProvider = ({ children }) => {\n  const [formData, setFormData] = useState({});\n  const [completedSteps, setCompletedSteps] = useState([]);\n  const [isSubmitting, setIsSubmitting] = useState(false);\n  \n  // Load saved form data\n  useEffect(() => {\n    const savedData = localStorage.getItem('form_wizard_data');\n    const savedSteps = localStorage.getItem('form_completed_steps');\n    \n    if (savedData) {\n      try {\n        setFormData(JSON.parse(savedData));\n      } catch (error) {\n        console.error('Failed to parse saved form data:', error);\n      }\n    }\n    \n    if (savedSteps) {\n      try {\n        setCompletedSteps(JSON.parse(savedSteps));\n      } catch (error) {\n        console.error('Failed to parse completed steps:', error);\n      }\n    }\n  }, []);\n  \n  // Auto-save form data\n  useEffect(() => {\n    const saveTimeout = setTimeout(() => {\n      localStorage.setItem('form_wizard_data', JSON.stringify(formData));\n      localStorage.setItem('form_completed_steps', JSON.stringify(completedSteps));\n    }, 500);\n    \n    return () => clearTimeout(saveTimeout);\n  }, [formData, completedSteps]);\n  \n  // Update form data\n  const updateFormData = useCallback((stepId, data) => {\n    setFormData(prev => ({\n      ...prev,\n      [stepId]: { ...prev[stepId], ...data }\n    }));\n  }, []);\n  \n  // Mark step as completed\n  const completeStep = useCallback((stepId) => {\n    setCompletedSteps(prev => {\n      if (!prev.includes(stepId)) {\n        return [...prev, stepId];\n      }\n      return prev;\n    });\n  }, []);\n  \n  // Clear form data (on submission success)\n  const clearFormData = useCallback(() => {\n    setFormData({});\n    setCompletedSteps([]);\n    localStorage.removeItem('form_wizard_data');\n    localStorage.removeItem('form_completed_steps');\n  }, []);\n  \n  const value = {\n    formData,\n    completedSteps,\n    isSubmitting,\n    updateFormData,\n    completeStep,\n    clearFormData,\n    setIsSubmitting\n  };\n  \n  return (\n    <FormContext.Provider value={value}>\n      {children}\n    </FormContext.Provider>\n  );\n};\n\n// Custom hook to use form context\nconst useFormWizard = () => {\n  const context = useContext(FormContext);\n  if (!context) {\n    throw new Error('useFormWizard must be used within FormProvider');\n  }\n  return context;\n};\n\n// Step configuration\nconst formSteps = [\n  { \n    id: 'personal', \n    title: 'Personal Info', \n    path: 'personal',\n    fields: ['name', 'email', 'phone'],\n    validation: (data) => {\n      const errors = {};\n      if (!data.name?.trim()) errors.name = 'Name is required';\n      if (!data.email?.trim()) errors.email = 'Email is required';\n      else if (!/^\\S+@\\S+\\.\\S+$/.test(data.email)) errors.email = 'Invalid email format';\n      return errors;\n    }\n  },\n  { \n    id: 'address', \n    title: 'Address', \n    path: 'address',\n    fields: ['street', 'city', 'state', 'zip'],\n    validation: (data) => {\n      const errors = {};\n      if (!data.street?.trim()) errors.street = 'Street is required';\n      if (!data.city?.trim()) errors.city = 'City is required';\n      if (!data.zip?.trim()) errors.zip = 'ZIP code is required';\n      return errors;\n    }\n  },\n  { \n    id: 'preferences', \n    title: 'Preferences', \n    path: 'preferences',\n    fields: ['newsletter', 'notifications'],\n    validation: () => ({}) // No validation needed for preferences\n  },\n  { \n    id: 'review', \n    title: 'Review', \n    path: 'review',\n    component: 'ReviewStep'\n  },\n  { \n    id: 'confirmation', \n    title: 'Confirmation', \n    path: 'confirmation',\n    component: 'ConfirmationStep'\n  }\n];\n\n// Progress Bar Component\nconst ProgressBar = () => {\n  const { completedSteps } = useFormWizard();\n  const navigate = useNavigate();\n  const { stepId } = useParams();\n  \n  const currentStepIndex = formSteps.findIndex(step => step.path === stepId);\n  \n  return (\n    <div className=\"progress-bar\" style={{ display: 'flex', marginBottom: '24px' }}>\n      {formSteps.map((step, index) => {\n        const isCompleted = completedSteps.includes(step.id);\n        const isCurrent = step.path === stepId;\n        const isClickable = isCompleted || index < currentStepIndex;\n        \n        return (\n          <React.Fragment key={step.id}>\n            <div \n              className={`progress-step ${isCurrent ? 'current' : ''} ${isCompleted ? 'completed' : ''}`}\n              style={{\n                display: 'flex',\n                flexDirection: 'column',\n                alignItems: 'center',\n                flex: 1,\n                cursor: isClickable ? 'pointer' : 'default'\n              }}\n              onClick={() => isClickable && navigate(`/form/${step.path}`)}\n            >\n              <div \n                className=\"step-circle\"\n                style={{\n                  width: '32px',\n                  height: '32px',\n                  borderRadius: '50%',\n                  backgroundColor: isCurrent ? '#3b82f6' : isCompleted ? '#10b981' : '#e5e7eb',\n                  color: isCurrent || isCompleted ? 'white' : '#6b7280',\n                  display: 'flex',\n                  alignItems: 'center',\n                  justifyContent: 'center',\n                  marginBottom: '8px',\n                  fontWeight: 'bold'\n                }}\n              >\n                {isCompleted ? '✓' : index + 1}\n              </div>\n              <span \n                style={{\n                  fontSize: '0.875rem',\n                  fontWeight: isCurrent ? 'bold' : 'normal',\n                  color: isCurrent ? '#3b82f6' : '#6b7280'\n                }}\n              >\n                {step.title}\n              </span>\n            </div>\n            \n            {index < formSteps.length - 1 && (\n              <div \n                className=\"progress-line\"\n                style={{\n                  flex: 1,\n                  height: '2px',\n                  backgroundColor: completedSteps.includes(formSteps[index + 1].id) ? '#10b981' : '#e5e7eb',\n                  alignSelf: 'center',\n                  margin: '0 8px'\n                }}\n              />\n            )}\n          </React.Fragment>\n        );\n      })}\n    </div>\n  );\n};\n\n// Step Router Component\nconst StepRouter = () => {\n  const { stepId } = useParams();\n  const navigate = useNavigate();\n  const { formData, updateFormData, completeStep, setIsSubmitting } = useFormWizard();\n  \n  const currentStep = formSteps.find(step => step.path === stepId);\n  const currentStepIndex = formSteps.findIndex(step => step.path === stepId);\n  \n  if (!currentStep) {\n    return <Navigate to=\"/form/personal\" replace />;\n  }\n  \n  // Get step data\n  const stepData = formData[currentStep.id] || {};\n  \n  // Handle next step\n  const handleNext = async (data = {}) => {\n    // Update form data\n    updateFormData(currentStep.id, data);\n    \n    // Validate step if validation function exists\n    if (currentStep.validation) {\n      const errors = currentStep.validation(data);\n      if (Object.keys(errors).length > 0) {\n        // Show errors (in a real app, you'd set error state)\n        console.error('Validation errors:', errors);\n        return;\n      }\n    }\n    \n    // Mark step as completed\n    completeStep(currentStep.id);\n    \n    // Navigate to next step or review\n    if (currentStepIndex < formSteps.length - 2) {\n      const nextStep = formSteps[currentStepIndex + 1];\n      navigate(`/form/${nextStep.path}`);\n    } else if (currentStepIndex === formSteps.length - 2) {\n      // Last step before review\n      navigate('/form/review');\n    }\n  };\n  \n  // Handle previous step\n  const handlePrevious = () => {\n    if (currentStepIndex > 0) {\n      const prevStep = formSteps[currentStepIndex - 1];\n      navigate(`/form/${prevStep.path}`);\n    }\n  };\n  \n  // Handle form submission\n  const handleSubmit = async () => {\n    setIsSubmitting(true);\n    \n    try {\n      // Simulate API call\n      await fetch('/api/submit-form', {\n        method: 'POST',\n        headers: { 'Content-Type': 'application/json' },\n        body: JSON.stringify(formData)\n      });\n      \n      // Navigate to confirmation\n      navigate('/form/confirmation');\n    } catch (error) {\n      console.error('Form submission failed:', error);\n    } finally {\n      setIsSubmitting(false);\n    }\n  };\n  \n  // Render different components based on step\n  const renderStepContent = () => {\n    if (currentStep.id === 'review') {\n      return (\n        <div className=\"review-step\">\n          <h2>Review Your Information</h2>\n          {Object.entries(formData).map(([stepId, data]) => (\n            <div key={stepId} className=\"review-section\">\n              <h3>{formSteps.find(s => s.id === stepId)?.title || stepId}</h3>\n              <pre>{JSON.stringify(data, null, 2)}</pre>\n            </div>\n          ))}\n          <button onClick={handleSubmit}>Submit Form</button>\n        </div>\n      );\n    }\n    \n    if (currentStep.id === 'confirmation') {\n      return (\n        <div className=\"confirmation-step\">\n          <h2>Form Submitted Successfully!</h2>\n          <p>Thank you for completing the form.</p>\n          <Link to=\"/\">Return to Home</Link>\n        </div>\n      );\n    }\n    \n    // Regular form step\n    return (\n      <div className=\"form-step\">\n        <h2>{currentStep.title}</h2>\n        <form onSubmit={(e) => {\n          e.preventDefault();\n          const formData = new FormData(e.target);\n          const data = Object.fromEntries(formData.entries());\n          handleNext(data);\n        }}>\n          {currentStep.fields?.map(field => (\n            <div key={field} className=\"form-field\">\n              <label htmlFor={field}>\n                {field.charAt(0).toUpperCase() + field.slice(1)}\n              </label>\n              <input\n                type={field === 'email' ? 'email' : 'text'}\n                id={field}\n                name={field}\n                defaultValue={stepData[field] || ''}\n                required={field !== 'newsletter' && field !== 'notifications'}\n              />\n            </div>\n          ))}\n          \n          <div className=\"form-actions\">\n            {currentStepIndex > 0 && (\n              <button type=\"button\" onClick={handlePrevious}>\n                Previous\n              </button>\n            )}\n            <button type=\"submit\">\n              {currentStepIndex === formSteps.length - 3 ? 'Review' : 'Next'}\n            </button>\n          </div>\n        </form>\n      </div>\n    );\n  };\n  \n  return (\n    <div className=\"step-container\">\n      <ProgressBar />\n      {renderStepContent()}\n    </div>\n  );\n};\n\n// Main Form Wizard Component\nconst FormWizard = () => {\n  return (\n    <BrowserRouter>\n      <FormProvider>\n        <Routes>\n          <Route path=\"/\" element={<Navigate to=\"/form/personal\" replace />} />\n          \n          <Route path=\"/form\" element={<Navigate to=\"/form/personal\" replace />} />\n          \n          <Route path=\"/form/:stepId\" element={<StepRouter />} />\n          \n          <Route path=\"*\" element={<Navigate to=\"/form/personal\" replace />} />\n        </Routes>\n      </FormProvider>\n    </BrowserRouter>\n  );\n};\n\nexport { FormWizard, FormProvider, useFormWizard };",
+      "required_imports": ["react-router-dom", "react"],
+      "required_structure": {
+        "functions": [
+          {
+            "name": "FormWizard",
+            "type": "functional_component",
+            "has_export": true
+          },
+          {
+            "name": "FormProvider",
+            "type": "functional_component",
+            "has_export": true
+          },
+          {
+            "name": "useFormWizard",
+            "type": "custom_hook",
+            "has_export": true
+          },
+          {
+            "name": "StepRouter",
+            "type": "functional_component",
+            "has_export": true
+          }
+        ],
+        "variables": [
+          {
+            "name": "FormContext",
+            "type": "context",
+            "has_export": true
+          }
+        ]
+      },
+      "forbidden_patterns": [
+        "Not using URL parameters for step navigation",
+        "Missing localStorage persistence",
+        "No progress tracking or visual indicator",
+        "Hardcoded step navigation instead of dynamic routing",
+        "No validation before step transitions",
+        "Not allowing direct step jumping via URL",
+        "Missing auto-save functionality"
+      ],
+      "is_primary": true,
+      "confidence_threshold": 85.00
+    }
+  ]
+}

@@ -1,0 +1,110 @@
+{
+  "problem_id": "react-performance-004",
+  "title": "Optimize Large Product List with Virtualization",
+  "slug": "optimize-large-product-list-with-virtualization",
+  "framework": "react",
+  "category": "performance",
+  "difficulty": "intermediate",
+  "description": "You're building a product catalog that displays thousands of items. Rendering all items at once causes significant performance issues, slow scrolling, and high memory usage.\n\n**Business Requirements:**\n1. Display a large list of products (1000+ items) with virtualization\n2. Each product should show name, price, category, and stock status\n3. Implement smooth scrolling with fixed-height rows\n4. Support search filtering within the virtualized list\n5. Show visible item count and total items\n\n**Performance Issues to Solve:**\n- DOM node explosion with 1000+ items\n- Slow initial render and scrolling\n- High memory consumption\n- Janky user experience\n\n**Given Product Data Generator:**\n```javascript\nconst generateProducts = (count) => {\n  const categories = ['Electronics', 'Clothing', 'Home', 'Books', 'Toys'];\n  const names = ['Laptop', 'Shirt', 'Lamp', 'Novel', 'Action Figure'];\n  \n  return Array.from({ length: count }, (_, i) => ({\n    id: i + 1,\n    name: `${names[i % names.length]} ${i + 1}`,\n    category: categories[i % categories.length],\n    price: Math.floor(Math.random() * 500) + 10,\n    stock: Math.random() > 0.3 ? 'In Stock' : 'Out of Stock',\n    description: `Description for product ${i + 1}`\n  }));\n};\n```\n\n**Technical Requirements:**\n1. Implement custom virtualization (do not use third-party libraries)\n2. Use `useMemo` for filtered product calculations\n3. Use `useCallback` for event handlers\n4. Implement proper cleanup for event listeners\n5. Optimize with `React.memo` for product items\n\n**Expected Behavior:**\n- Only render visible items in the viewport\n- Smooth scrolling with 60fps\n- Search updates filter virtualized items\n- No lag during interaction\n- Proper cleanup on unmount",
+  "description_preview": "Implement custom list virtualization to optimize rendering of thousands of products with search filtering",
+  "context_code": "// PRODUCT DATA GENERATOR (for reference only)\nconst generateProducts = (count) => {\n  const categories = ['Electronics', 'Clothing', 'Home', 'Books', 'Toys'];\n  const names = ['Laptop', 'Shirt', 'Lamp', 'Novel', 'Action Figure'];\n  \n  return Array.from({ length: count }, (_, i) => ({\n    id: i + 1,\n    name: `${names[i % names.length]} ${i + 1}`,\n    category: categories[i % categories.length],\n    price: Math.floor(Math.random() * 500) + 10,\n    stock: Math.random() > 0.3 ? 'In Stock' : 'Out of Stock',\n    description: `Description for product ${i + 1}`\n  }));\n};\n\nconst products = generateProducts(1000);",
+  "starter_code": "",
+  "target_area": "VirtualizedProductList component with custom virtualization",
+  "validation_spec": {
+    "required_imports": ["react"],
+    "required_structure": {
+      "functions": [
+        {
+          "name": "VirtualizedProductList",
+          "type": "functional_component",
+          "has_export": true
+        },
+        {
+          "name": "ProductItem",
+          "type": "functional_component"
+        }
+      ]
+    },
+    "behavior_patterns": [
+      {
+        "type": "state_management",
+        "state_type": "useState"
+      },
+      {
+        "type": "hook_call",
+        "hook": "useMemo",
+        "min_calls": 2
+      },
+      {
+        "type": "hook_call",
+        "hook": "useCallback",
+        "min_calls": 3
+      },
+      {
+        "type": "hook_call",
+        "hook": "useEffect",
+        "min_calls": 1
+      },
+      {
+        "type": "memoization",
+        "memo_type": "react_memo"
+      },
+      "Window scroll event listener with cleanup",
+      "Calculates visible range based on scroll position",
+      "Only renders visible items in viewport",
+      "Search filtering with memoization",
+      "Debounced search input handler"
+    ]
+  },
+  "import_weight": 10.00,
+  "structure_weight": 30.00,
+  "behavior_weight": 60.00,
+  "passing_score": 80.00,
+  "hints": [
+    "Track scroll position to determine which items are visible",
+    "Calculate start and end indices based on viewport height and item height",
+    "Use absolute positioning for the container and relative for items",
+    "Memoize filtered products to avoid recalculating on every render",
+    "Use useEffect to add/remove scroll event listeners with cleanup",
+    "Implement debouncing for search input to avoid excessive filtering",
+    "Wrap ProductItem with React.memo to prevent unnecessary re-renders"
+  ],
+  "learning_resources": [
+    "https://react.dev/reference/react/useMemo",
+    "https://react.dev/reference/react/useCallback",
+    "https://react.dev/learn/escape-hatches#memoizing-a-function",
+    "https://developer.mozilla.org/en-US/docs/Web/API/Element/getBoundingClientRect"
+  ],
+  "tags": ["react", "performance", "virtualization", "large-lists", "optimization", "intermediate"],
+  "estimated_time_minutes": 45,
+  "patterns": [
+    {
+      "pattern_id": "react-performance-004-pattern-1",
+      "name": "Custom Virtualization Pattern",
+      "description": "Implementing custom list virtualization for large datasets",
+      "example_code": "import React, { useState, useMemo, useCallback, useEffect, useRef, memo } from 'react';\n\nconst generateProducts = (count) => {\n  const categories = ['Electronics', 'Clothing', 'Home', 'Books', 'Toys'];\n  const names = ['Laptop', 'Shirt', 'Lamp', 'Novel', 'Action Figure'];\n  \n  return Array.from({ length: count }, (_, i) => ({\n    id: i + 1,\n    name: `${names[i % names.length]} ${i + 1}`,\n    category: categories[i % categories.length],\n    price: Math.floor(Math.random() * 500) + 10,\n    stock: Math.random() > 0.3 ? 'In Stock' : 'Out of Stock',\n    description: `Description for product ${i + 1}`\n  }));\n};\n\nconst products = generateProducts(1000);\n\n// Memoized product item component\nconst ProductItem = memo(function ProductItem({ product }) {\n  return (\n    <div className=\"product-item\" style={{ height: '60px', borderBottom: '1px solid #eee', padding: '10px' }}>\n      <div style={{ display: 'flex', justifyContent: 'space-between' }}>\n        <strong>{product.name}</strong>\n        <span>${product.price}</span>\n      </div>\n      <div style={{ display: 'flex', justifyContent: 'space-between', color: '#666' }}>\n        <span>{product.category}</span>\n        <span style={{ color: product.stock === 'In Stock' ? 'green' : 'red' }}>\n          {product.stock}\n        </span>\n      </div>\n    </div>\n  );\n});\n\nexport function VirtualizedProductList() {\n  const [search, setSearch] = useState('');\n  const [scrollTop, setScrollTop] = useState(0);\n  const containerRef = useRef(null);\n  \n  const ITEM_HEIGHT = 60;\n  const VIEWPORT_HEIGHT = 600;\n  const OVERSCAN = 5;\n  \n  // Memoize filtered products\n  const filteredProducts = useMemo(() => {\n    if (!search.trim()) return products;\n    const searchLower = search.toLowerCase();\n    return products.filter(p => \n      p.name.toLowerCase().includes(searchLower) || \n      p.category.toLowerCase().includes(searchLower)\n    );\n  }, [search]);\n  \n  // Calculate visible items\n  const visibleItems = useMemo(() => {\n    const startIndex = Math.max(0, Math.floor(scrollTop / ITEM_HEIGHT) - OVERSCAN);\n    const endIndex = Math.min(\n      filteredProducts.length,\n      Math.ceil((scrollTop + VIEWPORT_HEIGHT) / ITEM_HEIGHT) + OVERSCAN\n    );\n    \n    return {\n      startIndex,\n      endIndex,\n      totalHeight: filteredProducts.length * ITEM_HEIGHT,\n      visibleProducts: filteredProducts.slice(startIndex, endIndex)\n    };\n  }, [scrollTop, filteredProducts]);\n  \n  // Debounced search handler\n  const handleSearchChange = useCallback((e) => {\n    const value = e.target.value;\n    // Simple debounce implementation\n    setTimeout(() => {\n      setSearch(value);\n    }, 300);\n  }, []);\n  \n  // Scroll handler\n  const handleScroll = useCallback(() => {\n    if (containerRef.current) {\n      setScrollTop(containerRef.current.scrollTop);\n    }\n  }, []);\n  \n  // Add scroll listener\n  useEffect(() => {\n    const container = containerRef.current;\n    if (!container) return;\n    \n    container.addEventListener('scroll', handleScroll);\n    \n    return () => {\n      container.removeEventListener('scroll', handleScroll);\n    };\n  }, [handleScroll]);\n  \n  return (\n    <div className=\"virtualized-list-container\">\n      <h2>Virtualized Product Catalog ({filteredProducts.length} items)</h2>\n      \n      <div className=\"search-controls\">\n        <input\n          type=\"text\"\n          placeholder=\"Search products...\"\n          onChange={handleSearchChange}\n          style={{ padding: '8px', width: '300px' }}\n        />\n        <div style={{ marginTop: '10px', color: '#666' }}>\n          Showing {visibleItems.visibleProducts.length} of {filteredProducts.length} products\n        </div>\n      </div>\n      \n      <div \n        ref={containerRef}\n        style={{\n          height: `${VIEWPORT_HEIGHT}px`,\n          overflowY: 'auto',\n          border: '1px solid #ccc',\n          position: 'relative',\n          marginTop: '20px'\n        }}\n      >\n        {/* Spacer for total height */}\n        <div style={{ height: `${visibleItems.totalHeight}px` }}>\n          {/* Visible items */}\n          {visibleItems.visibleProducts.map((product, index) => (\n            <div\n              key={product.id}\n              style={{\n                position: 'absolute',\n                top: `${(visibleItems.startIndex + index) * ITEM_HEIGHT}px`,\n                left: 0,\n                right: 0,\n                height: `${ITEM_HEIGHT}px`\n              }}\n            >\n              <ProductItem product={product} />\n            </div>\n          ))}\n        </div>\n      </div>\n      \n      <div style={{ marginTop: '20px', color: '#666', fontSize: '14px' }}>\n        <p><strong>Performance Features:</strong></p>\n        <ul>\n          <li>Virtualization: Only {visibleItems.visibleProducts.length} items rendered</li>\n          <li>Memoization: Filtered products memoized with useMemo</li>\n          <li>Event listeners: Proper cleanup with useEffect</li>\n          <li>Component memoization: ProductItem wrapped with React.memo</li>\n        </ul>\n      </div>\n    </div>\n  );\n}",
+      "required_imports": ["react"],
+      "required_structure": {
+        "functions": [
+          {
+            "name": "VirtualizedProductList",
+            "type": "functional_component",
+            "has_export": true
+          },
+          {
+            "name": "ProductItem",
+            "type": "functional_component"
+          }
+        ]
+      },
+      "forbidden_patterns": [
+        "Rendering all items without virtualization",
+        "Missing cleanup in useEffect",
+        "Inline functions in event handlers without useCallback",
+        "No memoization for filtered products"
+      ],
+      "is_primary": true,
+      "confidence_threshold": 85.00
+    }
+  ]
+}

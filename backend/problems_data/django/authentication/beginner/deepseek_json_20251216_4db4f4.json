@@ -1,0 +1,63 @@
+{
+  "problem_id": "django-authentication-003",
+  "title": "Create Password Change View with Custom Template",
+  "slug": "create-password-change-view-with-custom-template",
+  "framework": "django",
+  "category": "authentication",
+  "difficulty": "beginner",
+  "description": "In a banking application, users need a secure way to change their passwords with proper validation and feedback.\n\n**Business Context:**\nYour application handles sensitive financial data, so password security is critical. You need to implement Django's built-in password change functionality with a custom template that matches your application's design.\n\n**Given Context and Requirements:**\n```python\n# urls.py - URL configuration\nfrom django.urls import path\nfrom django.contrib.auth import views as auth_views\nfrom . import views\n\nurlpatterns = [\n    # Other URLs...\n    # You need to add password change URLs here\n]\n\n# settings.py already has:\n# LOGIN_URL = '/accounts/login/'\n# LOGIN_REDIRECT_URL = '/accounts/profile/'\n# LOGOUT_REDIRECT_URL = '/'",
+  "description_preview": "Implement password change functionality using Django's built-in views with custom templates for a banking application.",
+  "context_code": "# CONTEXT CODE (for reference only - you need to configure URLs and create template)\n# This shows the project structure and existing configuration\n\n# Directory structure:\n# project/\n# ├── templates/\n# │   ├── registration/  # <- You'll create password change templates here\n# │   │   └── login.html  # (already exists)\n# │   └── base.html  # (already exists)\n# ├── urls.py\n# └── settings.py\n\n# settings.py contains:\n# LOGIN_URL = '/accounts/login/'\n# LOGIN_REDIRECT_URL = '/accounts/profile/'\n# LOGOUT_REDIRECT_URL = '/'\n# TEMPLATES = [{\n#     'DIRS': [BASE_DIR / 'templates'],\n#     # ... other settings\n# }]\n\n# Base template (templates/base.html) exists with:\n# <!DOCTYPE html>\n# <html>\n# <head>\n#     <title>{% block title %}Banking App{% endblock %}</title>\n#     <style>\n#         .messages { color: green; }\n#         .errors { color: red; }\n#     </style>\n# </head>\n# <body>\n#     <nav>...</nav>\n#     <main>{% block content %}{% endblock %}</main>\n# </body>\n# </html>\n\n# You need to:\n# 1. Configure URLs for password change\n# 2. Create custom templates in templates/registration/\n# 3. Ensure proper template inheritance from base.html",
+  "starter_code": "",
+  "target_area": "URL configuration and template creation",
+  "validation_spec": {
+    "required_imports": ["django.contrib.auth.views.PasswordChangeView", "django.contrib.auth.views.PasswordChangeDoneView"],
+    "required_structure": {
+      "url_patterns": ["password_change", "password_change_done"],
+      "template_files": ["password_change_form.html", "password_change_done.html"],
+      "template_inheritance": true
+    },
+    "behavior_patterns": [
+      "path('password_change/', auth_views.PasswordChangeView.as_view(), name='password_change')",
+      "path('password_change/done/', auth_views.PasswordChangeDoneView.as_view(), name='password_change_done')",
+      "{% extends 'base.html' %}",
+      "{% block content %}",
+      "{{ form.as_p }}",
+      "{% endblock %}",
+      "template_name='registration/password_change_form.html'"
+    ]
+  },
+  "import_weight": 15.00,
+  "structure_weight": 40.00,
+  "behavior_weight": 45.00,
+  "passing_score": 75.00,
+  "hints": [
+    "Import Django's auth views and use PasswordChangeView and PasswordChangeDoneView",
+    "Create templates in the 'registration' directory within your templates folder",
+    "Make sure templates extend 'base.html' and fill the 'content' block",
+    "The form can be rendered with {{ form.as_p }} for simplicity in this exercise"
+  ],
+  "learning_resources": [
+    "https://docs.djangoproject.com/en/stable/topics/auth/default/#django.contrib.auth.views.PasswordChangeView",
+    "https://docs.djangoproject.com/en/stable/topics/auth/default/#built-in-auth-forms"
+  ],
+  "tags": ["django", "authentication", "passwords", "templates", "beginner"],
+  "estimated_time_minutes": 30,
+  "patterns": [
+    {
+      "pattern_id": "django-authentication-003-pattern-1",
+      "name": "Password Change with Custom Templates",
+      "description": "Configure password change URLs and create custom templates",
+      "example_code": "# urls.py\nfrom django.urls import path\nfrom django.contrib.auth import views as auth_views\nfrom . import views\n\nurlpatterns = [\n    # Other URLs...\n    path(\n        'password_change/',\n        auth_views.PasswordChangeView.as_view(\n            template_name='registration/password_change_form.html'\n        ),\n        name='password_change'\n    ),\n    path(\n        'password_change/done/',\n        auth_views.PasswordChangeDoneView.as_view(\n            template_name='registration/password_change_done.html'\n        ),\n        name='password_change_done'\n    ),\n]\n\n# templates/registration/password_change_form.html\n{% extends 'base.html' %}\n\n{% block title %}Change Password - Banking App{% endblock %}\n\n{% block content %}\n<h2>Change Your Password</h2>\n<p>For security reasons, please enter your old password, and then enter your new password twice.</p>\n\n<form method=\"post\">\n    {% csrf_token %}\n    {{ form.as_p }}\n    <button type=\"submit\">Change Password</button>\n</form>\n{% endblock %}\n\n# templates/registration/password_change_done.html\n{% extends 'base.html' %}\n\n{% block title %}Password Changed - Banking App{% endblock %}\n\n{% block content %}\n<h2>Password Changed Successfully</h2>\n<p>Your password has been updated. Please use your new password for future logins.</p>\n<a href=\"{% url 'profile' %}\">Return to Profile</a>\n{% endblock %}",
+      "required_imports": ["django.contrib.auth.views.PasswordChangeView", "django.contrib.auth.views.PasswordChangeDoneView"],
+      "required_structure": {
+        "url_patterns": ["password_change", "password_change_done"],
+        "has_template_names": true,
+        "template_directory": "registration"
+      },
+      "forbidden_patterns": ["hardcoded template paths", "missing csrf_token", "no template inheritance"],
+      "is_primary": true,
+      "confidence_threshold": 85.00
+    }
+  ]
+}

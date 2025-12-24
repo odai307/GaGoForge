@@ -1,0 +1,300 @@
+{
+  "problem_id": "django-models-003",
+  "title": "Create Blog System Models",
+  "slug": "create-blog-system-models",
+  "framework": "django",
+  "category": "models",
+  "difficulty": "beginner",
+  "description": "Create Django models for a blogging system with posts, categories, tags, comments, and authors.\n\n**Business Scenario:**\nYou're building a blogging platform that needs to support multiple authors, post categorization, tagging, commenting, and post status management.\n\n**Requirements:**\nCreate the following models in `models.py`:\n\n1. **Author Model**:\n   - `user`: OneToOneField to Django's User model, on_delete=CASCADE\n   - `bio`: TextField, optional\n   - `profile_picture`: ImageField, upload_to='authors/', optional\n   - `website`: URLField, optional\n   - `twitter_handle`: CharField, max_length=50, optional\n   - `is_active`: BooleanField, default=True\n   - `created_at`: DateTimeField, auto_now_add=True\n   - `updated_at`: DateTimeField, auto_now=True\n   \n   - Meta: ordering by user's username\n   - `__str__`: Return user's full name or username\n   - Property `full_name`: Return user's full name\n   - Property `post_count`: Return number of published posts by author\n\n2. **Category Model**:\n   - `name`: CharField, max_length=100, unique, required\n   - `slug`: SlugField, max_length=100, unique\n   - `description`: TextField, optional\n   - `parent`: ForeignKey to self (for nested categories), null=True, blank=True\n   - `is_active`: BooleanField, default=True\n   - `created_at`: DateTimeField, auto_now_add=True\n   \n   - Meta: ordering by name\n   - `__str__`: Return name\n   - Method `get_absolute_url`: Return URL for category\n   - Property `post_count`: Return number of published posts in category\n\n3. **Tag Model**:\n   - `name`: CharField, max_length=50, unique, required\n   - `slug`: SlugField, max_length=50, unique\n   - `description`: TextField, optional\n   - `is_active`: BooleanField, default=True\n   - `created_at`: DateTimeField, auto_now_add=True\n   \n   - Meta: ordering by name\n   - `__str__`: Return name\n   - Method `get_absolute_url`: Return URL for tag\n\n4. **Post Model**:\n   - `title`: CharField, max_length=200, required\n   - `slug`: SlugField, max_length=200, unique_for_date='publish_date'\n   - `author`: ForeignKey to Author, on_delete=PROTECT, related_name='posts'\n   - `content`: TextField, required\n   - `excerpt`: TextField, max_length=500, optional (summary)\n   - `featured_image`: ImageField, upload_to='posts/', optional\n   - `categories`: ManyToManyField to Category, related_name='posts'\n   - `tags`: ManyToManyField to Tag, related_name='posts', blank=True\n   - `status`: CharField with choices: ('draft', 'published', 'archived'), default='draft'\n   - `publish_date`: DateTimeField, null=True, blank=True\n   - `created_at`: DateTimeField, auto_now_add=True\n   - `updated_at`: DateTimeField, auto_now=True\n   - `view_count`: IntegerField, default=0 (track post views)\n   \n   - Meta: ordering by -publish_date\n   - `__str__`: Return title\n   - Method `get_absolute_url`: Return URL for post\n   - Method `increment_views`: Increase view count by 1\n   - Property `is_published`: Return True if status is 'published' and publish_date is not None\n   - Property `reading_time`: Estimate reading time (200 words per minute)\n\n5. **Comment Model**:\n   - `post`: ForeignKey to Post, on_delete=CASCADE, related_name='comments'\n   - `name`: CharField, max_length=100, required\n   - `email`: EmailField, required\n   - `website`: URLField, optional\n   - `content`: TextField, required\n   - `parent`: ForeignKey to self (for threaded comments), null=True, blank=True\n   - `is_approved`: BooleanField, default=False\n   - `created_at`: DateTimeField, auto_now_add=True\n   - `updated_at`: DateTimeField, auto_now=True\n   \n   - Meta: ordering by created_at\n   - `__str__`: Return comment excerpt\n   - Property `short_content`: Return first 100 characters of content\n   - Method `approve`: Mark comment as approved\n\n6. **PostView Model** (for tracking views):\n   - `post`: ForeignKey to Post, on_delete=CASCADE, related_name='views'\n   - `ip_address`: GenericIPAddressField\n   - `user_agent`: TextField, optional\n   - `viewed_at`: DateTimeField, auto_now_add=True\n   \n   - Meta: ordering by -viewed_at\n   - `__str__`: Return post title with IP and timestamp\n\n**Expected Behavior:**\n- Proper user-author relationship\n- Hierarchical category structure\n- Many-to-many relationships for categories and tags\n- Post status management with publish dates\n- Comment threading capability\n- View tracking with IP logging\n- Reading time estimation\n- URL generation for SEO-friendly links\n\n**Example Usage:**\n```python\n# Create an author\nauthor = Author.objects.create(\n    user=user,\n    bio=\"Technology writer and developer\",\n    website=\"https://example.com\"\n)\n\n# Create a post\npost = Post.objects.create(\n    title=\"Getting Started with Django\",\n    slug=\"getting-started-with-django\",\n    author=author,\n    content=\"Django is a high-level Python web framework...\",\n    status=\"published\",\n    publish_date=timezone.now()\n)\n\n# Add categories and tags\npost.categories.add(programming_category)\npost.tags.add(django_tag, python_tag)\n\n# Check if post is published\nif post.is_published:\n    print(f\"{post.title} is published\")\n\n# Get reading time\nprint(f\"Reading time: {post.reading_time} minutes\")\n```",
+  "description_preview": "Create blog system models for posts, authors, categories, tags, comments, and view tracking",
+  "context_code": "# You need to create the models in models.py\n# This is a reference for what you're building\n\n# Expected model relationships:\n# User   1───1 Author\n# Author 1───N Post\n# Post   N───N Category\n# Post   N───N Tag\n# Post   1───N Comment\n# Comment N──1 Comment (self-referential for threading)\n# Post   1───N PostView",
+  "starter_code": "",
+  "target_area": "Blog system Django models",
+  "validation_spec": {
+    "required_imports": ["django.db.models", "django.contrib.auth.models", "django.urls", "django.utils"],
+    "required_structure": {
+      "classes": [
+        {
+          "name": "Author",
+          "parent_class": "models.Model",
+          "has_meta_class": true,
+          "meta_class_options": ["ordering"],
+          "methods": ["__str__"],
+          "properties": ["full_name", "post_count"]
+        },
+        {
+          "name": "Category",
+          "parent_class": "models.Model",
+          "has_meta_class": true,
+          "meta_class_options": ["ordering"],
+          "methods": ["__str__", "get_absolute_url"],
+          "properties": ["post_count"]
+        },
+        {
+          "name": "Tag",
+          "parent_class": "models.Model",
+          "has_meta_class": true,
+          "meta_class_options": ["ordering"],
+          "methods": ["__str__", "get_absolute_url"]
+        },
+        {
+          "name": "Post",
+          "parent_class": "models.Model",
+          "has_meta_class": true,
+          "meta_class_options": ["ordering"],
+          "methods": ["__str__", "get_absolute_url", "increment_views"],
+          "properties": ["is_published", "reading_time"]
+        },
+        {
+          "name": "Comment",
+          "parent_class": "models.Model",
+          "has_meta_class": true,
+          "meta_class_options": ["ordering"],
+          "methods": ["__str__", "approve"],
+          "properties": ["short_content"]
+        },
+        {
+          "name": "PostView",
+          "parent_class": "models.Model",
+          "has_meta_class": true,
+          "meta_class_options": ["ordering"],
+          "methods": ["__str__"]
+        }
+      ]
+    },
+    "behavior_patterns": [
+      {
+        "type": "model_field",
+        "field_type": "CharField",
+        "min_count": 12,
+        "description": "Must include CharFields for titles, names, slugs, etc."
+      },
+      {
+        "type": "model_field",
+        "field_type": "SlugField",
+        "min_count": 4,
+        "description": "Must include SlugFields for URLs"
+      },
+      {
+        "type": "model_field",
+        "field_type": "TextField",
+        "min_count": 6,
+        "description": "Must include TextFields for content, bio, descriptions"
+      },
+      {
+        "type": "model_field",
+        "field_type": "ForeignKey",
+        "min_count": 7,
+        "description": "Must include ForeignKeys for relationships"
+      },
+      {
+        "type": "model_field",
+        "field_type": "ManyToManyField",
+        "min_count": 2,
+        "description": "Must include ManyToManyFields for categories and tags"
+      },
+      {
+        "type": "model_field",
+        "field_type": "ImageField",
+        "min_count": 2,
+        "description": "Must include ImageFields for profile and featured images"
+      },
+      {
+        "type": "model_field",
+        "field_type": "DateTimeField",
+        "min_count": 10,
+        "description": "Must include DateTimeFields for timestamps"
+      },
+      {
+        "type": "model_field",
+        "field_type": "EmailField",
+        "description": "Must include EmailField for comment emails"
+      },
+      {
+        "type": "model_field",
+        "field_type": "URLField",
+        "min_count": 2,
+        "description": "Must include URLFields for websites"
+      },
+      {
+        "type": "model_field",
+        "field_type": "GenericIPAddressField",
+        "description": "Must include GenericIPAddressField for view tracking"
+      },
+      {
+        "type": "one_to_one_relationship",
+        "from_model": "Author",
+        "to_model": "User",
+        "description": "Author must have OneToOneField to User"
+      },
+      {
+        "type": "self_referential_foreignkey",
+        "model": "Category",
+        "field_name": "parent",
+        "description": "Category must have self-referential ForeignKey"
+      },
+      {
+        "type": "self_referential_foreignkey",
+        "model": "Comment",
+        "field_name": "parent",
+        "description": "Comment must have self-referential ForeignKey for threading"
+      },
+      {
+        "type": "field_choices",
+        "model": "Post",
+        "field_name": "status",
+        "choices_count": 3,
+        "description": "Post must have status choices"
+      },
+      {
+        "type": "unique_for_date",
+        "model": "Post",
+        "field_name": "slug",
+        "date_field": "publish_date",
+        "description": "Post slug must be unique for date"
+      },
+      {
+        "type": "get_absolute_url_method",
+        "model": "Category",
+        "description": "Category must have get_absolute_url"
+      },
+      {
+        "type": "get_absolute_url_method",
+        "model": "Tag",
+        "description": "Tag must have get_absolute_url"
+      },
+      {
+        "type": "get_absolute_url_method",
+        "model": "Post",
+        "description": "Post must have get_absolute_url"
+      },
+      {
+        "type": "property_method",
+        "model": "Author",
+        "property_name": "post_count",
+        "description": "Author must have post_count property"
+      },
+      {
+        "type": "property_method",
+        "model": "Category",
+        "property_name": "post_count",
+        "description": "Category must have post_count property"
+      },
+      {
+        "type": "property_method",
+        "model": "Post",
+        "property_name": "is_published",
+        "description": "Post must have is_published property"
+      },
+      {
+        "type": "property_method",
+        "model": "Post",
+        "property_name": "reading_time",
+        "description": "Post must have reading_time property"
+      },
+      {
+        "type": "property_method",
+        "model": "Comment",
+        "property_name": "short_content",
+        "description": "Comment must have short_content property"
+      },
+      {
+        "type": "custom_method",
+        "model": "Post",
+        "method_name": "increment_views",
+        "description": "Post must have increment_views method"
+      },
+      {
+        "type": "custom_method",
+        "model": "Comment",
+        "method_name": "approve",
+        "description": "Comment must have approve method"
+      }
+    ],
+    "difficulty": "beginner",
+    "framework": "django"
+  },
+  "import_weight": 15.00,
+  "structure_weight": 40.00,
+  "behavior_weight": 45.00,
+  "passing_score": 75.00,
+  "hints": [
+    "Use OneToOneField to extend Django's built-in User model for Author",
+    "For reading time estimation: word_count = len(content.split()), minutes = word_count / 200",
+    "Use unique_for_date parameter for Post slug to allow same slug on different dates",
+    "GenericIPAddressField stores both IPv4 and IPv6 addresses"
+  ],
+  "learning_resources": [
+    "https://docs.djangoproject.com/en/stable/topics/db/models/#one-to-one-relationships",
+    "https://docs.djangoproject.com/en/stable/ref/models/fields/#slugfield",
+    "https://docs.djangoproject.com/en/stable/ref/models/fields/#manytomanyfield"
+  ],
+  "tags": ["django", "models", "blog", "cms", "beginner"],
+  "estimated_time_minutes": 45,
+  "patterns": [
+    {
+      "pattern_id": "django-models-003-pattern-1",
+      "name": "Complete Blog System Models",
+      "description": "All six blog system models with proper relationships and methods",
+      "example_code": "from django.db import models\nfrom django.contrib.auth.models import User\nfrom django.urls import reverse\nfrom django.utils import timezone\n\nclass Author(models.Model):\n    \"\"\"Model representing a blog author.\"\"\"\n    user = models.OneToOneField(\n        User,\n        on_delete=models.CASCADE,\n        related_name='author_profile'\n    )\n    bio = models.TextField(blank=True)\n    profile_picture = models.ImageField(\n        upload_to='authors/', \n        blank=True, \n        null=True\n    )\n    website = models.URLField(blank=True)\n    twitter_handle = models.CharField(max_length=50, blank=True)\n    is_active = models.BooleanField(default=True)\n    created_at = models.DateTimeField(auto_now_add=True)\n    updated_at = models.DateTimeField(auto_now=True)\n    \n    class Meta:\n        ordering = ['user__username']\n    \n    def __str__(self):\n        return self.user.get_full_name() or self.user.username\n    \n    @property\n    def full_name(self):\n        return self.user.get_full_name()\n    \n    @property\n    def post_count(self):\n        \"\"\"Return number of published posts by this author.\"\"\"\n        return self.posts.filter(status='published').count()\n\nclass Category(models.Model):\n    \"\"\"Model representing a blog post category.\"\"\"\n    name = models.CharField(max_length=100, unique=True)\n    slug = models.SlugField(max_length=100, unique=True)\n    description = models.TextField(blank=True)\n    parent = models.ForeignKey(\n        'self',\n        on_delete=models.CASCADE,\n        null=True,\n        blank=True,\n        related_name='children'\n    )\n    is_active = models.BooleanField(default=True)\n    created_at = models.DateTimeField(auto_now_add=True)\n    \n    class Meta:\n        verbose_name_plural = \"categories\"\n        ordering = ['name']\n    \n    def __str__(self):\n        return self.name\n    \n    def get_absolute_url(self):\n        return reverse('category_detail', kwargs={'slug': self.slug})\n    \n    @property\n    def post_count(self):\n        \"\"\"Return number of published posts in this category.\"\"\"\n        return self.posts.filter(status='published').count()\n\nclass Tag(models.Model):\n    \"\"\"Model representing a blog post tag.\"\"\"\n    name = models.CharField(max_length=50, unique=True)\n    slug = models.SlugField(max_length=50, unique=True)\n    description = models.TextField(blank=True)\n    is_active = models.BooleanField(default=True)\n    created_at = models.DateTimeField(auto_now_add=True)\n    \n    class Meta:\n        ordering = ['name']\n    \n    def __str__(self):\n        return self.name\n    \n    def get_absolute_url(self):\n        return reverse('tag_detail', kwargs={'slug': self.slug})\n\nclass Post(models.Model):\n    \"\"\"Model representing a blog post.\"\"\"\n    STATUS_CHOICES = [\n        ('draft', 'Draft'),\n        ('published', 'Published'),\n        ('archived', 'Archived'),\n    ]\n    \n    title = models.CharField(max_length=200)\n    slug = models.SlugField(max_length=200, unique_for_date='publish_date')\n    author = models.ForeignKey(\n        Author,\n        on_delete=models.PROTECT,\n        related_name='posts'\n    )\n    content = models.TextField()\n    excerpt = models.TextField(max_length=500, blank=True)\n    featured_image = models.ImageField(\n        upload_to='posts/', \n        blank=True, \n        null=True\n    )\n    categories = models.ManyToManyField(Category, related_name='posts')\n    tags = models.ManyToManyField(Tag, related_name='posts', blank=True)\n    status = models.CharField(\n        max_length=20, \n        choices=STATUS_CHOICES, \n        default='draft'\n    )\n    publish_date = models.DateTimeField(blank=True, null=True)\n    created_at = models.DateTimeField(auto_now_add=True)\n    updated_at = models.DateTimeField(auto_now=True)\n    view_count = models.IntegerField(default=0)\n    \n    class Meta:\n        ordering = ['-publish_date']\n    \n    def __str__(self):\n        return self.title\n    \n    def get_absolute_url(self):\n        if self.publish_date:\n            return reverse('post_detail', kwargs={\n                'year': self.publish_date.year,\n                'month': self.publish_date.month,\n                'day': self.publish_date.day,\n                'slug': self.slug\n            })\n        return reverse('post_draft', kwargs={'pk': self.pk})\n    \n    def increment_views(self):\n        \"\"\"Increment the view count for this post.\"\"\"\n        self.view_count = models.F('view_count') + 1\n        self.save(update_fields=['view_count'])\n    \n    @property\n    def is_published(self):\n        \"\"\"Check if the post is published.\"\"\"\n        return self.status == 'published' and self.publish_date is not None\n    \n    @property\n    def reading_time(self):\n        \"\"\"Estimate reading time in minutes.\"\"\"\n        # Average reading speed: 200 words per minute\n        word_count = len(self.content.split())\n        minutes = word_count / 200\n        return max(1, round(minutes))  # At least 1 minute\n\nclass Comment(models.Model):\n    \"\"\"Model representing a blog post comment.\"\"\"\n    post = models.ForeignKey(\n        Post,\n        on_delete=models.CASCADE,\n        related_name='comments'\n    )\n    name = models.CharField(max_length=100)\n    email = models.EmailField()\n    website = models.URLField(blank=True)\n    content = models.TextField()\n    parent = models.ForeignKey(\n        'self',\n        on_delete=models.CASCADE,\n        null=True,\n        blank=True,\n        related_name='replies'\n    )\n    is_approved = models.BooleanField(default=False)\n    created_at = models.DateTimeField(auto_now_add=True)\n    updated_at = models.DateTimeField(auto_now=True)\n    \n    class Meta:\n        ordering = ['created_at']\n    \n    def __str__(self):\n        return f\"Comment by {self.name} on {self.post.title}\"\n    \n    @property\n    def short_content(self):\n        \"\"\"Return first 100 characters of comment content.\"\"\"\n        if len(self.content) > 100:\n            return self.content[:100] + '...'\n        return self.content\n    \n    def approve(self):\n        \"\"\"Mark comment as approved.\"\"\"\n        self.is_approved = True\n        self.save(update_fields=['is_approved'])\n\nclass PostView(models.Model):\n    \"\"\"Model for tracking post views.\"\"\"\n    post = models.ForeignKey(\n        Post,\n        on_delete=models.CASCADE,\n        related_name='views'\n    )\n    ip_address = models.GenericIPAddressField()\n    user_agent = models.TextField(blank=True)\n    viewed_at = models.DateTimeField(auto_now_add=True)\n    \n    class Meta:\n        ordering = ['-viewed_at']\n    \n    def __str__(self):\n        return f\"{self.post.title} - {self.ip_address} - {self.viewed_at}\"",
+      "required_imports": ["django.db.models", "django.contrib.auth.models", "django.urls", "django.utils"],
+      "required_structure": {
+        "classes": [
+          {
+            "name": "Author",
+            "parent_class": "models.Model",
+            "has_meta_class": true,
+            "meta_class_options": ["ordering"],
+            "methods": ["__str__"],
+            "properties": ["full_name", "post_count"]
+          },
+          {
+            "name": "Category",
+            "parent_class": "models.Model",
+            "has_meta_class": true,
+            "meta_class_options": ["ordering", "verbose_name_plural"],
+            "methods": ["__str__", "get_absolute_url"],
+            "properties": ["post_count"]
+          },
+          {
+            "name": "Tag",
+            "parent_class": "models.Model",
+            "has_meta_class": true,
+            "meta_class_options": ["ordering"],
+            "methods": ["__str__", "get_absolute_url"]
+          },
+          {
+            "name": "Post",
+            "parent_class": "models.Model",
+            "has_meta_class": true,
+            "meta_class_options": ["ordering"],
+            "methods": ["__str__", "get_absolute_url", "increment_views"],
+            "properties": ["is_published", "reading_time"]
+          },
+          {
+            "name": "Comment",
+            "parent_class": "models.Model",
+            "has_meta_class": true,
+            "meta_class_options": ["ordering"],
+            "methods": ["__str__", "approve"],
+            "properties": ["short_content"]
+          },
+          {
+            "name": "PostView",
+            "parent_class": "models.Model",
+            "has_meta_class": true,
+            "meta_class_options": ["ordering"],
+            "methods": ["__str__"]
+          }
+        ]
+      },
+      "forbidden_patterns": [
+        "missing_one_to_one",
+        "no_many_to_many",
+        "incorrect_unique_for_date"
+      ],
+      "is_primary": true,
+      "confidence_threshold": 85.00
+    }
+  ]
+}

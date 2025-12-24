@@ -1,0 +1,251 @@
+{
+  "problem_id": "react-routing-011",
+  "title": "Implement Protected Routes with Role-Based Authentication and Route Guards",
+  "slug": "protected-routes-with-role-based-authentication-route-guards",
+  "framework": "react",
+  "category": "routing",
+  "difficulty": "intermediate",
+  "description": "Create a complete authentication and routing system for a React application with protected routes, role-based access control, and route guards.\n\n**Requirements:**\n1. Implement authentication context/provider with:\n   - User state (user object, token, roles)\n   - Login/logout functionality\n   - Token persistence (localStorage)\n   - Token refresh mechanism\n2. Create route components:\n   - ProtectedRoute: guards routes requiring authentication\n   - RoleProtectedRoute: guards routes requiring specific roles\n   - PublicRoute: redirects authenticated users away from auth pages\n3. Implement features:\n   - Auto-redirect to login when accessing protected routes unauthenticated\n   - Redirect to dashboard/home after successful login\n   - Prevent authenticated users from accessing login/register pages\n   - Role-based navigation menu (show/hide links based on roles)\n   - Session timeout handling\n   - Protected API calls with authentication headers\n4. Route structure:\n   - Public: /login, /register, /forgot-password\n   - Protected: /dashboard, /profile, /settings\n   - Role-protected: /admin/* (requires 'admin' role), /manager/* (requires 'manager' role)\n   - Wildcard route for 404 pages\n\n**Expected Behavior:**\n- Unauthenticated users redirected to /login when accessing protected routes\n- Authenticated users redirected to /dashboard when accessing /login\n- Role-protected routes show 403 Forbidden for unauthorized roles\n- Navigation menu updates based on user roles\n- Authentication state persists across page reloads\n- API calls include Authorization header with Bearer token\n- Session expires after token expiry (1 hour)\n\n**Example User Object:**\n```javascript\n{\n  id: 'user_123',\n  email: 'user@example.com',\n  name: 'John Doe',\n  roles: ['user', 'premium'],\n  token: 'eyJhbGciOiJIUzI1NiIs...',\n  expiresAt: 1673827200000\n}\n```",
+  "description_preview": "Build a complete authentication routing system with protected routes, role-based access control, and persistent sessions.",
+  "context_code": "// ROUTE STRUCTURE (for reference only)\n// Public routes:\n// - /login\n// - /register\n// - /forgot-password\n// - /reset-password/:token\n//\n// Protected routes:\n// - /dashboard\n// - /profile\n// - /settings\n// - /billing\n//\n// Role-protected routes:\n// - /admin/* (requires 'admin' role)\n// - /manager/* (requires 'manager' role)\n// - /reports (requires 'analyst' or 'admin' role)\n//\n// User roles:\n// - user (basic access)\n// - premium (extra features)\n// - admin (full access)\n// - manager (team management)\n// - analyst (view reports)",
+  "starter_code": "",
+  "target_area": "Complete authentication and routing system with protected routes and role-based access",
+  "validation_spec": {
+    "required_imports": ["react-router-dom", "react"],
+    "required_structure": {
+      "functions": [
+        {
+          "name": "AuthProvider",
+          "type": "functional_component",
+          "has_export": true,
+          "description": "Authentication context provider"
+        },
+        {
+          "name": "useAuth",
+          "type": "custom_hook",
+          "has_export": true,
+          "description": "Custom hook for accessing auth context"
+        },
+        {
+          "name": "ProtectedRoute",
+          "type": "functional_component",
+          "has_export": true,
+          "props": ["children", "roles"],
+          "description": "Route guard component"
+        },
+        {
+          "name": "AppRouter",
+          "type": "functional_component",
+          "has_export": true,
+          "description": "Main router with all route definitions"
+        }
+      ],
+      "variables": [
+        {
+          "name": "AuthContext",
+          "type": "context",
+          "has_export": true
+        }
+      ]
+    },
+    "behavior_patterns": [
+      {
+        "type": "constructor_call",
+        "class": "createContext",
+        "object": "React",
+        "context": "auth_context",
+        "description": "Must create AuthContext using React.createContext"
+      },
+      {
+        "type": "hook_call",
+        "hook": "useContext",
+        "context": "auth_hook",
+        "description": "useAuth hook must call useContext(AuthContext)"
+      },
+      {
+        "type": "hook_call",
+        "hook": "useState",
+        "min_calls": 3,
+        "description": "AuthProvider must use useState for user, token, loading states"
+      },
+      {
+        "type": "hook_call",
+        "hook": "useEffect",
+        "min_calls": 2,
+        "description": "Must use useEffect for token validation and auto-login"
+      },
+      {
+        "type": "routing",
+        "library": "react-router",
+        "required": true,
+        "description": "Must use react-router-dom v6+ for routing"
+      },
+      {
+        "type": "routing_component",
+        "component": "BrowserRouter",
+        "wraps": "app",
+        "description": "Must wrap app with BrowserRouter"
+      },
+      {
+        "type": "routing_component",
+        "component": "Routes",
+        "contains": "Route",
+        "description": "Must use Routes container with Route children"
+      },
+      {
+        "type": "route_guard",
+        "type": "protected_route",
+        "condition": "isAuthenticated",
+        "redirect_to": "/login",
+        "description": "ProtectedRoute must redirect to /login if not authenticated"
+      },
+      {
+        "type": "route_guard",
+        "type": "role_protected_route",
+        "condition": "hasRole",
+        "redirect_to": "/unauthorized",
+        "description": "RoleProtectedRoute must check user roles"
+      },
+      {
+        "type": "route_guard",
+        "type": "public_route",
+        "condition": "isAuthenticated",
+        "redirect_to": "/dashboard",
+        "description": "PublicRoute must redirect authenticated users away"
+      },
+      {
+        "type": "navigation",
+        "component": "NavLink",
+        "active_class": "active",
+        "description": "Navigation must use NavLink for active state"
+      },
+      {
+        "type": "navigation",
+        "feature": "conditional_links",
+        "based_on": "user_roles",
+        "description": "Navigation must conditionally show links based on user roles"
+      },
+      {
+        "type": "authentication",
+        "feature": "login",
+        "method": "post_request",
+        "stores_token": true,
+        "description": "Login must make POST request and store token"
+      },
+      {
+        "type": "authentication",
+        "feature": "logout",
+        "clears": ["token", "user", "localStorage"],
+        "redirects_to": "/login",
+        "description": "Logout must clear auth state and redirect"
+      },
+      {
+        "type": "persistence",
+        "storage_type": "localStorage",
+        "items": ["token", "user"],
+        "description": "Must persist auth data in localStorage"
+      },
+      {
+        "type": "api_integration",
+        "feature": "auth_headers",
+        "header": "Authorization",
+        "format": "Bearer token",
+        "description": "API calls must include Authorization: Bearer {token} header"
+      },
+      {
+        "type": "error_handling",
+        "feature": "token_expiry",
+        "action": "auto_logout",
+        "description": "Must handle token expiry with auto-logout"
+      },
+      {
+        "type": "redirect",
+        "component": "Navigate",
+        "usage": "conditional_redirect",
+        "description": "Must use Navigate component for redirects"
+      }
+    ],
+    "difficulty": "intermediate",
+    "framework": "react",
+    "import_weight": 10.00,
+    "structure_weight": 35.00,
+    "behavior_weight": 55.00,
+    "passing_score": 85.00
+  },
+  "import_weight": 10.00,
+  "structure_weight": 35.00,
+  "behavior_weight": 55.00,
+  "passing_score": 85.00,
+  "hints": [
+    "Create an AuthContext to manage authentication state across the app",
+    "Implement a useAuth hook that provides login, logout, and user state",
+    "Use localStorage to persist auth token and user data between sessions",
+    "Create ProtectedRoute component that checks auth state and redirects if not authenticated",
+    "Extend ProtectedRoute to handle role-based access with a roles prop",
+    "Create PublicRoute component that redirects authenticated users away from auth pages",
+    "Implement token refresh mechanism using interceptors or periodic checks",
+    "Use axios interceptors or fetch wrappers to automatically add Authorization headers",
+    "Handle 401 responses by clearing auth state and redirecting to login",
+    "Implement navigation guards that conditionally render links based on user roles"
+  ],
+  "learning_resources": [
+    "https://reactrouter.com/en/main",
+    "https://reactrouter.com/en/main/route/route",
+    "https://react.dev/reference/react/createContext",
+    "https://developer.mozilla.org/en-US/docs/Web/API/Window/localStorage"
+  ],
+  "tags": ["react", "routing", "authentication", "protected-routes", "role-based", "context", "intermediate"],
+  "estimated_time_minutes": 50,
+  "patterns": [
+    {
+      "pattern_id": "react-routing-011-pattern-1",
+      "name": "Complete Authentication Routing System",
+      "description": "Full authentication system with protected routes, role-based access, and persistent sessions",
+      "example_code": "import React, { createContext, useState, useContext, useEffect, useCallback } from 'react';\nimport { \n  BrowserRouter, \n  Routes, \n  Route, \n  Navigate, \n  Outlet, \n  useNavigate, \n  useLocation \n} from 'react-router-dom';\n\n// Create Auth Context\nconst AuthContext = createContext();\n\n// Auth Provider Component\nconst AuthProvider = ({ children }) => {\n  const [user, setUser] = useState(null);\n  const [token, setToken] = useState(null);\n  const [loading, setLoading] = useState(true);\n  const navigate = useNavigate();\n  \n  // Initialize auth from localStorage\n  useEffect(() => {\n    const storedToken = localStorage.getItem('auth_token');\n    const storedUser = localStorage.getItem('auth_user');\n    \n    if (storedToken && storedUser) {\n      try {\n        setToken(storedToken);\n        setUser(JSON.parse(storedUser));\n        \n        // Validate token expiry\n        const userData = JSON.parse(storedUser);\n        if (userData.expiresAt && Date.now() > userData.expiresAt) {\n          // Token expired\n          handleLogout();\n        }\n      } catch (error) {\n        console.error('Failed to parse stored auth data:', error);\n        handleLogout();\n      }\n    }\n    \n    setLoading(false);\n  }, []);\n  \n  // Login function\n  const login = useCallback(async (email, password) => {\n    try {\n      // Simulate API call\n      const response = await fetch('/api/auth/login', {\n        method: 'POST',\n        headers: { 'Content-Type': 'application/json' },\n        body: JSON.stringify({ email, password })\n      });\n      \n      if (!response.ok) {\n        throw new Error('Login failed');\n      }\n      \n      const data = await response.json();\n      \n      // Store auth data\n      const userData = {\n        id: data.user.id,\n        email: data.user.email,\n        name: data.user.name,\n        roles: data.user.roles || ['user'],\n        expiresAt: Date.now() + (60 * 60 * 1000) // 1 hour\n      };\n      \n      localStorage.setItem('auth_token', data.token);\n      localStorage.setItem('auth_user', JSON.stringify(userData));\n      \n      setToken(data.token);\n      setUser(userData);\n      \n      // Redirect to dashboard or intended location\n      const from = location.state?.from?.pathname || '/dashboard';\n      navigate(from, { replace: true });\n      \n      return { success: true };\n    } catch (error) {\n      return { success: false, error: error.message };\n    }\n  }, [navigate]);\n  \n  // Logout function\n  const handleLogout = useCallback(() => {\n    localStorage.removeItem('auth_token');\n    localStorage.removeItem('auth_user');\n    setToken(null);\n    setUser(null);\n    navigate('/login', { replace: true });\n  }, [navigate]);\n  \n  // Check if user has specific role\n  const hasRole = useCallback((requiredRoles) => {\n    if (!user || !user.roles) return false;\n    \n    if (Array.isArray(requiredRoles)) {\n      return requiredRoles.some(role => user.roles.includes(role));\n    }\n    \n    return user.roles.includes(requiredRoles);\n  }, [user]);\n  \n  // Check if user is authenticated\n  const isAuthenticated = !!token && !!user;\n  \n  const value = {\n    user,\n    token,\n    loading,\n    isAuthenticated,\n    login,\n    logout: handleLogout,\n    hasRole\n  };\n  \n  return (\n    <AuthContext.Provider value={value}>\n      {children}\n    </AuthContext.Provider>\n  );\n};\n\n// Custom hook to use auth context\nconst useAuth = () => {\n  const context = useContext(AuthContext);\n  if (!context) {\n    throw new Error('useAuth must be used within AuthProvider');\n  }\n  return context;\n};\n\n// Protected Route Component\nconst ProtectedRoute = ({ children, roles = [] }) => {\n  const { isAuthenticated, hasRole, loading } = useAuth();\n  const location = useLocation();\n  \n  if (loading) {\n    return <div>Loading...</div>;\n  }\n  \n  if (!isAuthenticated) {\n    // Redirect to login, but save the location they tried to visit\n    return <Navigate to=\"/login\" state={{ from: location }} replace />;\n  }\n  \n  // Check roles if specified\n  if (roles.length > 0 && !hasRole(roles)) {\n    return <Navigate to=\"/unauthorized\" replace />;\n  }\n  \n  return children;\n};\n\n// Public Route Component (redirects authenticated users)\nconst PublicRoute = ({ children }) => {\n  const { isAuthenticated, loading } = useAuth();\n  \n  if (loading) {\n    return <div>Loading...</div>;\n  }\n  \n  if (isAuthenticated) {\n    return <Navigate to=\"/dashboard\" replace />;\n  }\n  \n  return children;\n};\n\n// Main Router Component\nconst AppRouter = () => {\n  return (\n    <BrowserRouter>\n      <AuthProvider>\n        <Routes>\n          {/* Public Routes */}\n          <Route path=\"/login\" element={\n            <PublicRoute>\n              <LoginPage />\n            </PublicRoute>\n          } />\n          \n          <Route path=\"/register\" element={\n            <PublicRoute>\n              <RegisterPage />\n            </PublicRoute>\n          } />\n          \n          <Route path=\"/forgot-password\" element={\n            <PublicRoute>\n              <ForgotPasswordPage />\n            </PublicRoute>\n          } />\n          \n          {/* Protected Routes */}\n          <Route path=\"/dashboard\" element={\n            <ProtectedRoute>\n              <DashboardLayout />\n            </ProtectedRoute>\n          }>\n            <Route index element={<DashboardHome />} />\n            <Route path=\"profile\" element={<ProfilePage />} />\n            <Route path=\"settings\" element={<SettingsPage />} />\n            \n            {/* Role-protected nested routes */}\n            <Route path=\"reports\" element={\n              <ProtectedRoute roles={['analyst', 'admin']}>\n                <ReportsPage />\n              </ProtectedRoute>\n            } />\n            \n            <Route path=\"admin\" element={\n              <ProtectedRoute roles={['admin']}>\n                <AdminLayout />\n              </ProtectedRoute>\n            }>\n              <Route index element={<AdminDashboard />} />\n              <Route path=\"users\" element={<UserManagement />} />\n              <Route path=\"settings\" element={<AdminSettings />} />\n            </Route>\n            \n            <Route path=\"manager\" element={\n              <ProtectedRoute roles={['manager', 'admin']}>\n                <ManagerLayout />\n              </ProtectedRoute>\n            }>\n              <Route index element={<ManagerDashboard />} />\n              <Route path=\"team\" element={<TeamManagement />} />\n            </Route>\n          </Route>\n          \n          {/* Error Routes */}\n          <Route path=\"/unauthorized\" element={<UnauthorizedPage />} />\n          <Route path=\"/404\" element={<NotFoundPage />} />\n          \n          {/* Redirect root based on auth */}\n          <Route path=\"/\" element={\n            <ProtectedRoute>\n              <Navigate to=\"/dashboard\" replace />\n            </ProtectedRoute>\n          } />\n          \n          {/* Catch all route */}\n          <Route path=\"*\" element={<Navigate to=\"/404\" replace />} />\n        </Routes>\n      </AuthProvider>\n    </BrowserRouter>\n  );\n};\n\n// Example Navigation Component (not part of validation)\n/*\nconst Navigation = () => {\n  const { user, logout, hasRole } = useAuth();\n  \n  return (\n    <nav>\n      <NavLink to=\"/dashboard\">Dashboard</NavLink>\n      <NavLink to=\"/dashboard/profile\">Profile</NavLink>\n      <NavLink to=\"/dashboard/settings\">Settings</NavLink>\n      \n      {hasRole(['analyst', 'admin']) && (\n        <NavLink to=\"/dashboard/reports\">Reports</NavLink>\n      )}\n      \n      {hasRole('admin') && (\n        <NavLink to=\"/dashboard/admin\">Admin</NavLink>\n      )}\n      \n      {hasRole(['manager', 'admin']) && (\n        <NavLink to=\"/dashboard/manager\">Manager</NavLink>\n      )}\n      \n      {user && (\n        <div>\n          <span>Hello, {user.name}</span>\n          <button onClick={logout}>Logout</button>\n        </div>\n      )}\n    </nav>\n  );\n};\n*/\n\nexport { AppRouter, AuthProvider, useAuth, ProtectedRoute, PublicRoute };",
+      "required_imports": ["react-router-dom", "react"],
+      "required_structure": {
+        "functions": [
+          {
+            "name": "AuthProvider",
+            "type": "functional_component",
+            "has_export": true
+          },
+          {
+            "name": "useAuth",
+            "type": "custom_hook",
+            "has_export": true
+          },
+          {
+            "name": "ProtectedRoute",
+            "type": "functional_component",
+            "has_export": true,
+            "props": ["children", "roles"]
+          },
+          {
+            "name": "AppRouter",
+            "type": "functional_component",
+            "has_export": true
+          }
+        ],
+        "variables": [
+          {
+            "name": "AuthContext",
+            "type": "context",
+            "has_export": true
+          }
+        ]
+      },
+      "forbidden_patterns": [
+        "Not using React Router v6+ patterns",
+        "Missing localStorage persistence",
+        "No token expiry handling",
+        "Hardcoded routes instead of dynamic routing",
+        "Missing role-based access control",
+        "Not handling 401 responses",
+        "No redirect preservation for login"
+      ],
+      "is_primary": true,
+      "confidence_threshold": 85.00
+    }
+  ]
+}

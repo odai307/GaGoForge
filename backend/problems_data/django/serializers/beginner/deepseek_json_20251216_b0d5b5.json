@@ -1,0 +1,147 @@
+{
+  "problem_id": "django-serializers-002",
+  "title": "Create Product Serializer with Related Category",
+  "slug": "create-product-serializer-with-related-category",
+  "framework": "django",
+  "category": "serializers",
+  "difficulty": "beginner",
+  "description": "Create a serializer for a Product model that includes a related Category model using PrimaryKeyRelatedField.\n\n**Business Scenario:**\nYou're building an e-commerce API. Products belong to categories, and you need to serialize both the product data and its category relationship.\n\n**Model Definitions:**\n```python\nfrom django.db import models\n\nclass Category(models.Model):\n    name = models.CharField(max_length=100, unique=True)\n    description = models.TextField(blank=True)\n    is_active = models.BooleanField(default=True)\n    \n    def __str__(self):\n        return self.name\n\nclass Product(models.Model):\n    name = models.CharField(max_length=200)\n    description = models.TextField()\n    price = models.DecimalField(max_digits=10, decimal_places=2)\n    stock_quantity = models.IntegerField(default=0)\n    category = models.ForeignKey(Category, on_delete=models.PROTECT, related_name='products')\n    is_available = models.BooleanField(default=True)\n    created_at = models.DateTimeField(auto_now_add=True)\n    updated_at = models.DateTimeField(auto_now=True)\n    \n    def __str__(self):\n        return self.name\n```\n\n**Requirements:**\n1. Create a ProductSerializer class that inherits from ModelSerializer\n2. Include all Product model fields in the serializer\n3. For the category field, use PrimaryKeyRelatedField\n4. Add validation rules:\n   - `name`: Required, minimum 3 characters\n   - `description`: Required, minimum 10 characters\n   - `price`: Required, must be positive\n   - `stock_quantity`: Cannot be negative\n   - `category`: Required, must reference an existing Category\n5. Include read-only fields for `created_at` and `updated_at`\n6. Add a custom method field `category_name` that returns the category's name\n7. Add a custom method field `is_in_stock` that returns True if stock_quantity > 0\n\n**Expected Behavior:**\n- Serializer should validate all field requirements\n- Category should be referenced by its primary key (ID)\n- Custom fields should provide additional computed data\n- Invalid category IDs should be rejected\n\n**Example Input/Output:**\n```python\n# Valid data with existing category ID 1\nvalid_data = {\n    'name': 'Wireless Headphones',\n    'description': 'High-quality wireless headphones with noise cancellation',\n    'price': '199.99',\n    'stock_quantity': 50,\n    'category': 1,  # Existing category ID\n    'is_available': True\n}\n\n# Serialized output should include:\n# - All product fields\n# - category_name: 'Electronics' (if category name is Electronics)\n# - is_in_stock: True\n```",
+  "description_preview": "Create a Product serializer with ForeignKey relationship using PrimaryKeyRelatedField and custom method fields",
+  "context_code": "# MODEL DEFINITIONS (for reference only - you need to create the serializer)\nfrom django.db import models\n\nclass Category(models.Model):\n    name = models.CharField(max_length=100, unique=True)\n    description = models.TextField(blank=True)\n    is_active = models.BooleanField(default=True)\n    \n    def __str__(self):\n        return self.name\n\nclass Product(models.Model):\n    name = models.CharField(max_length=200)\n    description = models.TextField()\n    price = models.DecimalField(max_digits=10, decimal_places=2)\n    stock_quantity = models.IntegerField(default=0)\n    category = models.ForeignKey(Category, on_delete=models.PROTECT, related_name='products')\n    is_available = models.BooleanField(default=True)\n    created_at = models.DateTimeField(auto_now_add=True)\n    updated_at = models.DateTimeField(auto_now=True)\n    \n    def __str__(self):\n        return self.name",
+  "starter_code": "",
+  "target_area": "ProductSerializer class implementation",
+  "validation_spec": {
+    "required_imports": ["rest_framework.serializers"],
+    "required_structure": {
+      "classes": [
+        {
+          "name": "ProductSerializer",
+          "parent_class": "serializers.ModelSerializer",
+          "has_meta_class": true,
+          "meta_class_fields": ["fields", "read_only_fields"],
+          "methods": ["validate_name", "validate_description", "validate_price", "validate_stock_quantity", "get_category_name", "get_is_in_stock"]
+        }
+      ]
+    },
+    "behavior_patterns": [
+      {
+        "type": "serializer",
+        "description": "Serializer class must inherit from ModelSerializer"
+      },
+      {
+        "type": "model_field",
+        "field_type": "CharField",
+        "min_count": 2,
+        "description": "Must include CharField serializers for name and description"
+      },
+      {
+        "type": "model_field",
+        "field_type": "DecimalField",
+        "description": "Must include DecimalField serializer for price"
+      },
+      {
+        "type": "model_field",
+        "field_type": "IntegerField",
+        "description": "Must include IntegerField serializer for stock_quantity"
+      },
+      {
+        "type": "foreign_key_field",
+        "field_type": "PrimaryKeyRelatedField",
+        "description": "Must use PrimaryKeyRelatedField for category relationship"
+      },
+      {
+        "type": "model_field",
+        "field_type": "BooleanField",
+        "description": "Must include BooleanField serializer for is_available"
+      },
+      {
+        "type": "validation_method",
+        "method_name": "validate_name",
+        "description": "Must implement name validation method"
+      },
+      {
+        "type": "validation_method",
+        "method_name": "validate_description",
+        "description": "Must implement description validation method"
+      },
+      {
+        "type": "validation_method",
+        "method_name": "validate_price",
+        "description": "Must implement price validation method"
+      },
+      {
+        "type": "validation_method",
+        "method_name": "validate_stock_quantity",
+        "description": "Must implement stock quantity validation method"
+      },
+      {
+        "type": "custom_method_field",
+        "field_name": "category_name",
+        "method_name": "get_category_name",
+        "description": "Must include custom method field for category name"
+      },
+      {
+        "type": "custom_method_field",
+        "field_name": "is_in_stock",
+        "method_name": "get_is_in_stock",
+        "description": "Must include custom method field for stock status"
+      },
+      {
+        "type": "meta_class",
+        "options": ["fields", "read_only_fields"],
+        "description": "Must include Meta class with fields and read_only_fields"
+      },
+      {
+        "type": "read_only_fields",
+        "field_count": 4,
+        "description": "Must mark created_at, updated_at, category_name, and is_in_stock as read-only"
+      }
+    ],
+    "difficulty": "beginner",
+    "framework": "django"
+  },
+  "import_weight": 15.00,
+  "structure_weight": 40.00,
+  "behavior_weight": 45.00,
+  "passing_score": 75.00,
+  "hints": [
+    "Use serializers.PrimaryKeyRelatedField for the category field with queryset=Category.objects.all()",
+    "Add custom method fields using serializers.SerializerMethodField()",
+    "Implement get_<fieldname> methods for custom fields that take the product object as parameter",
+    "Remember to add custom fields to the Meta.fields list"
+  ],
+  "learning_resources": [
+    "https://www.django-rest-framework.org/api-guide/relations/#primarykeyrelatedfield",
+    "https://www.django-rest-framework.org/api-guide/fields/#serializermethodfield",
+    "https://www.django-rest-framework.org/api-guide/serializers/#specifying-read-only-fields"
+  ],
+  "tags": ["django", "serializers", "foreignkey", "custom-fields", "beginner"],
+  "estimated_time_minutes": 25,
+  "patterns": [
+    {
+      "pattern_id": "django-serializers-002-pattern-1",
+      "name": "Product Serializer with Related Category",
+      "description": "Complete serializer with ForeignKey relationship and custom method fields",
+      "example_code": "from rest_framework import serializers\nfrom .models import Product, Category\n\nclass ProductSerializer(serializers.ModelSerializer):\n    # Use PrimaryKeyRelatedField for category ForeignKey\n    category = serializers.PrimaryKeyRelatedField(\n        queryset=Category.objects.all(),\n        required=True\n    )\n    \n    # Custom read-only fields\n    category_name = serializers.SerializerMethodField()\n    is_in_stock = serializers.SerializerMethodField()\n    \n    class Meta:\n        model = Product\n        fields = [\n            'id', 'name', 'description', 'price', 'stock_quantity', \n            'category', 'is_available', 'created_at', 'updated_at',\n            'category_name', 'is_in_stock'\n        ]\n        read_only_fields = ['created_at', 'updated_at', 'category_name', 'is_in_stock']\n    \n    def validate_name(self, value):\n        \"\"\"Validate product name.\"\"\"\n        if not value or not value.strip():\n            raise serializers.ValidationError(\"Product name cannot be empty.\")\n        \n        if len(value.strip()) < 3:\n            raise serializers.ValidationError(\"Product name must be at least 3 characters long.\")\n        \n        return value.strip()\n    \n    def validate_description(self, value):\n        \"\"\"Validate product description.\"\"\"\n        if not value or not value.strip():\n            raise serializers.ValidationError(\"Product description cannot be empty.\")\n        \n        if len(value.strip()) < 10:\n            raise serializers.ValidationError(\"Product description must be at least 10 characters long.\")\n        \n        return value.strip()\n    \n    def validate_price(self, value):\n        \"\"\"Validate product price.\"\"\"\n        if value is None:\n            raise serializers.ValidationError(\"Price is required.\")\n        \n        if value <= 0:\n            raise serializers.ValidationError(\"Price must be greater than 0.\")\n        \n        return value\n    \n    def validate_stock_quantity(self, value):\n        \"\"\"Validate stock quantity.\"\"\"\n        if value is None:\n            raise serializers.ValidationError(\"Stock quantity is required.\")\n        \n        if value < 0:\n            raise serializers.ValidationError(\"Stock quantity cannot be negative.\")\n        \n        return value\n    \n    def get_category_name(self, obj):\n        \"\"\"Return the name of the category.\"\"\"\n        # obj is the Product instance being serialized\n        return obj.category.name if obj.category else None\n    \n    def get_is_in_stock(self, obj):\n        \"\"\"Return True if product is in stock.\"\"\"\n        return obj.stock_quantity > 0",
+      "required_imports": ["rest_framework.serializers"],
+      "required_structure": {
+        "classes": [
+          {
+            "name": "ProductSerializer",
+            "parent_class": "serializers.ModelSerializer",
+            "has_meta_class": true,
+            "meta_class_fields": ["fields", "read_only_fields"],
+            "methods": ["validate_name", "validate_description", "validate_price", "validate_stock_quantity", "get_category_name", "get_is_in_stock"]
+          }
+        ]
+      },
+      "forbidden_patterns": [
+        "no_primarykey_related_field",
+        "missing_custom_fields",
+        "no_queryset_specified"
+      ],
+      "is_primary": true,
+      "confidence_threshold": 85.00
+    }
+  ]
+}

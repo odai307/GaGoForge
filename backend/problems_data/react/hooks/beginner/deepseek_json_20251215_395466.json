@@ -1,0 +1,66 @@
+{
+  "problem_id": "react-hooks-003",
+  "title": "Build a Simple Todo List Application",
+  "slug": "build-simple-todo-list-application",
+  "framework": "react",
+  "category": "hooks",
+  "difficulty": "beginner",
+  "description": "Create a todo list application that allows users to add, remove, and toggle completion status of todo items using useState hook.\n\n**Requirements:**\n- Create a functional component named `TodoList`\n- Initialize state with an empty array of todos\n- Each todo item should have: id (unique), text (string), completed (boolean)\n- Add an input field and button to create new todos\n- Display todos in a list with each item showing:\n  - Todo text\n  - Checkbox to toggle completion status\n  - Delete button to remove the todo\n- Show statistics: total todos and completed todos count\n- Style completed todos with strikethrough text\n\n**Features to Implement:**\n1. Add new todo (text from input, default completed: false)\n2. Toggle todo completion (checkbox click)\n3. Delete todo (button click)\n4. Clear input after adding todo\n5. Show statistics at the bottom\n\n**Expected Behavior:**\n- New todos appear at the bottom of the list\n- Clicking checkbox toggles strikethrough styling\n- Delete button removes only that todo\n- Statistics update in real-time\n- Input clears after adding todo\n\n**Example Todo Structure:**\n```javascript\n{\n  id: 1,\n  text: \"Learn React Hooks\",\n  completed: false\n}\n```",
+  "description_preview": "Create a todo list app with add, toggle, and delete functionality using useState",
+  "context_code": "",
+  "starter_code": "",
+  "target_area": "TodoList component implementation",
+  "validation_spec": {
+    "required_imports": ["react", "react.useState"],
+    "required_structure": {
+      "functions": [{
+        "name": "TodoList",
+        "type": "functional_component",
+        "has_export": true,
+        "has_prop_types": false
+      }]
+    },
+    "behavior_patterns": [
+      {"type": "hook_call", "hook": "useState", "min_calls": 2},
+      {"type": "event_handler", "event_type": "onChange", "min_calls": 2},
+      {"type": "event_handler", "event_type": "onClick", "min_calls": 2},
+      {"type": "event_handler", "event_type": "onSubmit"},
+      {"type": "conditional_rendering", "conditional_type": "ternary"}
+    ]
+  },
+  "import_weight": 15.00,
+  "structure_weight": 35.00,
+  "behavior_weight": 50.00,
+  "passing_score": 80.00,
+  "hints": [
+    "Use useState to manage both the todo list array and the input text",
+    "Generate unique IDs for each todo (can use Date.now() or a counter)",
+    "Remember to never mutate state directly - always create new arrays/objects",
+    "Use the map function to render the todo list and filter function for deletion"
+  ],
+  "learning_resources": [
+    "https://react.dev/learn/updating-arrays-in-state",
+    "https://react.dev/learn/updating-objects-in-state"
+  ],
+  "tags": ["react", "hooks", "useState", "todo", "list", "beginner"],
+  "estimated_time_minutes": 35,
+  "patterns": [
+    {
+      "pattern_id": "react-hooks-003-pattern-1",
+      "name": "Todo List with useState",
+      "description": "Complete todo list implementation with add, toggle, delete functionality using useState",
+      "example_code": "import React, { useState } from 'react';\n\nexport default function TodoList() {\n  const [todos, setTodos] = useState([]);\n  const [inputText, setInputText] = useState('');\n\n  const addTodo = () => {\n    if (inputText.trim() === '') return;\n    \n    const newTodo = {\n      id: Date.now(), // Simple unique ID\n      text: inputText.trim(),\n      completed: false\n    };\n    \n    setTodos([...todos, newTodo]);\n    setInputText(''); // Clear input\n  };\n\n  const toggleTodo = (id) => {\n    setTodos(todos.map(todo => \n      todo.id === id ? { ...todo, completed: !todo.completed } : todo\n    ));\n  };\n\n  const deleteTodo = (id) => {\n    setTodos(todos.filter(todo => todo.id !== id));\n  };\n\n  const handleSubmit = (e) => {\n    e.preventDefault();\n    addTodo();\n  };\n\n  const handleKeyPress = (e) => {\n    if (e.key === 'Enter') {\n      addTodo();\n    }\n  };\n\n  const completedCount = todos.filter(todo => todo.completed).length;\n  const totalCount = todos.length;\n\n  return (\n    <div>\n      <h2>Todo List</h2>\n      \n      <form onSubmit={handleSubmit}>\n        <input\n          type=\"text\"\n          value={inputText}\n          onChange={(e) => setInputText(e.target.value)}\n          onKeyPress={handleKeyPress}\n          placeholder=\"Add a new todo...\"\n        />\n        <button type=\"submit\">Add Todo</button>\n      </form>\n\n      <ul>\n        {todos.map(todo => (\n          <li key={todo.id} style={{ margin: '10px 0' }}>\n            <input\n              type=\"checkbox\"\n              checked={todo.completed}\n              onChange={() => toggleTodo(todo.id)}\n            />\n            <span style={{\n              textDecoration: todo.completed ? 'line-through' : 'none',\n              marginLeft: '10px',\n              marginRight: '10px'\n            }}>\n              {todo.text}\n            </span>\n            <button onClick={() => deleteTodo(todo.id)}>Delete</button>\n          </li>\n        ))}\n      </ul>\n\n      {todos.length === 0 ? (\n        <p>No todos yet. Add one above!</p>\n      ) : (\n        <div>\n          <h3>Statistics</h3>\n          <p>Total Todos: {totalCount}</p>\n          <p>Completed: {completedCount}</p>\n          <p>Remaining: {totalCount - completedCount}</p>\n        </div>\n      )}\n    </div>\n  );\n}",
+      "required_imports": ["react", "react.useState"],
+      "required_structure": {
+        "functions": [{
+          "name": "TodoList",
+          "type": "functional_component",
+          "has_export": true
+        }]
+      },
+      "forbidden_patterns": ["push directly to array", "splice for deletion", "innerHTML"],
+      "is_primary": true,
+      "confidence_threshold": 85.00
+    }
+  ]
+}

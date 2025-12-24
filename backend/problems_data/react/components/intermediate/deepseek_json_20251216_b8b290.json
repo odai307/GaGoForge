@@ -1,0 +1,185 @@
+{
+  "problem_id": "react-components-012",
+  "title": "Create a Data Table Component with Sorting, Pagination, and Row Selection",
+  "slug": "data-table-component-with-sorting-pagination-row-selection",
+  "framework": "react",
+  "category": "components",
+  "difficulty": "intermediate",
+  "description": "Build a reusable DataTable component for displaying tabular data with advanced features like sorting, pagination, row selection, and filtering.\n\n**Requirements:**\n1. Create a DataTable component that accepts:\n   - columns: array of column definitions with key, label, sortable, filterable\n   - data: array of row objects\n   - pagination: options for page size, total items\n   - onSort: callback when column is sorted\n   - onRowSelect: callback when rows are selected\n2. Implement features:\n   - Column sorting (ascending/descending/toggle)\n   - Pagination with page navigation\n   - Row selection (single/multiple)\n   - Column filtering (text input per column)\n   - Responsive design with horizontal scroll on mobile\n   - Loading state with skeleton UI\n   - Empty state when no data\n3. Column definitions should support:\n   - Custom cell rendering\n   - Alignment (left/center/right)\n   - Width control (fixed/percentage/auto)\n   - Visibility toggling\n4. Row selection should support:\n   - Single selection\n   - Multiple selection with Select All\n   - Selection persistence across pagination\n   - Selected rows highlighting\n\n**Expected Behavior:**\n- Clicking column header toggles sort order\n- Pagination controls update displayed rows\n- Checkboxes for row selection work correctly\n- Filter inputs update visible rows\n- Table adjusts to container width\n- Loading state shows skeleton rows\n- Empty state shows appropriate message\n\n**Example Column Definition:**\n```javascript\nconst columns = [\n  { \n    key: 'id', \n    label: 'ID', \n    sortable: true,\n    width: '80px',\n    align: 'center'\n  },\n  { \n    key: 'name', \n    label: 'Name', \n    sortable: true, \n    filterable: true,\n    render: (value, row) => <strong>{value}</strong>\n  },\n  { \n    key: 'email', \n    label: 'Email', \n    sortable: false,\n    filterable: true \n  }\n];\n```",
+  "description_preview": "Build a feature-rich DataTable component with sorting, pagination, filtering, and row selection for enterprise applications.",
+  "context_code": "// TABLE STRUCTURE (for reference only)\n// Column interface:\n// {\n//   key: string,\n//   label: string,\n//   sortable?: boolean,\n//   filterable?: boolean,\n//   width?: string,\n//   align?: 'left' | 'center' | 'right',\n//   render?: (value: any, row: any) => React.ReactNode\n// }\n\n// Pagination options:\n// {\n//   pageSize: number,\n//   totalItems: number,\n//   currentPage: number,\n//   pageSizes: number[]\n// }\n\n// Sort state:\n// {\n//   columnKey: string,\n//   direction: 'asc' | 'desc'\n// }",
+  "starter_code": "",
+  "target_area": "Complete DataTable component with advanced table features",
+  "validation_spec": {
+    "required_imports": ["react"],
+    "required_structure": {
+      "functions": [
+        {
+          "name": "DataTable",
+          "type": "functional_component",
+          "has_export": true,
+          "props": ["columns", "data", "pagination", "onSort", "onRowSelect", "loading"],
+          "description": "Main DataTable component with all features"
+        },
+        {
+          "name": "useTable",
+          "type": "custom_hook",
+          "has_export": false,
+          "description": "Custom hook for table logic (optional)"
+        }
+      ]
+    },
+    "behavior_patterns": [
+      {
+        "type": "hook_call",
+        "hook": "useState",
+        "min_calls": 4,
+        "description": "Must use useState for sortState, selectedRows, currentPage, filters"
+      },
+      {
+        "type": "hook_call",
+        "hook": "useMemo",
+        "min_calls": 2,
+        "description": "Must use useMemo for computed/sorted/filtered data"
+      },
+      {
+        "type": "hook_call",
+        "hook": "useCallback",
+        "min_calls": 3,
+        "description": "Should use useCallback for event handlers (handleSort, handleSelect, handleFilter)"
+      },
+      {
+        "type": "event_handler",
+        "event_type": "onClick",
+        "handler_action": "sort_column",
+        "element": "th",
+        "description": "Column headers must handle click for sorting"
+      },
+      {
+        "type": "event_handler",
+        "event_type": "onChange",
+        "handler_action": "select_row",
+        "element": "checkbox",
+        "description": "Row checkboxes must handle change for selection"
+      },
+      {
+        "type": "event_handler",
+        "event_type": "onChange",
+        "handler_action": "filter_column",
+        "element": "input",
+        "description": "Filter inputs must handle change for filtering"
+      },
+      {
+        "type": "conditional_rendering",
+        "conditional_type": "ternary",
+        "condition": "loading",
+        "description": "Must conditionally render loading skeleton or data rows"
+      },
+      {
+        "type": "conditional_rendering",
+        "conditional_type": "logical_and",
+        "condition": "data_empty",
+        "description": "Must show empty state when no data"
+      },
+      {
+        "type": "pagination",
+        "features": ["page_navigation", "page_size", "total_items"],
+        "description": "Must implement pagination with page navigation and size selector"
+      },
+      {
+        "type": "sorting",
+        "direction": ["asc", "desc", "none"],
+        "multi_column": false,
+        "description": "Must implement column sorting with toggle between asc/desc"
+      },
+      {
+        "type": "row_selection",
+        "modes": ["single", "multiple"],
+        "features": ["select_all", "persistence"],
+        "description": "Must implement row selection with Select All and persistence"
+      },
+      {
+        "type": "filtering",
+        "type": "column_filter",
+        "operators": ["contains", "equals"],
+        "description": "Must implement per-column text filtering"
+      },
+      {
+        "type": "responsive_design",
+        "feature": "horizontal_scroll",
+        "breakpoint": "mobile",
+        "description": "Must implement horizontal scroll on mobile screens"
+      },
+      {
+        "type": "performance",
+        "technique": "virtualization",
+        "description": "Should consider windowing/virtualization for large datasets (bonus)"
+      },
+      {
+        "type": "render_props",
+        "pattern": "custom_cell_render",
+        "description": "Must support custom cell rendering via render prop in columns"
+      }
+    ],
+    "difficulty": "intermediate",
+    "framework": "react",
+    "import_weight": 5.00,
+    "structure_weight": 30.00,
+    "behavior_weight": 65.00,
+    "passing_score": 85.00
+  },
+  "import_weight": 5.00,
+  "structure_weight": 30.00,
+  "behavior_weight": 65.00,
+  "passing_score": 85.00,
+  "hints": [
+    "Create a custom useTable hook to manage sorting, filtering, pagination, and selection logic",
+    "Use useMemo to compute sorted, filtered, and paginated data to avoid recalculating on every render",
+    "For sorting, store current sort column and direction in state, then sort data accordingly",
+    "Implement Select All checkbox that toggles all rows on current page or all pages",
+    "For filtering, maintain a filters object and filter data based on column values",
+    "Use CSS overflow-x: auto on table container for horizontal scrolling on mobile",
+    "Create a SkeletonRow component for loading state that mimics table row structure",
+    "Consider using context or a state management library if table gets very complex",
+    "For performance with large datasets, consider implementing virtualization (react-window or similar)",
+    "Make sure to pass proper aria-labels and roles for accessibility"
+  ],
+  "learning_resources": [
+    "https://react.dev/learn/rendering-lists",
+    "https://react.dev/reference/react/useMemo",
+    "https://developer.mozilla.org/en-US/docs/Web/Accessibility/ARIA/Roles/table_role",
+    "https://tanstack.com/table/v8"
+  ],
+  "tags": ["react", "components", "data-table", "sorting", "pagination", "filtering", "selection", "intermediate"],
+  "estimated_time_minutes": 50,
+  "patterns": [
+    {
+      "pattern_id": "react-components-012-pattern-1",
+      "name": "Advanced DataTable with All Features",
+      "description": "Complete DataTable component with sorting, pagination, filtering, row selection, and responsive design",
+      "example_code": "import React, { useState, useMemo, useCallback } from 'react';\n\nconst DataTable = ({\n  columns,\n  data = [],\n  pagination: paginationProps = {\n    pageSize: 10,\n    pageSizes: [5, 10, 20, 50],\n    currentPage: 1,\n    totalItems: 0\n  },\n  onSort,\n  onRowSelect,\n  loading = false,\n  selectable = true\n}) => {\n  // State\n  const [sortState, setSortState] = useState({\n    columnKey: null,\n    direction: 'asc'\n  });\n  \n  const [selectedRows, setSelectedRows] = useState(new Set());\n  const [filters, setFilters] = useState({});\n  const [internalPagination, setInternalPagination] = useState({\n    ...paginationProps,\n    currentPage: paginationProps.currentPage || 1\n  });\n  \n  // Process data\n  const processedData = useMemo(() => {\n    let result = [...data];\n    \n    // Apply filters\n    if (Object.keys(filters).length > 0) {\n      result = result.filter(row => {\n        return Object.entries(filters).every(([columnKey, filterValue]) => {\n          if (!filterValue) return true;\n          const cellValue = row[columnKey]?.toString().toLowerCase() || '';\n          return cellValue.includes(filterValue.toLowerCase());\n        });\n      });\n    }\n    \n    // Apply sorting\n    if (sortState.columnKey) {\n      result.sort((a, b) => {\n        const aValue = a[sortState.columnKey];\n        const bValue = b[sortState.columnKey];\n        \n        if (aValue < bValue) return sortState.direction === 'asc' ? -1 : 1;\n        if (aValue > bValue) return sortState.direction === 'asc' ? 1 : -1;\n        return 0;\n      });\n    }\n    \n    return result;\n  }, [data, filters, sortState]);\n  \n  // Pagination\n  const paginatedData = useMemo(() => {\n    const { currentPage, pageSize } = internalPagination;\n    const startIndex = (currentPage - 1) * pageSize;\n    return processedData.slice(startIndex, startIndex + pageSize);\n  }, [processedData, internalPagination]);\n  \n  // Total pages\n  const totalPages = Math.ceil(processedData.length / internalPagination.pageSize);\n  \n  // Handlers\n  const handleSort = useCallback((columnKey) => {\n    if (!columns.find(col => col.key === columnKey)?.sortable) return;\n    \n    setSortState(prev => {\n      let newDirection = 'asc';\n      if (prev.columnKey === columnKey) {\n        newDirection = prev.direction === 'asc' ? 'desc' : 'asc';\n      }\n      \n      const newState = { columnKey, direction: newDirection };\n      onSort?.(newState);\n      return newState;\n    });\n    \n    // Reset to first page when sorting\n    setInternalPagination(prev => ({ ...prev, currentPage: 1 }));\n  }, [columns, onSort]);\n  \n  const handleRowSelect = useCallback((rowId, checked) => {\n    const newSelected = new Set(selectedRows);\n    \n    if (checked) {\n      newSelected.add(rowId);\n    } else {\n      newSelected.delete(rowId);\n    }\n    \n    setSelectedRows(newSelected);\n    onRowSelect?.(Array.from(newSelected));\n  }, [selectedRows, onRowSelect]);\n  \n  const handleSelectAll = useCallback((checked) => {\n    const rowIds = paginatedData.map(row => row.id);\n    const newSelected = checked ? new Set(rowIds) : new Set();\n    \n    setSelectedRows(newSelected);\n    onRowSelect?.(Array.from(newSelected));\n  }, [paginatedData, onRowSelect]);\n  \n  const handleFilter = useCallback((columnKey, value) => {\n    setFilters(prev => ({\n      ...prev,\n      [columnKey]: value\n    }));\n    \n    // Reset to first page when filtering\n    setInternalPagination(prev => ({ ...prev, currentPage: 1 }));\n  }, []);\n  \n  const handlePageChange = useCallback((page) => {\n    setInternalPagination(prev => ({\n      ...prev,\n      currentPage: Math.max(1, Math.min(page, totalPages))\n    }));\n  }, [totalPages]);\n  \n  const handlePageSizeChange = useCallback((size) => {\n    setInternalPagination(prev => ({\n      ...prev,\n      pageSize: size,\n      currentPage: 1\n    }));\n  }, []);\n  \n  // Determine if all rows on current page are selected\n  const allSelected = paginatedData.length > 0 && \n    paginatedData.every(row => selectedRows.has(row.id));\n  \n  // Skeleton loading rows\n  if (loading) {\n    return (\n      <div className=\"data-table loading\">\n        <div className=\"table-skeleton\">\n          {[...Array(5)].map((_, i) => (\n            <div key={i} className=\"skeleton-row\">\n              {columns.map((_, j) => (\n                <div key={j} className=\"skeleton-cell\" />\n              ))}\n            </div>\n          ))}\n        </div>\n      </div>\n    );\n  }\n  \n  return (\n    <div className=\"data-table\">\n      {/* Table */}\n      <div className=\"table-container\" style={{ overflowX: 'auto' }}>\n        <table className=\"table\" style={{ width: '100%', borderCollapse: 'collapse' }}>\n          <thead>\n            <tr>\n              {selectable && (\n                <th style={{ width: '50px', textAlign: 'center' }}>\n                  <input\n                    type=\"checkbox\"\n                    checked={allSelected}\n                    onChange={(e) => handleSelectAll(e.target.checked)}\n                    aria-label=\"Select all rows\"\n                  />\n                </th>\n              )}\n              \n              {columns.map(column => (\n                <th \n                  key={column.key}\n                  style={{\n                    width: column.width || 'auto',\n                    textAlign: column.align || 'left',\n                    cursor: column.sortable ? 'pointer' : 'default',\n                    padding: '12px',\n                    borderBottom: '2px solid #e5e7eb',\n                    backgroundColor: '#f9fafb'\n                  }}\n                  onClick={() => column.sortable && handleSort(column.key)}\n                >\n                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>\n                    <span>{column.label}</span>\n                    \n                    {column.sortable && (\n                      <span className=\"sort-indicator\">\n                        {sortState.columnKey === column.key && (\n                          sortState.direction === 'asc' ? '↑' : '↓'\n                        )}\n                      </span>\n                    )}\n                  </div>\n                  \n                  {column.filterable && (\n                    <input\n                      type=\"text\"\n                      placeholder={`Filter ${column.label}`}\n                      value={filters[column.key] || ''}\n                      onChange={(e) => handleFilter(column.key, e.target.value)}\n                      style={{\n                        width: '100%',\n                        marginTop: '4px',\n                        padding: '4px 8px',\n                        fontSize: '0.875rem'\n                      }}\n                    />\n                  )}\n                </th>\n              ))}\n            </tr>\n          </thead>\n          \n          <tbody>\n            {paginatedData.length === 0 ? (\n              <tr>\n                <td \n                  colSpan={columns.length + (selectable ? 1 : 0)}\n                  style={{ textAlign: 'center', padding: '48px' }}\n                >\n                  No data found\n                </td>\n              </tr>\n            ) : (\n              paginatedData.map(row => (\n                <tr \n                  key={row.id}\n                  className={selectedRows.has(row.id) ? 'selected' : ''}\n                  style={{\n                    backgroundColor: selectedRows.has(row.id) ? '#f0f9ff' : 'transparent',\n                    borderBottom: '1px solid #e5e7eb'\n                  }}\n                >\n                  {selectable && (\n                    <td style={{ textAlign: 'center', padding: '12px' }}>\n                      <input\n                        type=\"checkbox\"\n                        checked={selectedRows.has(row.id)}\n                        onChange={(e) => handleRowSelect(row.id, e.target.checked)}\n                        aria-label={`Select row ${row.id}`}\n                      />\n                    </td>\n                  )}\n                  \n                  {columns.map(column => (\n                    <td \n                      key={column.key}\n                      style={{\n                        padding: '12px',\n                        textAlign: column.align || 'left'\n                      }}\n                    >\n                      {column.render \n                        ? column.render(row[column.key], row)\n                        : row[column.key]\n                      }\n                    </td>\n                  ))}\n                </tr>\n              ))\n            )}\n          </tbody>\n        </table>\n      </div>\n      \n      {/* Pagination */}\n      {processedData.length > 0 && (\n        <div className=\"pagination\" style={{\n          display: 'flex',\n          justifyContent: 'space-between',\n          alignItems: 'center',\n          marginTop: '16px',\n          padding: '12px'\n        }}>\n          <div className=\"pagination-info\">\n            Showing {((internalPagination.currentPage - 1) * internalPagination.pageSize) + 1}\n            {' to '}\n            {Math.min(internalPagination.currentPage * internalPagination.pageSize, processedData.length)}\n            {' of '}{processedData.length} entries\n          </div>\n          \n          <div className=\"pagination-controls\" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>\n            <select\n              value={internalPagination.pageSize}\n              onChange={(e) => handlePageSizeChange(Number(e.target.value))}\n              style={{ padding: '4px 8px' }}\n            >\n              {internalPagination.pageSizes.map(size => (\n                <option key={size} value={size}>{size} per page</option>\n              ))}\n            </select>\n            \n            <button\n              onClick={() => handlePageChange(internalPagination.currentPage - 1)}\n              disabled={internalPagination.currentPage === 1}\n              style={{\n                padding: '4px 8px',\n                cursor: internalPagination.currentPage === 1 ? 'not-allowed' : 'pointer'\n              }}\n            >\n              Previous\n            </button>\n            \n            <span>\n              Page {internalPagination.currentPage} of {totalPages}\n            </span>\n            \n            <button\n              onClick={() => handlePageChange(internalPagination.currentPage + 1)}\n              disabled={internalPagination.currentPage === totalPages}\n              style={{\n                padding: '4px 8px',\n                cursor: internalPagination.currentPage === totalPages ? 'not-allowed' : 'pointer'\n              }}\n            >\n              Next\n            </button>\n          </div>\n        </div>\n      )}\n    </div>\n  );\n};\n\nexport default DataTable;",
+      "required_imports": ["react"],
+      "required_structure": {
+        "functions": [
+          {
+            "name": "DataTable",
+            "type": "functional_component",
+            "has_export": true,
+            "props": ["columns", "data", "pagination", "onSort", "onRowSelect", "loading"]
+          }
+        ]
+      },
+      "forbidden_patterns": [
+        "Not using useMemo for expensive computations",
+        "Missing loading state handling",
+        "No empty state for zero data",
+        "Hardcoded column definitions",
+        "Not supporting custom cell rendering",
+        "Missing accessibility attributes",
+        "Poor performance with large datasets (no virtualization consideration)"
+      ],
+      "is_primary": true,
+      "confidence_threshold": 85.00
+    }
+  ]
+}

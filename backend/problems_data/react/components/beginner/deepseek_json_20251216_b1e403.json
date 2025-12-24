@@ -1,0 +1,81 @@
+{
+  "problem_id": "react-components-003",
+  "title": "Create an Expandable Accordion Component",
+  "slug": "create-expandable-accordion-component",
+  "framework": "react",
+  "category": "components",
+  "difficulty": "beginner",
+  "description": "Build a reusable Accordion component that can show/hide content sections with smooth animations and multiple configuration options.\n\n**Requirements:**\n1. Create an `Accordion` component that accepts:\n   - `items` (array of item objects, required)\n   - `allowMultiple` (boolean, optional - default false)\n   - `defaultOpenIndex` (number or array, optional)\n2. Each item in `items` array should have:\n   - `title` (string, required)\n   - `content` (React nodes, required)\n   - `id` (string or number, optional - used as key)\n3. Create an `AccordionItem` subcomponent for individual items\n\n**Component Structure:**\n```jsx\n<Accordion\n  items={[\n    { id: 1, title: 'Section 1', content: <p>Content for section 1</p> },\n    { id: 2, title: 'Section 2', content: <p>Content for section 2</p> },\n    { id: 3, title: 'Section 3', content: <p>Content for section 3</p> }\n  ]}\n  allowMultiple={true}\n  defaultOpenIndex={[0]}\n/>\n```\n\n**Features to Implement:**\n- Clicking item header toggles its content\n- If `allowMultiple` is false, opening one item closes others\n- Smooth expand/collapse animations\n- Chevron icon that rotates based on open state\n- Default open items based on `defaultOpenIndex`\n- Keyboard navigation support (Arrow keys, Enter, Space)\n- Accessible with proper ARIA attributes\n\n**Expected Behavior:**\n- Items start collapsed unless specified in `defaultOpenIndex`\n- Clicking header expands/collapses content with animation\n- Chevron icon rotates 180° when expanded\n- Only one item open at a time when `allowMultiple` is false\n- Keyboard navigation allows opening/closing with Enter/Space\n- Arrow keys navigate between items\n\n**Styling Requirements:**\n- Clean border between items\n- Hover effects on headers\n- Smooth height transition for content\n- Rotating chevron icon\n- Responsive design\n- Accessible focus states",
+  "description_preview": "Build an accessible accordion component with animations, keyboard support, and multiple configuration options",
+  "context_code": "// Item structure (for reference)\nconst sampleItems = [\n  {\n    id: 'faq-1',\n    title: 'What is React?',\n    content: 'React is a JavaScript library for building user interfaces.'\n  },\n  {\n    id: 'faq-2',\n    title: 'How do I install React?',\n    content: 'You can install React using npm or yarn.'\n  }\n];\n\n// Example usage (for reference):\n// <Accordion \n//   items={sampleItems}\n//   allowMultiple={false}\n//   defaultOpenIndex={0}\n// />",
+  "starter_code": "",
+  "target_area": "Accordion component with state management, animations, and accessibility",
+  "validation_spec": {
+    "required_imports": ["react", "react.useState"],
+    "required_structure": {
+      "functions": [
+        {
+          "name": "Accordion",
+          "type": "functional_component",
+          "has_export": true,
+          "has_prop_types": false
+        },
+        {
+          "name": "AccordionItem",
+          "type": "functional_component",
+          "has_export": false,
+          "has_prop_types": false
+        }
+      ]
+    },
+    "behavior_patterns": [
+      "array mapping for items",
+      "state management for open items",
+      "event handlers for click and keyboard",
+      "conditional rendering of content",
+      "CSS transitions for animations"
+    ]
+  },
+  "import_weight": 10.00,
+  "structure_weight": 40.00,
+  "behavior_weight": 50.00,
+  "passing_score": 80.00,
+  "hints": [
+    "Use useState to track which items are open (could be array or single index)",
+    "Handle the allowMultiple prop to determine if multiple items can be open",
+    "Use CSS transitions for smooth height animations",
+    "Add keyboard event handlers for accessibility",
+    "Remember to generate unique keys for each item, using id if provided or index as fallback"
+  ],
+  "learning_resources": [
+    "https://react.dev/learn/responding-to-events",
+    "https://developer.mozilla.org/en-US/docs/Web/Accessibility/ARIA/Roles"
+  ],
+  "tags": ["react", "components", "accordion", "accessibility", "animations", "beginner"],
+  "estimated_time_minutes": 35,
+  "patterns": [
+    {
+      "pattern_id": "react-components-003-pattern-1",
+      "name": "Accessible Accordion Component",
+      "description": "Complete accordion component with animations, keyboard navigation, and accessibility features",
+      "example_code": "import React, { useState } from 'react';\n\nfunction AccordionItem({\n  item,\n  isOpen,\n  onClick,\n  index\n}) {\n  const handleKeyDown = (e) => {\n    if (e.key === 'Enter' || e.key === ' ') {\n      e.preventDefault();\n      onClick();\n    }\n  };\n  \n  return (\n    <div style={{\n      border: '1px solid #e0e0e0',\n      borderRadius: '8px',\n      marginBottom: '8px',\n      overflow: 'hidden'\n    }}>\n      {/* Header */}\n      <button\n        onClick={onClick}\n        onKeyDown={handleKeyDown}\n        style={{\n          width: '100%',\n          padding: '16px 20px',\n          textAlign: 'left',\n          backgroundColor: isOpen ? '#f8f9fa' : 'white',\n          border: 'none',\n          display: 'flex',\n          justifyContent: 'space-between',\n          alignItems: 'center',\n          cursor: 'pointer',\n          fontSize: '16px',\n          fontWeight: '500',\n          transition: 'background-color 0.2s ease',\n          ':hover': {\n            backgroundColor: '#f0f0f0'\n          }\n        }}\n        aria-expanded={isOpen}\n        aria-controls={`accordion-content-${item.id || index}`}\n        id={`accordion-header-${item.id || index}`}\n      >\n        <span>{item.title}</span>\n        <span style={{\n          display: 'inline-block',\n          transition: 'transform 0.3s ease',\n          transform: isOpen ? 'rotate(180deg)' : 'rotate(0deg)',\n          fontSize: '20px'\n        }}>\n          ▼\n        </span>\n      </button>\n      \n      {/* Content */}\n      <div\n        id={`accordion-content-${item.id || index}`}\n        aria-labelledby={`accordion-header-${item.id || index}`}\n        style={{\n          maxHeight: isOpen ? '1000px' : '0',\n          overflow: 'hidden',\n          transition: 'max-height 0.3s ease, padding 0.3s ease',\n          padding: isOpen ? '20px' : '0 20px',\n          backgroundColor: 'white'\n        }}\n      >\n        {item.content}\n      </div>\n    </div>\n  );\n}\n\nexport default function Accordion({\n  items,\n  allowMultiple = false,\n  defaultOpenIndex\n}) {\n  // Initialize open items state\n  const [openItems, setOpenItems] = useState(() => {\n    if (defaultOpenIndex === undefined) return [];\n    \n    if (Array.isArray(defaultOpenIndex)) {\n      return defaultOpenIndex;\n    } else {\n      return [defaultOpenIndex];\n    }\n  });\n  \n  const handleItemClick = (index) => {\n    setOpenItems(prev => {\n      if (allowMultiple) {\n        // Toggle item in array\n        if (prev.includes(index)) {\n          return prev.filter(i => i !== index);\n        } else {\n          return [...prev, index];\n        }\n      } else {\n        // Single item open at a time\n        if (prev.includes(index)) {\n          return [];\n        } else {\n          return [index];\n        }\n      }\n    });\n  };\n  \n  // Handle keyboard navigation\n  const handleKeyDown = (e, index) => {\n    switch (e.key) {\n      case 'ArrowDown':\n        e.preventDefault();\n        if (index < items.length - 1) {\n          document.getElementById(`accordion-header-${items[index + 1].id || index + 1}`)?.focus();\n        }\n        break;\n      case 'ArrowUp':\n        e.preventDefault();\n        if (index > 0) {\n          document.getElementById(`accordion-header-${items[index - 1].id || index - 1}`)?.focus();\n        }\n        break;\n      case 'Home':\n        e.preventDefault();\n        document.getElementById(`accordion-header-${items[0].id || 0}`)?.focus();\n        break;\n      case 'End':\n        e.preventDefault();\n        document.getElementById(`accordion-header-${items[items.length - 1].id || items.length - 1}`)?.focus();\n        break;\n    }\n  };\n  \n  return (\n    <div \n      style={{ width: '100%' }}\n      role=\"region\"\n      aria-label=\"Accordion\"\n    >\n      {items.map((item, index) => (\n        <div\n          key={item.id || index}\n          onKeyDown={(e) => handleKeyDown(e, index)}\n        >\n          <AccordionItem\n            item={item}\n            isOpen={openItems.includes(index)}\n            onClick={() => handleItemClick(index)}\n            index={index}\n          />\n        </div>\n      ))}\n      \n      {/* Accessibility instructions */}\n      <div style={{\n        marginTop: '16px',\n        fontSize: '12px',\n        color: '#666',\n        textAlign: 'center'\n      }}>\n        <p style={{ margin: 0 }}>\n          Use ↑ ↓ arrows to navigate, Enter/Space to toggle\n        </p>\n      </div>\n    </div>\n  );\n}",
+      "required_imports": ["react", "react.useState"],
+      "required_structure": {
+        "functions": [
+          {
+            "name": "Accordion",
+            "type": "functional_component",
+            "has_export": true
+          },
+          {
+            "name": "AccordionItem",
+            "type": "functional_component"
+          }
+        ]
+      },
+      "forbidden_patterns": ["document.querySelector in render", "inline style objects in loops", "no key prop"],
+      "is_primary": true,
+      "confidence_threshold": 85.00
+    }
+  ]
+}

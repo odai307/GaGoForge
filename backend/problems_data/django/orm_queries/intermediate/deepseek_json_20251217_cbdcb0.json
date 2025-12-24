@@ -1,0 +1,154 @@
+{
+  "problem_id": "django-orm_queries-014",
+  "title": "Build Customer Lifetime Value Analytics Query",
+  "slug": "build-customer-lifetime-value-analytics-query",
+  "framework": "django",
+  "category": "orm_queries",
+  "difficulty": "intermediate",
+  "description": "You're building a customer analytics system for an e-commerce platform. The system tracks customers, orders, products, and reviews to calculate customer lifetime value (CLV) and engagement metrics.\n\n**Models (for reference):**\n```python\nfrom django.db import models\nfrom django.contrib.auth.models import User\nfrom django.utils import timezone\n\nclass Customer(models.Model):\n    user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='customer')\n    registration_date = models.DateTimeField(auto_now_add=True)\n    loyalty_tier = models.CharField(\n        max_length=20,\n        choices=[\n            ('bronze', 'Bronze'),\n            ('silver', 'Silver'),\n            ('gold', 'Gold'),\n            ('platinum', 'Platinum')\n        ],\n        default='bronze'\n    )\n    total_spent = models.DecimalField(max_digits=12, decimal_places=2, default=0)\n    last_purchase_date = models.DateTimeField(null=True, blank=True)\n\nclass ProductCategory(models.Model):\n    name = models.CharField(max_length=100)\n    margin_rate = models.DecimalField(max_digits=5, decimal_places=2, default=0.30)  # 30% margin\n\nclass Product(models.Model):\n    name = models.CharField(max_length=200)\n    sku = models.CharField(max_length=50, unique=True)\n    category = models.ForeignKey(ProductCategory, on_delete=models.PROTECT, related_name='products')\n    cost = models.DecimalField(max_digits=10, decimal_places=2)\n    price = models.DecimalField(max_digits=10, decimal_places=2)\n    is_active = models.BooleanField(default=True)\n\nclass Order(models.Model):\n    customer = models.ForeignKey(Customer, on_delete=models.PROTECT, related_name='orders')\n    order_date = models.DateTimeField(auto_now_add=True)\n    status = models.CharField(\n        max_length=20,\n        choices=[\n            ('pending', 'Pending'),\n            ('processing', 'Processing'),\n            ('shipped', 'Shipped'),\n            ('delivered', 'Delivered'),\n            ('cancelled', 'Cancelled')\n        ],\n        default='pending'\n    )\n    total_amount = models.DecimalField(max_digits=10, decimal_places=2)\n    shipping_cost = models.DecimalField(max_digits=6, decimal_places=2, default=0)\n\nclass OrderItem(models.Model):\n    order = models.ForeignKey(Order, on_delete=models.CASCADE, related_name='items')\n    product = models.ForeignKey(Product, on_delete=models.PROTECT, related_name='order_items')\n    quantity = models.IntegerField()\n    unit_price = models.DecimalField(max_digits=10, decimal_places=2)\n    discount = models.DecimalField(max_digits=5, decimal_places=2, default=0)\n\nclass Review(models.Model):\n    customer = models.ForeignKey(Customer, on_delete=models.CASCADE, related_name='reviews')\n    product = models.ForeignKey(Product, on_delete=models.CASCADE, related_name='reviews')\n    rating = models.IntegerField(choices=[(i, i) for i in range(1, 6)])  # 1-5 stars\n    review_text = models.TextField()\n    review_date = models.DateTimeField(auto_now_add=True)\n    is_verified_purchase = models.BooleanField(default=False)\n```\n\n**Requirements:**\nCreate a Django ORM query function that calculates comprehensive customer analytics and lifetime value metrics.\n\n1. For each customer, calculate:\n   - **Total orders** (excluding cancelled)\n   - **Total spent** (sum of delivered orders)\n   - **Average order value** (total spent / order count)\n   - **Purchase frequency** (orders per month of membership)\n   - **Profit contribution** (sum of (price - cost) * quantity for all purchased items)\n   - **Customer lifetime value (CLV)** = (profit_contribution * purchase_frequency * 12 * retention_rate)\n   - **Retention score** based on recency and frequency\n   - **Average review rating** (if any reviews)\n\n2. Filtering options:\n   - Only active customers (made at least 1 non-cancelled order)\n   - Optionally filter by loyalty tier (parameter)\n   - Optionally filter by registration date range (min_date, max_date)\n\n3. CLV Calculation Details:\n   - Use 0.6 as default retention rate for CLV calculation\n   - For profit calculation: (unit_price - discount - product.cost) * quantity\n   - Include shipping cost in profit calculation (negative profit)\n\n4. Performance requirements:\n   - Use subqueries for complex calculations\n   - Optimize with prefetch_related for related objects\n   - Use conditional aggregation for status filtering\n   - Implement proper division protection\n\n**Expected Output:**\nA QuerySet where each customer has annotated fields showing all analytics metrics.\n\n**Example Usage:**\n```python\n# Get all customer analytics\ncustomers = get_customer_analytics()\n\n# Filter by loyalty tier\ngold_customers = get_customer_analytics(loyalty_tier='gold')\n\nfor customer in gold_customers[:10]:\n    print(f\"Customer: {customer.user.username}\")\n    print(f\"  CLV: ${customer.clv:.2f}\")\n    print(f\"  Orders: {customer.total_orders}\")\n    print(f\"  Avg Order Value: ${customer.avg_order_value:.2f}\")\n```",
+  "description_preview": "Build an ORM query to calculate customer lifetime value and comprehensive analytics metrics.",
+  "context_code": "# MODEL DEFINITIONS (for reference only)\nfrom django.db import models\nfrom django.contrib.auth.models import User\nfrom django.utils import timezone\n\n# Models are defined as shown in the description above\n# Reference these in your query implementation",
+  "starter_code": "",
+  "target_area": "Create the get_customer_analytics() function with advanced ORM patterns including Window functions",
+  "validation_spec": {
+    "required_imports": [
+      "django.db.models",
+      "django.db.models.functions",
+      "django.utils.timezone",
+      "datetime",
+      "django.db.models.expressions"
+    ],
+    "required_structure": {
+      "functions": [
+        {
+          "name": "get_customer_analytics",
+          "params": ["loyalty_tier", "min_date", "max_date"],
+          "returns": "QuerySet"
+        }
+      ]
+    },
+    "behavior_patterns": [
+      {
+        "type": "subquery_usage",
+        "requirements": {
+          "requires_subquery": true,
+          "requires_outer_ref": true,
+          "requires_correlated": true
+        },
+        "description": "Uses correlated subqueries for complex profit calculations"
+      },
+      {
+        "type": "conditional_expression",
+        "requirements": {
+          "requires_case_when": true,
+          "requires_coalesce": true,
+          "requires_value": true
+        },
+        "description": "Uses multiple conditional expressions for metrics calculation"
+      },
+      {
+        "type": "aggregation_pattern",
+        "requirements": {
+          "required_types": ["Sum", "Count", "Avg"],
+          "required_field_aggregations": {
+            "orders": "Count",
+            "total_amount": "Sum"
+          }
+        },
+        "description": "Uses multiple aggregation types for different metrics"
+      },
+      {
+        "type": "annotation_pattern",
+        "requirements": {
+          "required_fields": ["total_orders", "total_spent", "avg_order_value", "purchase_frequency", "profit_contribution", "clv", "retention_score", "avg_rating"],
+          "field_types": {
+            "clv": "calculation",
+            "profit_contribution": "calculation",
+            "avg_order_value": "calculation"
+          }
+        },
+        "description": "Annotates complex calculated fields including CLV"
+      },
+      {
+        "type": "complex_orm_pattern",
+        "requirements": {
+          "min_complexity_score": 35,
+          "requires_correlated_subquery": true,
+          "requires_conditional_annotation": true
+        },
+        "description": "Implements highly complex ORM query with multiple subqueries"
+      },
+      {
+        "type": "queryset_optimization",
+        "requirements": {
+          "required_optimizations": ["prefetch_related"]
+        },
+        "description": "Optimizes queries with prefetch_related for performance"
+      },
+      {
+        "type": "window_function",
+        "requirements": {
+          "requires_window": true,
+          "requires_rank": false
+        },
+        "description": "Uses window functions for ranking or moving calculations (bonus)"
+      }
+    ],
+    "scoring": {
+      "import_weight": 10.00,
+      "structure_weight": 25.00,
+      "behavior_weight": 65.00,
+      "passing_score": 75.00
+    }
+  },
+  "hints": [
+    "Start with subquery for profit calculation: Sum((unit_price - discount - product__cost) * quantity)",
+    "Use OuterRef to reference customer in profit subquery",
+    "Calculate purchase frequency using registration_date and order count",
+    "Handle division by zero for avg_order_value and purchase_frequency",
+    "Use Case/When with Coalesce for handling null values in reviews",
+    "For CLV: profit_contribution * purchase_frequency * 12 * 0.6",
+    "Use prefetch_related to optimize user and related object access",
+    "Consider using Window functions for ranking customers (bonus)"
+  ],
+  "learning_resources": [
+    "https://docs.djangoproject.com/en/stable/ref/models/expressions/#window-functions",
+    "https://docs.djangoproject.com/en/stable/ref/models/conditional-expressions/",
+    "https://docs.djangoproject.com/en/stable/topics/db/aggregation/",
+    "https://docs.djangoproject.com/en/stable/ref/models/database-functions/"
+  ],
+  "tags": ["django", "orm_queries", "analytics", "subqueries", "window_functions", "intermediate"],
+  "estimated_time_minutes": 45,
+  "patterns": [
+    {
+      "pattern_id": "django-orm_queries-014-pattern-1",
+      "name": "Customer Analytics with Complex Subqueries",
+      "description": "Complete solution using multiple subqueries, conditional expressions, and window functions",
+      "example_code": "from django.db.models import (\n    F, Q, Sum, Count, Avg, Case, When, Value, FloatField,\n    Subquery, OuterRef, ExpressionWrapper, DecimalField,\n    Window, Coalesce\n)\nfrom django.db.models.functions import ExtractMonth, Now\nfrom django.utils import timezone\nfrom datetime import timedelta\n\ndef get_customer_analytics(loyalty_tier=None, min_date=None, max_date=None):\n    \"\"\"\n    Returns customer analytics with CLV and other metrics.\n    \n    Args:\n        loyalty_tier: Optional filter by loyalty tier\n        min_date: Optional minimum registration date\n        max_date: Optional maximum registration date\n    \"\"\"\n    # Build base filter\n    filters = Q(orders__status='delivered')  # Only delivered orders count\n    \n    if loyalty_tier:\n        filters &= Q(loyalty_tier=loyalty_tier)\n    \n    if min_date:\n        filters &= Q(registration_date__gte=min_date)\n    \n    if max_date:\n        filters &= Q(registration_date__lte=max_date)\n    \n    # Subquery for profit contribution calculation\n    profit_subquery = Subquery(\n        OrderItem.objects.filter(\n            order__customer_id=OuterRef('pk'),\n            order__status='delivered'\n        )\n        .annotate(\n            item_profit=ExpressionWrapper(\n                (F('unit_price') - F('discount') - F('product__cost')) * F('quantity'),\n                output_field=DecimalField(max_digits=10, decimal_places=2)\n            )\n        )\n        .values('order__customer_id')\n        .annotate(total_profit=Sum('item_profit'))\n        .values('total_profit')[:1]\n    )\n    \n    # Subquery for average rating\n    rating_subquery = Subquery(\n        Review.objects.filter(\n            customer_id=OuterRef('pk')\n        )\n        .values('customer_id')\n        .annotate(avg_rating=Avg('rating'))\n        .values('avg_rating')[:1]\n    )\n    \n    return Customer.objects\\\n        .prefetch_related('user', 'orders', 'reviews')\\\n        .filter(filters)\\\n        .annotate(\n            # Basic metrics\n            total_orders=Count(\n                'orders',\n                filter=Q(orders__status='delivered')\n            ),\n            total_spent=Sum(\n                'orders__total_amount',\n                filter=Q(orders__status='delivered')\n            ),\n            profit_contribution=Case(\n                When(profit_subquery__isnull=False, then=profit_subquery),\n                default=Value(0.0),\n                output_field=DecimalField(max_digits=12, decimal_places=2)\n            ),\n            avg_rating=Case(\n                When(rating_subquery__isnull=False, then=rating_subquery),\n                default=Value(0.0),\n                output_field=FloatField()\n            )\n        )\\\n        .filter(total_orders__gt=0)  # Only customers with orders\n        .annotate(\n            # Derived metrics with division protection\n            avg_order_value=Case(\n                When(total_orders__gt=0,\n                     then=F('total_spent') / F('total_orders')),\n                default=Value(0.0),\n                output_field=DecimalField(max_digits=10, decimal_places=2)\n            ),\n            membership_months=ExpressionWrapper(\n                (Now() - F('registration_date')) / timedelta(days=30),\n                output_field=FloatField()\n            )\n        )\\\n        .annotate(\n            purchase_frequency=Case(\n                When(membership_months__gt=0,\n                     then=F('total_orders') / F('membership_months')),\n                default=Value(0.0),\n                output_field=FloatField()\n            ),\n            # Retention score based on recency and frequency\n            retention_score=Case(\n                When(\n                    Q(last_purchase_date__gte=timezone.now() - timedelta(days=90)) &\n                    Q(purchase_frequency__gte=0.5),\n                    then=Value(1.0)  # High retention\n                ),\n                When(\n                    Q(last_purchase_date__gte=timezone.now() - timedelta(days=180)) &\n                    Q(purchase_frequency__gte=0.25),\n                    then=Value(0.7)  # Medium retention\n                ),\n                default=Value(0.4),  # Low retention\n                output_field=FloatField()\n            )\n        )\\\n        .annotate(\n            # Customer Lifetime Value calculation\n            clv=ExpressionWrapper(\n                F('profit_contribution') * F('purchase_frequency') * 12 * 0.6,\n                output_field=DecimalField(max_digits=12, decimal_places=2)\n            )\n        )\\\n        .order_by('-clv', '-retention_score')",
+      "required_imports": [
+        "django.db.models",
+        "django.db.models.functions",
+        "django.utils.timezone",
+        "datetime",
+        "django.db.models.expressions"
+      ],
+      "required_structure": {
+        "functions": [
+          {
+            "name": "get_customer_analytics",
+            "params": ["loyalty_tier", "min_date", "max_date"],
+            "returns": "QuerySet"
+          }
+        ]
+      },
+      "forbidden_patterns": [
+        "Calculating metrics in Python loops",
+        "Not handling division by zero",
+        "Multiple separate queries for each customer",
+        "Not using subqueries for correlated calculations"
+      ],
+      "is_primary": true,
+      "confidence_threshold": 85.00
+    }
+  ]
+}

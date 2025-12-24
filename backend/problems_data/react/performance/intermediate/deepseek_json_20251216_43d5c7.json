@@ -1,0 +1,105 @@
+{
+  "problem_id": "react-performance-005",
+  "title": "Offload Heavy Data Processing to Web Workers",
+  "slug": "offload-heavy-data-processing-to-web-workers",
+  "framework": "react",
+  "category": "performance",
+  "difficulty": "intermediate",
+  "description": "You're building a data visualization dashboard that processes large datasets. The heavy calculations block the main thread, causing the UI to freeze and become unresponsive.\n\n**Business Requirements:**\n1. Process and analyze large sales datasets (10,000+ records)\n2. Calculate statistics: total sales, average, median, standard deviation\n3. Generate sales trend analysis (moving averages)\n4. Create data clusters using k-means algorithm\n5. Display processing progress and results in real-time\n\n**Performance Issues to Solve:**\n- Main thread blocking during heavy calculations\n- UI freezing and unresponsiveness\n- Poor user experience during data processing\n- Inability to cancel long-running operations\n\n**Given Data Generator:**\n```javascript\nconst generateSalesData = (count) => {\n  const baseDate = new Date('2023-01-01');\n  const products = ['Laptop', 'Phone', 'Tablet', 'Monitor', 'Keyboard'];\n  \n  return Array.from({ length: count }, (_, i) => ({\n    id: i + 1,\n    date: new Date(baseDate.getTime() + i * 86400000).toISOString().split('T')[0],\n    product: products[i % products.length],\n    amount: Math.floor(Math.random() * 1000) + 100,\n    region: ['North', 'South', 'East', 'West'][i % 4],\n    customerId: Math.floor(Math.random() * 1000) + 1\n  }));\n};\n```\n\n**Technical Requirements:**\n1. Implement Web Worker for heavy calculations\n2. Use `useMemo` for derived calculations\n3. Implement progress tracking and cancellation\n4. Use `useCallback` for worker message handlers\n5. Implement error handling for worker operations\n6. Clean up worker resources on unmount\n\n**Expected Behavior:**\n- UI remains responsive during calculations\n- Real-time progress updates\n- Ability to cancel processing\n- Error handling for worker failures\n- Proper resource cleanup",
+  "description_preview": "Implement Web Workers to offload heavy data processing and keep the UI responsive during complex calculations",
+  "context_code": "// DATA GENERATOR (for reference only)\nconst generateSalesData = (count) => {\n  const baseDate = new Date('2023-01-01');\n  const products = ['Laptop', 'Phone', 'Tablet', 'Monitor', 'Keyboard'];\n  \n  return Array.from({ length: count }, (_, i) => ({\n    id: i + 1,\n    date: new Date(baseDate.getTime() + i * 86400000).toISOString().split('T')[0],\n    product: products[i % products.length],\n    amount: Math.floor(Math.random() * 1000) + 100,\n    region: ['North', 'South', 'East', 'West'][i % 4],\n    customerId: Math.floor(Math.random() * 1000) + 1\n  }));\n};\n\n// Web Worker code template\nconst workerCode = `\nself.onmessage = function(e) {\n  const { data, type } = e.data;\n  \n  if (type === 'process') {\n    // Heavy calculations here\n    const result = {\n      total: data.reduce((sum, item) => sum + item.amount, 0),\n      count: data.length,\n      // ... more calculations\n    };\n    \n    self.postMessage({ type: 'result', result });\n  }\n};\n`;",
+  "starter_code": "",
+  "target_area": "DataProcessor component with Web Worker integration",
+  "validation_spec": {
+    "required_imports": ["react"],
+    "required_structure": {
+      "functions": [
+        {
+          "name": "DataProcessor",
+          "type": "functional_component",
+          "has_export": true
+        }
+      ]
+    },
+    "behavior_patterns": [
+      {
+        "type": "state_management",
+        "state_type": "useState"
+      },
+      {
+        "type": "hook_call",
+        "hook": "useEffect",
+        "min_calls": 2
+      },
+      {
+        "type": "hook_call",
+        "hook": "useCallback",
+        "min_calls": 3
+      },
+      {
+        "type": "hook_call",
+        "hook": "useMemo",
+        "min_calls": 2
+      },
+      {
+        "type": "hook_call",
+        "hook": "useRef",
+        "min_calls": 1
+      },
+      "Web Worker creation and cleanup",
+      "Worker message event handlers",
+      "Progress tracking implementation",
+      "Cancellation mechanism",
+      "Error handling for worker operations",
+      "Worker termination on unmount"
+    ]
+  },
+  "import_weight": 10.00,
+  "structure_weight": 30.00,
+  "behavior_weight": 60.00,
+  "passing_score": 80.00,
+  "hints": [
+    "Create a Web Worker using Blob or separate file",
+    "Use useRef to store worker instance",
+    "Implement useEffect for worker setup and cleanup",
+    "Use useCallback for stable message handlers",
+    "Track progress by sending periodic updates from worker",
+    "Implement cancellation by terminating the worker",
+    "Handle worker errors with try-catch and error boundaries",
+    "Memoize derived data with useMemo"
+  ],
+  "learning_resources": [
+    "https://developer.mozilla.org/en-US/docs/Web/API/Web_Workers_API",
+    "https://react.dev/reference/react/useEffect",
+    "https://react.dev/reference/react/useCallback",
+    "https://react.dev/reference/react/useMemo"
+  ],
+  "tags": ["react", "performance", "web-workers", "heavy-computation", "parallel-processing", "intermediate"],
+  "estimated_time_minutes": 50,
+  "patterns": [
+    {
+      "pattern_id": "react-performance-005-pattern-1",
+      "name": "Web Worker Integration Pattern",
+      "description": "Offloading heavy calculations to Web Workers to keep UI responsive",
+      "example_code": "import React, { useState, useEffect, useCallback, useRef, useMemo } from 'react';\n\nconst generateSalesData = (count) => {\n  const baseDate = new Date('2023-01-01');\n  const products = ['Laptop', 'Phone', 'Tablet', 'Monitor', 'Keyboard'];\n  \n  return Array.from({ length: count }, (_, i) => ({\n    id: i + 1,\n    date: new Date(baseDate.getTime() + i * 86400000).toISOString().split('T')[0],\n    product: products[i % products.length],\n    amount: Math.floor(Math.random() * 1000) + 100,\n    region: ['North', 'South', 'East', 'West'][i % 4],\n    customerId: Math.floor(Math.random() * 1000) + 1\n  }));\n};\n\n// Web Worker code as string\nconst createWorker = () => {\n  const workerCode = `\n    self.onmessage = function(e) {\n      const { data, type } = e.data;\n      \n      if (type === 'process') {\n        const salesData = data;\n        let processed = 0;\n        const total = salesData.length;\n        \n        // Simulate heavy processing with progress\n        const results = {\n          total: 0,\n          average: 0,\n          median: 0,\n          stdDev: 0,\n          byProduct: {},\n          byRegion: {},\n          trends: []\n        };\n        \n        // Calculate total and average\n        results.total = salesData.reduce((sum, item) => {\n          processed++;\n          if (processed % 1000 === 0) {\n            self.postMessage({ \n              type: 'progress', \n              progress: Math.round((processed / total) * 100) \n            });\n          }\n          return sum + item.amount;\n        }, 0);\n        \n        results.average = results.total / total;\n        \n        // Calculate median\n        const amounts = salesData.map(d => d.amount).sort((a, b) => a - b);\n        const mid = Math.floor(amounts.length / 2);\n        results.median = amounts.length % 2 !== 0 \n          ? amounts[mid] \n          : (amounts[mid - 1] + amounts[mid]) / 2;\n        \n        // Calculate standard deviation\n        const squareDiffs = amounts.map(value => {\n          const diff = value - results.average;\n          return diff * diff;\n        });\n        const avgSquareDiff = squareDiffs.reduce((sum, val) => sum + val, 0) / amounts.length;\n        results.stdDev = Math.sqrt(avgSquareDiff);\n        \n        // Group by product\n        salesData.forEach(item => {\n          results.byProduct[item.product] = (results.byProduct[item.product] || 0) + item.amount;\n          results.byRegion[item.region] = (results.byRegion[item.region] || 0) + item.amount;\n        });\n        \n        // Calculate 7-day moving average\n        const dailyTotals = {};\n        salesData.forEach(item => {\n          dailyTotals[item.date] = (dailyTotals[item.date] || 0) + item.amount;\n        });\n        \n        const dates = Object.keys(dailyTotals).sort();\n        for (let i = 6; i < dates.length; i++) {\n          let sum = 0;\n          for (let j = i - 6; j <= i; j++) {\n            sum += dailyTotals[dates[j]];\n          }\n          results.trends.push({\n            date: dates[i],\n            movingAverage: sum / 7\n          });\n        }\n        \n        self.postMessage({ type: 'result', results });\n      }\n    };\n  `;\n  \n  const blob = new Blob([workerCode], { type: 'application/javascript' });\n  return new Worker(URL.createObjectURL(blob));\n};\n\nexport function DataProcessor() {\n  const [isProcessing, setIsProcessing] = useState(false);\n  const [progress, setProgress] = useState(0);\n  const [results, setResults] = useState(null);\n  const [error, setError] = useState(null);\n  \n  const workerRef = useRef(null);\n  const dataRef = useRef(generateSalesData(10000));\n  \n  // Memoize derived statistics\n  const derivedStats = useMemo(() => {\n    if (!results) return null;\n    \n    return {\n      formattedTotal: `$${results.total.toLocaleString()}`, \n      formattedAverage: `$${results.average.toFixed(2)}`,\n      formattedMedian: `$${results.median.toFixed(2)}`,\n      formattedStdDev: `$${results.stdDev.toFixed(2)}`,\n      topProduct: Object.entries(results.byProduct)\n        .sort(([,a], [,b]) => b - a)[0],\n      topRegion: Object.entries(results.byRegion)\n        .sort(([,a], [,b]) => b - a)[0]\n    };\n  }, [results]);\n  \n  // Worker message handler\n  const handleWorkerMessage = useCallback((event) => {\n    const { type, progress: prog, results: res, error: err } = event.data;\n    \n    switch (type) {\n      case 'progress':\n        setProgress(prog);\n        break;\n      case 'result':\n        setIsProcessing(false);\n        setResults(res);\n        setProgress(100);\n        break;\n      case 'error':\n        setIsProcessing(false);\n        setError(err);\n        break;\n      default:\n        break;\n    }\n  }, []);\n  \n  // Worker error handler\n  const handleWorkerError = useCallback((err) => {\n    setIsProcessing(false);\n    setError('Worker error: ' + err.message);\n  }, []);\n  \n  // Start processing\n  const startProcessing = useCallback(() => {\n    if (isProcessing) return;\n    \n    setIsProcessing(true);\n    setProgress(0);\n    setError(null);\n    \n    if (!workerRef.current) {\n      workerRef.current = createWorker();\n      workerRef.current.onmessage = handleWorkerMessage;\n      workerRef.current.onerror = handleWorkerError;\n    }\n    \n    workerRef.current.postMessage({\n      type: 'process',\n      data: dataRef.current\n    });\n  }, [isProcessing, handleWorkerMessage, handleWorkerError]);\n  \n  // Cancel processing\n  const cancelProcessing = useCallback(() => {\n    if (workerRef.current) {\n      workerRef.current.terminate();\n      workerRef.current = null;\n    }\n    setIsProcessing(false);\n    setProgress(0);\n  }, []);\n  \n  // Setup and cleanup\n  useEffect(() => {\n    return () => {\n      if (workerRef.current) {\n        workerRef.current.terminate();\n      }\n    };\n  }, []);\n  \n  return (\n    <div className=\"data-processor\">\n      <h2>Heavy Data Processing Dashboard</h2>\n      \n      <div className=\"controls\">\n        <button \n          onClick={startProcessing}\n          disabled={isProcessing}\n          style={{ padding: '10px 20px', marginRight: '10px' }}\n        >\n          {isProcessing ? 'Processing...' : 'Start Processing'}\n        </button>\n        \n        {isProcessing && (\n          <button \n            onClick={cancelProcessing}\n            style={{ padding: '10px 20px', backgroundColor: '#dc3545' }}\n          >\n            Cancel\n          </button>\n        )}\n      </div>\n      \n      {isProcessing && (\n        <div className=\"progress-container\" style={{ marginTop: '20px' }}>\n          <div style={{ display: 'flex', justifyContent: 'space-between' }}>\n            <span>Processing 10,000 records...</span>\n            <span>{progress}%</span>\n          </div>\n          <div style={{\n            height: '20px',\n            backgroundColor: '#e9ecef',\n            borderRadius: '4px',\n            overflow: 'hidden',\n            marginTop: '5px'\n          }}>\n            <div \n              style={{\n                height: '100%',\n                backgroundColor: '#007bff',\n                width: `${progress}%`,\n                transition: 'width 0.3s ease'\n              }}\n            />\n          </div>\n        </div>\n      )}\n      \n      {error && (\n        <div style={{\n          marginTop: '20px',\n          padding: '15px',\n          backgroundColor: '#f8d7da',\n          color: '#721c24',\n          borderRadius: '4px'\n        }}>\n          <strong>Error:</strong> {error}\n        </div>\n      )}\n      \n      {results && derivedStats && (\n        <div className=\"results\" style={{ marginTop: '30px' }}>\n          <h3>Processing Results</h3>\n          \n          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '20px' }}>\n            <div className=\"stat-card\" style={{ padding: '15px', border: '1px solid #dee2e6', borderRadius: '4px' }}>\n              <h4>Total Sales</h4>\n              <div style={{ fontSize: '24px', fontWeight: 'bold' }}>\n                {derivedStats.formattedTotal}\n              </div>\n            </div>\n            \n            <div className=\"stat-card\" style={{ padding: '15px', border: '1px solid #dee2e6', borderRadius: '4px' }}>\n              <h4>Average Sale</h4>\n              <div style={{ fontSize: '24px', fontWeight: 'bold' }}>\n                {derivedStats.formattedAverage}\n              </div>\n            </div>\n            \n            <div className=\"stat-card\" style={{ padding: '15px', border: '1px solid #dee2e6', borderRadius: '4px' }}>\n              <h4>Median Sale</h4>\n              <div style={{ fontSize: '24px', fontWeight: 'bold' }}>\n                {derivedStats.formattedMedian}\n              </div>\n            </div>\n            \n            <div className=\"stat-card\" style={{ padding: '15px', border: '1px solid #dee2e6', borderRadius: '4px' }}>\n              <h4>Standard Deviation</h4>\n              <div style={{ fontSize: '24px', fontWeight: 'bold' }}>\n                {derivedStats.formattedStdDev}\n              </div>\n            </div>\n          </div>\n          \n          <div style={{ marginTop: '20px' }}>\n            <h4>Top Performing</h4>\n            <div style={{ display: 'flex', gap: '20px' }}>\n              <div>\n                <strong>Product:</strong> {derivedStats.topProduct?.[0]} \n                (${derivedStats.topProduct?.[1]?.toLocaleString()})\n              </div>\n              <div>\n                <strong>Region:</strong> {derivedStats.topRegion?.[0]} \n                (${derivedStats.topRegion?.[1]?.toLocaleString()})\n              </div>\n            </div>\n          </div>\n          \n          <div style={{ marginTop: '30px', fontSize: '14px', color: '#666' }}>\n            <p><strong>Performance Features:</strong></p>\n            <ul>\n              <li>Web Worker: Heavy calculations offloaded from main thread</li>\n              <li>Progress Tracking: Real-time updates during processing</li>\n              <li>Cancellation: Ability to stop processing mid-operation</li>\n              <li>Memoization: Derived statistics memoized with useMemo</li>\n              <li>Cleanup: Worker terminated on component unmount</li>\n            </ul>\n          </div>\n        </div>\n      )}\n    </div>\n  );\n}",
+      "required_imports": ["react"],
+      "required_structure": {
+        "functions": [
+          {
+            "name": "DataProcessor",
+            "type": "functional_component",
+            "has_export": true
+          }
+        ]
+      },
+      "forbidden_patterns": [
+        "Heavy calculations on main thread",
+        "Missing worker cleanup on unmount",
+        "No progress tracking during processing",
+        "Inline functions for worker event handlers"
+      ],
+      "is_primary": true,
+      "confidence_threshold": 85.00
+    }
+  ]
+}

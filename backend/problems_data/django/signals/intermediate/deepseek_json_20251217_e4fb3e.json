@@ -1,0 +1,214 @@
+{
+  "problem_id": "django-signals-003",
+  "title": "Implement Real-time Analytics with Cache Invalidation Signals",
+  "slug": "implement-real-time-analytics-with-cache-invalidation-signals",
+  "framework": "django",
+  "category": "signals",
+  "difficulty": "intermediate",
+  "description": "Build a real-time analytics system for an e-commerce platform using Django signals to maintain cached statistics and trigger immediate cache invalidation.\n\n**Business Requirements:**\n- An e-commerce site needs real-time analytics on products, orders, and customers\n- Statistics must be cached for performance but invalidated immediately when data changes\n- The system should track: product views, order counts, revenue, customer activity\n- When any related data changes, cached statistics should be automatically updated\n- Implement a dashboard with real-time metrics that update without page refresh\n- Use signals to maintain denormalized counters for performance\n\n**Models to Implement:**\n1. **Product**: E-commerce products with view counts\n2. **Order**: Customer orders with items and revenue\n3. **Customer**: User profiles with activity stats\n4. **ProductStat**: Denormalized product statistics\n5. **DashboardCache**: Cached dashboard metrics\n\n**Signal Requirements:**\n1. **post_save signals**: Update stats on Product, Order, Customer changes\n2. **post_delete signals**: Update stats on deletions\n3. **m2m_changed signals**: Handle order-item relationships\n4. **request_finished signal**: Update cache after web requests\n5. **Custom cache_invalidation signal**: Decoupled cache management\n\n**Advanced Features:**\n- Implement atomic updates to avoid race conditions\n- Use Django's cache framework with appropriate timeouts\n- Create a circuit breaker for high-frequency updates\n- Implement batch processing for bulk operations\n- Use database transactions for consistency\n\n**Expected Behavior:**\n```python\n# After implementation, this should work:\nproduct = Product.objects.create(\n    name='Laptop',\n    price=999.99,\n    category='Electronics'\n)\n\n# Product view should update cached stats\nproduct.increment_views()  # Custom method\n# Should: update ProductStat.view_count, invalidate product cache\n\norder = Order.objects.create(\n    customer=customer,\n    total_amount=1999.98\n)\norder.items.add(product, product2)\n# Should: update revenue stats, order counts, customer activity\n\n# Get real-time dashboard stats\nstats = DashboardCache.get_current_stats()\nprint(stats['total_revenue'])  # Should reflect all orders\nprint(stats['total_orders'])   # Should be updated in real-time\n\n# Bulk update should use efficient signals\nProduct.objects.filter(category='Electronics').update(price=price * 0.9)\n# Should: invalidate cache for all affected products\n```",
+  "description_preview": "Create a real-time analytics system using Django signals for cache invalidation and denormalized statistics maintenance in an e-commerce platform.",
+  "context_code": "# CACHE INVALIDATION SIGNALS (for reference only - you need to create your own implementation)\n# These are the imports you'll need to use:\n# from django.db import models\n# from django.db.models.signals import post_save, post_delete, m2m_changed\n# from django.dispatch import receiver, Signal\n# from django.core.cache import cache\n# from django.db import transaction\n# from django.utils import timezone\n\n# Your implementation goes below. Do not modify or reference this context code directly.",
+  "starter_code": "",
+  "target_area": "Implement Product, Order, Customer, ProductStat, and DashboardCache models with Django signals for real-time analytics and cache invalidation",
+  "validation_spec": {
+    "required_imports": [
+      "django.db.models",
+      "django.db.models.signals.post_save",
+      "django.db.models.signals.post_delete",
+      "django.db.models.signals.m2m_changed",
+      "django.dispatch.receiver",
+      "django.dispatch.Signal",
+      "django.core.cache.cache",
+      "django.db.transaction",
+      "django.utils.timezone"
+    ],
+    "required_structure": {
+      "classes": [
+        {
+          "name": "Product",
+          "parent_class": "models.Model",
+          "has_meta_class": true,
+          "fields": ["name", "price", "category", "view_count"],
+          "methods": ["increment_views", "save", "__str__"]
+        },
+        {
+          "name": "Order",
+          "parent_class": "models.Model",
+          "has_meta_class": true,
+          "fields": ["customer", "total_amount", "created_at", "status"],
+          "methods": ["save", "__str__"]
+        },
+        {
+          "name": "Customer",
+          "parent_class": "models.Model",
+          "has_meta_class": true,
+          "fields": ["name", "email", "total_spent", "order_count", "last_active"],
+          "methods": ["update_activity", "__str__"]
+        },
+        {
+          "name": "ProductStat",
+          "parent_class": "models.Model",
+          "has_meta_class": true,
+          "fields": ["product", "total_views", "total_orders", "total_revenue", "last_updated"],
+          "methods": ["update_stats", "__str__"]
+        },
+        {
+          "name": "DashboardCache",
+          "class_type": "manager",
+          "methods": ["get_current_stats", "invalidate_all", "update_stat"]
+        }
+      ],
+      "signals": [
+        {
+          "type": "post_save",
+          "model": "Product",
+          "function": "update_product_cache",
+          "description": "Invalidate cache on product changes"
+        },
+        {
+          "type": "post_save",
+          "model": "Order",
+          "function": "update_order_analytics",
+          "description": "Update revenue and order stats"
+        },
+        {
+          "type": "post_delete",
+          "model": "Order",
+          "function": "handle_order_deletion",
+          "description": "Adjust stats on order deletion"
+        },
+        {
+          "type": "m2m_changed",
+          "model": "Order.items",
+          "function": "handle_order_items_change",
+          "description": "Update product stats when items change"
+        },
+        {
+          "type": "custom",
+          "name": "cache_invalidated",
+          "providing_args": ["model", "instance_id", "field"]
+        }
+      ]
+    },
+    "behavior_patterns": [
+      "post_save signal on Product updates ProductStat and invalidates cache",
+      "post_save signal on Order updates Customer.total_spent and order_count",
+      "post_save signal on Order updates DashboardCache revenue statistics",
+      "post_delete signal on Order reverses statistical updates",
+      "m2m_changed signal updates product statistics when order items change",
+      "Product.increment_views() atomically updates view_count and triggers signals",
+      "DashboardCache.get_current_stats() returns cached or freshly computed stats",
+      "Custom cache_invalidated signal allows decoupled cache management",
+      "Circuit breaker prevents infinite signal recursion on high-frequency updates",
+      "Database transactions ensure statistical consistency"
+    ]
+  },
+  "import_weight": 10.00,
+  "structure_weight": 25.00,
+  "behavior_weight": 65.00,
+  "passing_score": 85.00,
+  "hints": [
+    "Create a ProductStat model to store denormalized statistics for performance",
+    "Implement atomic updates using F() expressions to avoid race conditions",
+    "Use Django's cache framework with appropriate keys and timeouts",
+    "Create a custom cache_invalidated signal for decoupled cache management",
+    "Implement a circuit breaker using a flag or counter to prevent signal loops",
+    "Use database transactions with atomic=True for statistical consistency",
+    "Override Product.save() to handle cache invalidation on price/category changes",
+    "Create a DashboardCache class with class methods for cache management",
+    "Implement batch processing in signals to handle bulk operations efficiently"
+  ],
+  "learning_resources": [
+    "https://docs.djangoproject.com/en/stable/topics/cache/",
+    "https://docs.djangoproject.com/en/stable/ref/models/expressions/#f-expressions",
+    "https://docs.djangoproject.com/en/stable/topics/db/transactions/"
+  ],
+  "tags": ["django", "signals", "caching", "analytics", "real-time", "intermediate"],
+  "estimated_time_minutes": 50,
+  "patterns": [
+    {
+      "pattern_id": "django-signals-003-pattern-1",
+      "name": "Real-time Analytics with Cache Signals",
+      "description": "Complete real-time analytics system with cache invalidation signals",
+      "example_code": "from django.db import models\nfrom django.db.models import F\nfrom django.db.models.signals import post_save, post_delete, m2m_changed\nfrom django.dispatch import receiver, Signal\nfrom django.core.cache import cache\nfrom django.db import transaction\nfrom django.utils import timezone\n\n# Custom signal for cache invalidation\ncache_invalidated = Signal()\n\nclass Product(models.Model):\n    name = models.CharField(max_length=200)\n    price = models.DecimalField(max_digits=10, decimal_places=2)\n    category = models.CharField(max_length=100)\n    view_count = models.IntegerField(default=0)\n    \n    def increment_views(self):\n        \"\"\"Atomically increment view count and trigger cache update\"\"\"\n        with transaction.atomic():\n            # Atomic update to avoid race conditions\n            Product.objects.filter(pk=self.pk).update(view_count=F('view_count') + 1)\n            self.refresh_from_db()\n            \n            # Trigger cache invalidation\n            cache_invalidated.send(\n                sender=Product,\n                model='product',\n                instance_id=self.pk,\n                field='view_count'\n            )\n    \n    def save(self, *args, **kwargs):\n        \"\"\"Override save to handle cache invalidation\"\"\"\n        old_instance = None\n        if self.pk:\n            try:\n                old_instance = Product.objects.get(pk=self.pk)\n            except Product.DoesNotExist:\n                pass\n        \n        super().save(*args, **kwargs)\n        \n        # Invalidate cache if price or category changed\n        if old_instance:\n            if old_instance.price != self.price or old_instance.category != self.category:\n                cache_invalidated.send(\n                    sender=Product,\n                    model='product',\n                    instance_id=self.pk,\n                    field='price_or_category'\n                )\n    \n    def __str__(self):\n        return self.name\n\nclass Customer(models.Model):\n    name = models.CharField(max_length=100)\n    email = models.EmailField(unique=True)\n    total_spent = models.DecimalField(max_digits=12, decimal_places=2, default=0)\n    order_count = models.IntegerField(default=0)\n    last_active = models.DateTimeField(auto_now=True)\n    \n    def update_activity(self):\n        \"\"\"Update last active timestamp\"\"\"\n        self.save()  # auto_now will update last_active\n    \n    def __str__(self):\n        return f'{self.name} (${self.total_spent})'\n\nclass Order(models.Model):\n    STATUS_CHOICES = [\n        ('pending', 'Pending'),\n        ('paid', 'Paid'),\n        ('shipped', 'Shipped'),\n        ('delivered', 'Delivered'),\n        ('cancelled', 'Cancelled'),\n    ]\n    \n    customer = models.ForeignKey(Customer, on_delete=models.CASCADE, related_name='orders')\n    items = models.ManyToManyField(Product, related_name='orders')\n    total_amount = models.DecimalField(max_digits=10, decimal_places=2)\n    created_at = models.DateTimeField(auto_now_add=True)\n    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='pending')\n    \n    def __str__(self):\n        return f'Order #{self.pk} - ${self.total_amount}'\n\nclass ProductStat(models.Model):\n    \"\"\"Denormalized statistics for products\"\"\"\n    product = models.OneToOneField(Product, on_delete=models.CASCADE, related_name='stats')\n    total_views = models.IntegerField(default=0)\n    total_orders = models.IntegerField(default=0)\n    total_revenue = models.DecimalField(max_digits=12, decimal_places=2, default=0)\n    last_updated = models.DateTimeField(auto_now=True)\n    \n    def update_stats(self):\n        \"\"\"Update statistics from related data\"\"\"\n        from django.db.models import Sum, Count\n        \n        self.total_views = self.product.view_count\n        self.total_orders = self.product.orders.count()\n        \n        # Calculate total revenue from orders containing this product\n        revenue = self.product.orders.aggregate(\n            total=Sum('total_amount')\n        )['total'] or 0\n        self.total_revenue = revenue\n        \n        self.save()\n    \n    def __str__(self):\n        return f'Stats for {self.product.name}'\n\nclass DashboardCache:\n    \"\"\"Manages cached dashboard statistics\"\"\"\n    CACHE_KEY = 'dashboard_stats'\n    CACHE_TIMEOUT = 300  # 5 minutes\n    \n    @classmethod\n    def get_current_stats(cls):\n        \"\"\"Get dashboard stats from cache or compute fresh\"\"\"\n        stats = cache.get(cls.CACHE_KEY)\n        \n        if stats is None:\n            stats = cls._compute_stats()\n            cache.set(cls.CACHE_KEY, stats, cls.CACHE_TIMEOUT)\n        \n        return stats\n    \n    @classmethod\n    def _compute_stats(cls):\n        \"\"\"Compute fresh dashboard statistics\"\"\"\n        from django.db.models import Sum, Count, Avg\n        \n        stats = {\n            'total_products': Product.objects.count(),\n            'total_orders': Order.objects.count(),\n            'total_customers': Customer.objects.count(),\n            'total_revenue': Order.objects.filter(status='paid').aggregate(\n                total=Sum('total_amount')\n            )['total'] or 0,\n            'avg_order_value': Order.objects.filter(status='paid').aggregate(\n                avg=Avg('total_amount')\n            )['avg'] or 0,\n            'timestamp': timezone.now().isoformat(),\n        }\n        \n        # Add top products\n        top_products = ProductStat.objects.order_by('-total_revenue')[:5]\n        stats['top_products'] = [\n            {\n                'name': stat.product.name,\n                'revenue': float(stat.total_revenue),\n                'orders': stat.total_orders,\n            }\n            for stat in top_products\n        ]\n        \n        return stats\n    \n    @classmethod\n    def invalidate_all(cls):\n        \"\"\"Invalidate all dashboard cache\"\"\"\n        cache.delete(cls.CACHE_KEY)\n    \n    @classmethod\n    def update_stat(cls, key, value):\n        \"\"\"Update a specific statistic in cache\"\"\"\n        stats = cls.get_current_stats()\n        stats[key] = value\n        stats['timestamp'] = timezone.now().isoformat()\n        cache.set(cls.CACHE_KEY, stats, cls.CACHE_TIMEOUT)\n\n# Signal handlers\n@receiver(post_save, sender=Product)\ndef update_product_cache(sender, instance, created, **kwargs):\n    \"\"\"Update product cache on save\"\"\"\n    # Invalidate product cache\n    cache_key = f'product_{instance.pk}'\n    cache.delete(cache_key)\n    \n    # Update or create ProductStat\n    stat, _ = ProductStat.objects.get_or_create(product=instance)\n    stat.update_stats()\n    \n    # Invalidate dashboard cache\n    DashboardCache.invalidate_all()\n\n@receiver(post_save, sender=Order)\ndef update_order_analytics(sender, instance, created, **kwargs):\n    \"\"\"Update analytics when order is saved\"\"\"\n    with transaction.atomic():\n        if created or instance.status == 'paid':\n            # Update customer stats\n            instance.customer.total_spent = F('total_spent') + instance.total_amount\n            instance.customer.order_count = F('order_count') + 1\n            instance.customer.save()\n            \n            # Update dashboard cache\n            DashboardCache.invalidate_all()\n            \n            # Update product stats for items in this order\n            for product in instance.items.all():\n                stat, _ = ProductStat.objects.get_or_create(product=product)\n                stat.total_orders = F('total_orders') + 1\n                stat.total_revenue = F('total_revenue') + instance.total_amount\n                stat.save()\n\n@receiver(post_delete, sender=Order)\ndef handle_order_deletion(sender, instance, **kwargs):\n    \"\"\"Adjust stats when order is deleted\"\"\"\n    if instance.status == 'paid':\n        # Reverse customer stats\n        instance.customer.total_spent = F('total_spent') - instance.total_amount\n        instance.customer.order_count = F('order_count') - 1\n        instance.customer.save()\n        \n        # Update dashboard cache\n        DashboardCache.invalidate_all()\n\n@receiver(m2m_changed, sender=Order.items.through)\ndef handle_order_items_change(sender, instance, action, **kwargs):\n    \"\"\"Handle changes to order items\"\"\"\n    if action in ['post_add', 'post_remove', 'post_clear']:\n        # Invalidate cache for affected products\n        product_ids = kwargs.get('pk_set', [])\n        for product_id in product_ids:\n            cache_invalidated.send(\n                sender=Product,\n                model='product',\n                instance_id=product_id,\n                field='order_items'\n            )\n\n@receiver(cache_invalidated)\ndef handle_cache_invalidated(sender, model, instance_id, field, **kwargs):\n    \"\"\"Handle cache invalidation events\"\"\"\n    print(f\"Cache invalidated: {model} #{instance_id} - {field}\")\n    \n    if model == 'product':\n        # Update product-specific cache\n        cache_key = f'product_{instance_id}'\n        cache.delete(cache_key)\n        \n        # Update ProductStat\n        try:\n            product = Product.objects.get(pk=instance_id)\n            stat, _ = ProductStat.objects.get_or_create(product=product)\n            stat.update_stats()\n        except Product.DoesNotExist:\n            pass\n    \n    # Always invalidate dashboard cache for significant changes\n    DashboardCache.invalidate_all()",
+      "required_imports": [
+        "django.db.models",
+        "django.db.models.F",
+        "django.db.models.signals.post_save",
+        "django.db.models.signals.post_delete",
+        "django.db.models.signals.m2m_changed",
+        "django.dispatch.receiver",
+        "django.dispatch.Signal",
+        "django.core.cache.cache",
+        "django.db.transaction",
+        "django.utils.timezone"
+      ],
+      "required_structure": {
+        "classes": [
+          {
+            "name": "Product",
+            "parent_class": "models.Model",
+            "has_meta_class": true,
+            "fields": ["name", "price", "category", "view_count"],
+            "methods": ["increment_views", "save", "__str__"]
+          },
+          {
+            "name": "Customer",
+            "parent_class": "models.Model",
+            "has_meta_class": true,
+            "fields": ["name", "email", "total_spent", "order_count", "last_active"],
+            "methods": ["update_activity", "__str__"]
+          },
+          {
+            "name": "Order",
+            "parent_class": "models.Model",
+            "has_meta_class": true,
+            "fields": ["customer", "items", "total_amount", "created_at", "status"],
+            "methods": ["__str__"]
+          },
+          {
+            "name": "ProductStat",
+            "parent_class": "models.Model",
+            "has_meta_class": true,
+            "fields": ["product", "total_views", "total_orders", "total_revenue", "last_updated"],
+            "methods": ["update_stats", "__str__"]
+          }
+        ],
+        "signals": [
+          {
+            "type": "post_save",
+            "model": "Product",
+            "function": "update_product_cache"
+          },
+          {
+            "type": "post_save",
+            "model": "Order",
+            "function": "update_order_analytics"
+          },
+          {
+            "type": "post_delete",
+            "model": "Order",
+            "function": "handle_order_deletion"
+          },
+          {
+            "type": "m2m_changed",
+            "model": "Order.items.through",
+            "function": "handle_order_items_change"
+          },
+          {
+            "type": "custom",
+            "name": "cache_invalidated"
+          }
+        ]
+      },
+      "forbidden_patterns": [
+        "Not using atomic transactions for statistical updates",
+        "Missing F() expressions for atomic increments",
+        "Not implementing circuit breaker for signal recursion",
+        "Hardcoding cache keys instead of using consistent patterns"
+      ],
+      "is_primary": true,
+      "confidence_threshold": 85.00
+    }
+  ]
+}

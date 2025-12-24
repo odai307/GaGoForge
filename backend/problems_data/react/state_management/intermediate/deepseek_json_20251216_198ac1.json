@@ -1,0 +1,229 @@
+{
+  "problem_id": "react-state_management-013",
+  "title": "Build a Real-time Dashboard with Redux Toolkit and RTK Query",
+  "slug": "realtime-dashboard-with-redux-toolkit-and-rtk-query",
+  "framework": "react",
+  "category": "state_management",
+  "difficulty": "intermediate",
+  "description": "Create a real-time dashboard for monitoring system metrics using Redux Toolkit with RTK Query for API integration. The dashboard should display live metrics with polling, caching, and error handling.\n\n**Requirements:**\n1. Set up Redux Toolkit store with multiple slices\n2. Implement RTK Query for API integration with polling\n3. Create the following slices:\n   - metricsSlice: for system metrics (CPU, memory, disk)\n   - alertsSlice: for system alerts and notifications\n   - uiSlice: for dashboard UI state (theme, refresh rate)\n4. Implement RTK Query API for:\n   - fetchMetrics: GET /api/metrics with 5-second polling\n   - fetchAlerts: GET /api/alerts with 10-second polling\n   - acknowledgeAlert: POST /api/alerts/:id/acknowledge\n5. Dashboard components:\n   - MetricsDisplay: shows real-time CPU, memory, disk usage\n   - AlertsPanel: displays active alerts with acknowledge buttons\n   - ControlsPanel: allows changing refresh rate and theme\n   - Charts: historical metrics visualization (simple implementation)\n6. Features:\n   - Real-time updates via polling\n   - Error boundary for failed API calls\n   - Loading states for metrics\n   - Toast notifications for new alerts\n   - Theme switching (light/dark)\n   - Configurable refresh rates\n\n**Expected Behavior:**\n- Metrics should update automatically every 5 seconds\n- Alerts should update every 10 seconds\n- Acknowledging alert should make API call and update state\n- Theme changes should persist in localStorage\n- Charts should show historical data (last 10 data points)\n- Error states should show user-friendly messages\n\n**Example Metric Object:**\n```javascript\n{\n  timestamp: '2024-01-15T10:30:00Z',\n  cpu: 45.2, // percentage\n  memory: 78.5, // percentage\n  disk: 32.1, // percentage\n  networkIn: 120, // MB/s\n  networkOut: 85 // MB/s\n}\n```",
+  "description_preview": "Implement a real-time system dashboard using Redux Toolkit with RTK Query for API polling, multiple slices, and comprehensive state management.",
+  "context_code": "// API ENDPOINTS (for reference only - you need to implement RTK Query)\n// GET /api/metrics - returns current system metrics\n// GET /api/alerts - returns active system alerts\n// POST /api/alerts/:id/acknowledge - acknowledges an alert\n\n// Alert interface:\n// {\n//   id: string,\n//   severity: 'low' | 'medium' | 'high' | 'critical',\n//   message: string,\n//   timestamp: string,\n//   acknowledged: boolean\n// }\n\n// UI State:\n// {\n//   theme: 'light' | 'dark',\n//   refreshRate: 5000 | 10000 | 30000,\n//   isSidebarOpen: boolean\n// }",
+  "starter_code": "",
+  "target_area": "Complete Redux Toolkit setup with RTK Query, multiple slices, and real-time dashboard",
+  "validation_spec": {
+    "required_imports": ["@reduxjs/toolkit", "react-redux"],
+    "required_structure": {
+      "functions": [
+        {
+          "name": "store",
+          "type": "redux_store",
+          "has_export": true,
+          "description": "Redux store configuration"
+        },
+        {
+          "name": "metricsApi",
+          "type": "rtk_query",
+          "has_export": true,
+          "description": "RTK Query API for metrics"
+        },
+        {
+          "name": "Dashboard",
+          "type": "functional_component",
+          "has_export": true,
+          "description": "Main dashboard component"
+        }
+      ],
+      "variables": [
+        {
+          "name": "metricsSlice",
+          "type": "redux_slice",
+          "has_export": true
+        }
+      ]
+    },
+    "behavior_patterns": [
+      {
+        "type": "state_management_libs",
+        "library": "redux",
+        "required": true,
+        "description": "Must use Redux Toolkit for state management"
+      },
+      {
+        "type": "constructor_call",
+        "class": "configureStore",
+        "object": "reduxjs/toolkit",
+        "context": "store_creation",
+        "description": "Must create store using configureStore from Redux Toolkit"
+      },
+      {
+        "type": "constructor_call",
+        "class": "createSlice",
+        "object": "reduxjs/toolkit",
+        "min_calls": 3,
+        "description": "Must create at least 3 slices (metrics, alerts, ui)"
+      },
+      {
+        "type": "constructor_call",
+        "class": "createApi",
+        "object": "reduxjs/toolkit/query/react",
+        "context": "api_creation",
+        "description": "Must create RTK Query API using createApi"
+      },
+      {
+        "type": "api_endpoint",
+        "endpoint_type": "query",
+        "endpoint_name": "fetchMetrics",
+        "polling_interval": 5000,
+        "description": "Must implement fetchMetrics query with 5-second polling"
+      },
+      {
+        "type": "api_endpoint",
+        "endpoint_type": "query",
+        "endpoint_name": "fetchAlerts",
+        "polling_interval": 10000,
+        "description": "Must implement fetchAlerts query with 10-second polling"
+      },
+      {
+        "type": "api_endpoint",
+        "endpoint_type": "mutation",
+        "endpoint_name": "acknowledgeAlert",
+        "description": "Must implement acknowledgeAlert mutation"
+      },
+      {
+        "type": "hook_call",
+        "hook": "useSelector",
+        "min_calls": 2,
+        "description": "Must use useSelector to access Redux state"
+      },
+      {
+        "type": "hook_call",
+        "hook": "useDispatch",
+        "min_calls": 2,
+        "description": "Must use useDispatch to dispatch actions"
+      },
+      {
+        "type": "hook_call",
+        "hook": "useState",
+        "min_calls": 1,
+        "description": "May use useState for local component state"
+      },
+      {
+        "type": "rtk_query_hook",
+        "hook_pattern": "use.*Query",
+        "min_calls": 2,
+        "description": "Must use RTK Query hooks (useFetchMetricsQuery, useFetchAlertsQuery)"
+      },
+      {
+        "type": "rtk_query_hook",
+        "hook_pattern": "use.*Mutation",
+        "min_calls": 1,
+        "description": "Must use RTK Query mutation hooks"
+      },
+      {
+        "type": "loading_state",
+        "query_hook": "useFetchMetricsQuery",
+        "handles_loading": true,
+        "description": "Must handle loading state from useFetchMetricsQuery"
+      },
+      {
+        "type": "error_handling",
+        "query_hook": "useFetchMetricsQuery",
+        "handles_error": true,
+        "description": "Must handle error state from useFetchMetricsQuery"
+      },
+      {
+        "type": "persistence",
+        "storage_type": "localStorage",
+        "state_properties": ["theme"],
+        "description": "Must persist theme in localStorage"
+      },
+      {
+        "type": "event_handler",
+        "event_type": "onClick",
+        "handler_action": "acknowledgeAlert",
+        "description": "Must dispatch acknowledgeAlert mutation on button click"
+      }
+    ],
+    "difficulty": "intermediate",
+    "framework": "react",
+    "import_weight": 5.00,
+    "structure_weight": 30.00,
+    "behavior_weight": 65.00,
+    "passing_score": 87.00
+  },
+  "import_weight": 5.00,
+  "structure_weight": 30.00,
+  "behavior_weight": 65.00,
+  "passing_score": 87.00,
+  "hints": [
+    "Install required packages: @reduxjs/toolkit react-redux",
+    "Create store using configureStore with reducer combining slices and RTK Query middleware",
+    "Implement RTK Query API with createApi, defining endpoints for metrics and alerts",
+    "Create slices for metrics, alerts, and ui using createSlice with appropriate reducers",
+    "For polling, use pollingInterval in query endpoints or refetchOnFocus/refetchOnReconnect",
+    "Implement theme persistence by loading from localStorage in slice initial state and saving on change",
+    "Use useSelector to access Redux state and useDispatch to dispatch actions",
+    "For RTK Query, use auto-generated hooks (useFetchMetricsQuery, etc.) with destructured data, isLoading, error",
+    "Implement error boundaries or error handling components for failed API calls",
+    "For charts, maintain a limited history of metrics in the metrics slice (last 10-20 data points)"
+  ],
+  "learning_resources": [
+    "https://redux-toolkit.js.org/introduction/getting-started",
+    "https://redux-toolkit.js.org/rtk-query/overview",
+    "https://redux-toolkit.js.org/api/createSlice",
+    "https://redux-toolkit.js.org/api/createApi"
+  ],
+  "tags": ["react", "state_management", "redux", "rtk-query", "dashboard", "real-time", "polling", "intermediate"],
+  "estimated_time_minutes": 55,
+  "patterns": [
+    {
+      "pattern_id": "react-state_management-013-pattern-1",
+      "name": "Redux Toolkit Dashboard with RTK Query",
+      "description": "Complete Redux Toolkit implementation with RTK Query, multiple slices, and real-time polling",
+      "example_code": "import { createSlice, configureStore, createApi, fetchBaseQuery } from '@reduxjs/toolkit';\nimport { setupListeners } from '@reduxjs/toolkit/query';\nimport { Provider, useDispatch, useSelector } from 'react-redux';\n\n// RTK Query API\nconst dashboardApi = createApi({\n  reducerPath: 'dashboardApi',\n  baseQuery: fetchBaseQuery({ baseUrl: '/api' }),\n  tagTypes: ['Metrics', 'Alerts'],\n  endpoints: (builder) => ({\n    fetchMetrics: builder.query({\n      query: () => '/metrics',\n      providesTags: ['Metrics'],\n      // Polling every 5 seconds\n      pollingInterval: 5000,\n    }),\n    fetchAlerts: builder.query({\n      query: () => '/alerts',\n      providesTags: ['Alerts'],\n      // Polling every 10 seconds\n      pollingInterval: 10000,\n    }),\n    acknowledgeAlert: builder.mutation({\n      query: (alertId) => ({\n        url: `/alerts/${alertId}/acknowledge`,\n        method: 'POST',\n      }),\n      invalidatesTags: ['Alerts'],\n    }),\n  }),\n});\n\nexport const { useFetchMetricsQuery, useFetchAlertsQuery, useAcknowledgeAlertMutation } = dashboardApi;\n\n// UI Slice\nconst uiSlice = createSlice({\n  name: 'ui',\n  initialState: {\n    theme: localStorage.getItem('dashboard-theme') || 'light',\n    refreshRate: 5000,\n    isSidebarOpen: true,\n  },\n  reducers: {\n    setTheme: (state, action) => {\n      state.theme = action.payload;\n      localStorage.setItem('dashboard-theme', action.payload);\n    },\n    setRefreshRate: (state, action) => {\n      state.refreshRate = action.payload;\n    },\n    toggleSidebar: (state) => {\n      state.isSidebarOpen = !state.isSidebarOpen;\n    },\n  },\n});\n\nexport const { setTheme, setRefreshRate, toggleSidebar } = uiSlice.actions;\n\n// Alerts Slice\nconst alertsSlice = createSlice({\n  name: 'alerts',\n  initialState: {\n    acknowledgedAlerts: [],\n    lastNotificationTime: null,\n  },\n  reducers: {\n    acknowledgeAlertLocally: (state, action) => {\n      state.acknowledgedAlerts.push(action.payload);\n    },\n    setLastNotificationTime: (state) => {\n      state.lastNotificationTime = Date.now();\n    },\n  },\n});\n\nexport const { acknowledgeAlertLocally, setLastNotificationTime } = alertsSlice.actions;\n\n// Metrics History Slice\nconst metricsSlice = createSlice({\n  name: 'metrics',\n  initialState: {\n    history: [],\n    maxHistoryLength: 20,\n  },\n  reducers: {\n    addToHistory: (state, action) => {\n      state.history.push(action.payload);\n      // Keep only last N items\n      if (state.history.length > state.maxHistoryLength) {\n        state.history = state.history.slice(-state.maxHistoryLength);\n      }\n    },\n    clearHistory: (state) => {\n      state.history = [];\n    },\n  },\n  extraReducers: (builder) => {\n    builder.addMatcher(\n      dashboardApi.endpoints.fetchMetrics.matchFulfilled,\n      (state, action) => {\n        state.history.push({\n          timestamp: new Date().toISOString(),\n          ...action.payload,\n        });\n        if (state.history.length > state.maxHistoryLength) {\n          state.history = state.history.slice(-state.maxHistoryLength);\n        }\n      }\n    );\n  },\n});\n\nexport const { addToHistory, clearHistory } = metricsSlice.actions;\n\n// Configure Store\nconst store = configureStore({\n  reducer: {\n    [dashboardApi.reducerPath]: dashboardApi.reducer,\n    ui: uiSlice.reducer,\n    alerts: alertsSlice.reducer,\n    metrics: metricsSlice.reducer,\n  },\n  middleware: (getDefaultMiddleware) =>\n    getDefaultMiddleware().concat(dashboardApi.middleware),\n});\n\n// Setup listeners for refetchOnFocus/refetchOnReconnect\nsetupListeners(store.dispatch);\n\nexport { store, Provider };\n\n// Example Dashboard Component (not part of validation, just for reference)\n/*\nimport React from 'react';\nimport { useFetchMetricsQuery, useFetchAlertsQuery, useAcknowledgeAlertMutation } from './store/dashboardApi';\nimport { setTheme, setRefreshRate } from './store/uiSlice';\nimport { acknowledgeAlertLocally } from './store/alertsSlice';\n\nconst Dashboard = () => {\n  const dispatch = useDispatch();\n  const theme = useSelector(state => state.ui.theme);\n  const metricsHistory = useSelector(state => state.metrics.history);\n  \n  // RTK Query hooks\n  const { data: metrics, isLoading: metricsLoading, error: metricsError } = useFetchMetricsQuery();\n  const { data: alerts, isLoading: alertsLoading, error: alertsError } = useFetchAlertsQuery();\n  const [acknowledgeAlert] = useAcknowledgeAlertMutation();\n  \n  const handleAcknowledgeAlert = async (alertId) => {\n    try {\n      await acknowledgeAlert(alertId).unwrap();\n      dispatch(acknowledgeAlertLocally(alertId));\n    } catch (error) {\n      console.error('Failed to acknowledge alert:', error);\n    }\n  };\n  \n  const handleThemeChange = (newTheme) => {\n    dispatch(setTheme(newTheme));\n  };\n  \n  if (metricsLoading || alertsLoading) {\n    return <div>Loading dashboard...</div>;\n  }\n  \n  if (metricsError || alertsError) {\n    return <div>Error loading dashboard data</div>;\n  }\n  \n  return (\n    <div className={`dashboard ${theme}`}>\n      <div className=\"controls\">\n        <button onClick={() => handleThemeChange(theme === 'light' ? 'dark' : 'light')}>\n          Switch to {theme === 'light' ? 'Dark' : 'Light'} Theme\n        </button>\n        <select onChange={(e) => dispatch(setRefreshRate(parseInt(e.target.value)))}>\n          <option value=\"5000\">5 seconds</option>\n          <option value=\"10000\">10 seconds</option>\n          <option value=\"30000\">30 seconds</option>\n        </select>\n      </div>\n      \n      <div className=\"metrics-panel\">\n        <h2>System Metrics</h2>\n        {metrics && (\n          <div className=\"metrics-grid\">\n            <div className=\"metric-card\">\n              <h3>CPU</h3>\n              <p>{metrics.cpu}%</p>\n            </div>\n            <div className=\"metric-card\">\n              <h3>Memory</h3>\n              <p>{metrics.memory}%</p>\n            </div>\n            <div className=\"metric-card\">\n              <h3>Disk</h3>\n              <p>{metrics.disk}%</p>\n            </div>\n          </div>\n        )}\n        \n        <div className=\"chart\">\n          <h3>CPU History</h3>\n          <div className=\"chart-container\">\n            {metricsHistory.map((metric, index) => (\n              <div \n                key={index} \n                className=\"chart-bar\" \n                style={{ height: `${metric.cpu}%` }}\n                title={`CPU: ${metric.cpu}%`}\n              />\n            ))}\n          </div>\n        </div>\n      </div>\n      \n      <div className=\"alerts-panel\">\n        <h2>Alerts</h2>\n        {alerts && alerts.length > 0 ? (\n          <ul>\n            {alerts.map(alert => (\n              <li key={alert.id} className={`alert alert-${alert.severity}`}>\n                <span>{alert.message}</span>\n                {!alert.acknowledged && (\n                  <button onClick={() => handleAcknowledgeAlert(alert.id)}>\n                    Acknowledge\n                  </button>\n                )}\n              </li>\n            ))}\n          </ul>\n        ) : (\n          <p>No active alerts</p>\n        )}\n      </div>\n    </div>\n  );\n};\n\nexport default Dashboard;\n*/",
+      "required_imports": ["@reduxjs/toolkit", "react-redux"],
+      "required_structure": {
+        "functions": [
+          {
+            "name": "store",
+            "type": "redux_store",
+            "has_export": true
+          },
+          {
+            "name": "dashboardApi",
+            "type": "rtk_query",
+            "has_export": true
+          }
+        ],
+        "variables": [
+          {
+            "name": "uiSlice",
+            "type": "redux_slice",
+            "has_export": true
+          },
+          {
+            "name": "alertsSlice",
+            "type": "redux_slice",
+            "has_export": true
+          },
+          {
+            "name": "metricsSlice",
+            "type": "redux_slice",
+            "has_export": true
+          }
+        ]
+      },
+      "forbidden_patterns": [
+        "Using plain Redux instead of Redux Toolkit",
+        "Not using RTK Query for API calls",
+        "Missing polling configuration",
+        "Not setting up store listeners",
+        "Direct state mutation in reducers",
+        "Not handling loading/error states from RTK Query",
+        "Missing localStorage persistence for theme"
+      ],
+      "is_primary": true,
+      "confidence_threshold": 85.00
+    }
+  ]
+}

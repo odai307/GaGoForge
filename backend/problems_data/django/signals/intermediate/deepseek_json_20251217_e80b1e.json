@@ -1,0 +1,193 @@
+{
+  "problem_id": "django-signals-002",
+  "title": "Build Content Moderation System with State Machine Signals",
+  "slug": "build-content-moderation-system-with-state-machine-signals",
+  "framework": "django",
+  "category": "signals",
+  "difficulty": "intermediate",
+  "description": "Create a content moderation system for a blogging platform using Django signals to implement a state machine for article publishing workflow.\n\n**Business Requirements:**\n- Articles go through a moderation workflow: draft → submitted → in_review → approved → published → archived\n- State transitions should trigger automatic actions:\n  - When submitted: Notify moderators\n  - When approved: Schedule publication, notify author\n  - When published: Create social media post (simulate), update author stats\n  - When archived: Create backup, remove from search index\n- Articles have quality score that affects moderation priority\n- Authors have reputation scores that update based on article performance\n- The system should prevent invalid state transitions\n\n**Models to Implement:**\n1. **Article**: Content with moderation state\n2. **Author**: User with reputation score\n3. **ModerationLog**: Track all state changes\n4. **Notification**: System notifications\n\n**Signal Requirements:**\n1. **pre_save signal**: Validate state transitions\n2. **post_save signal**: Trigger actions on state changes\n3. **Custom signals**: article_published, article_archived\n4. **Model property setter signals**: Handle quality_score updates\n\n**Advanced Features:**\n- Implement a state machine with allowed transitions\n- Use custom signals for decoupled business logic\n- Handle bulk state updates efficiently\n- Implement circuit breaker to prevent signal loops\n\n**Expected Behavior:**\n```python\n# After implementation, this should work:\nauthor = Author.objects.create(name='Jane Writer', reputation=50)\narticle = Article.objects.create(\n    title='Python Best Practices',\n    content='Article content...',\n    author=author,\n    state='draft'\n)\n\n# State transitions with signals\ntry:\n    article.state = 'published'  # Should fail - invalid transition\n    article.save()\nexcept ValidationError:\n    print(\"Invalid transition caught\")\n\n# Valid transition\narticle.state = 'submitted'\narticle.save()\n# Should: create ModerationLog, notify moderators, update article.submitted_at\n\narticle.state = 'approved'\narticle.save()\n# Should: notify author, schedule publication\n\narticle.state = 'published'\narticle.save()\n# Should: update author reputation, create social media post, send notifications\n\nprint(ModerationLog.objects.count())  # Should log all state changes\nprint(author.reputation)  # Should increase after publication\n```",
+  "description_preview": "Implement a content moderation workflow using Django signals as a state machine with automatic actions on state transitions.",
+  "context_code": "# STATE MACHINE SIGNALS (for reference only - you need to create your own implementation)\n# These are the imports you'll need to use:\n# from django.db import models\n# from django.db.models.signals import post_save, pre_save\n# from django.dispatch import receiver, Signal\n# from django.utils import timezone\n# from django.core.exceptions import ValidationError\n\n# Your implementation goes below. Do not modify or reference this context code directly.",
+  "starter_code": "",
+  "target_area": "Create Article, Author, ModerationLog, and Notification models with Django signals implementing a state machine for content moderation workflow",
+  "validation_spec": {
+    "required_imports": [
+      "django.db.models",
+      "django.db.models.signals.post_save",
+      "django.db.models.signals.pre_save",
+      "django.dispatch.receiver",
+      "django.dispatch.Signal",
+      "django.utils.timezone",
+      "django.core.exceptions.ValidationError"
+    ],
+    "required_structure": {
+      "classes": [
+        {
+          "name": "Author",
+          "parent_class": "models.Model",
+          "has_meta_class": true,
+          "fields": ["name", "reputation", "email"],
+          "methods": ["update_reputation", "__str__"]
+        },
+        {
+          "name": "Article",
+          "parent_class": "models.Model",
+          "has_meta_class": true,
+          "fields": ["title", "content", "author", "state", "quality_score", "submitted_at", "published_at", "archived_at"],
+          "properties": ["state_transitions"],
+          "methods": ["clean", "save", "__str__"]
+        },
+        {
+          "name": "ModerationLog",
+          "parent_class": "models.Model",
+          "has_meta_class": true,
+          "fields": ["article", "from_state", "to_state", "timestamp", "notes"],
+          "methods": ["__str__"]
+        },
+        {
+          "name": "Notification",
+          "parent_class": "models.Model",
+          "has_meta_class": true,
+          "fields": ["recipient", "message", "created_at", "is_read"],
+          "methods": ["__str__"]
+        }
+      ],
+      "signals": [
+        {
+          "type": "pre_save",
+          "model": "Article",
+          "function": "validate_state_transition",
+          "description": "Validate state machine transitions"
+        },
+        {
+          "type": "post_save",
+          "model": "Article",
+          "function": "handle_state_change",
+          "description": "Trigger actions on state changes"
+        },
+        {
+          "type": "custom",
+          "name": "article_published",
+          "providing_args": ["article"]
+        },
+        {
+          "type": "custom",
+          "name": "article_archived",
+          "providing_args": ["article"]
+        }
+      ]
+    },
+    "behavior_patterns": [
+      "pre_save signal validates state transitions using allowed_transitions dictionary",
+      "post_save signal creates ModerationLog entry on state change",
+      "Custom signal article_published is sent when state changes to 'published'",
+      "Custom signal article_archived is sent when state changes to 'archived'",
+      "State 'submitted' triggers moderator notification creation",
+      "State 'approved' triggers author notification and publication scheduling",
+      "State 'published' updates author reputation and creates social media post",
+      "State 'archived' creates backup and removes from search (simulated)",
+      "Article.clean() validates quality_score range and state consistency",
+      "Circuit breaker prevents signal recursion during Article.save()"
+    ]
+  },
+  "import_weight": 10.00,
+  "structure_weight": 30.00,
+  "behavior_weight": 60.00,
+  "passing_score": 85.00,
+  "hints": [
+    "Define a STATE_CHOICES list with all possible states in order",
+    "Create a dictionary of allowed transitions (e.g., 'draft': ['submitted'])",
+    "Implement pre_save signal to check if state transition is valid",
+    "In post_save, compare old_state vs new_state to detect changes",
+    "Create custom signals using Signal() for decoupled event handling",
+    "Implement a circuit breaker using a flag to prevent signal recursion",
+    "Store the previous state in instance._old_state during pre_save",
+    "Create Notification records for different state change events",
+    "Update Author reputation when articles are published or perform well"
+  ],
+  "learning_resources": [
+    "https://docs.djangoproject.com/en/stable/ref/signals/#defining-and-sending-signals",
+    "https://docs.djangoproject.com/en/stable/ref/models/instances/#django.db.models.Model.clean",
+    "https://docs.djangoproject.com/en/stable/topics/signals/#preventing-duplicate-signals"
+  ],
+  "tags": ["django", "signals", "state-machine", "workflow", "moderation", "intermediate"],
+  "estimated_time_minutes": 45,
+  "patterns": [
+    {
+      "pattern_id": "django-signals-002-pattern-1",
+      "name": "State Machine with Custom Signals",
+      "description": "Complete content moderation system with state machine implemented using signals",
+      "example_code": "from django.db import models\nfrom django.db.models.signals import post_save, pre_save\nfrom django.dispatch import receiver, Signal\nfrom django.utils import timezone\nfrom django.core.exceptions import ValidationError\n\n# Custom signals\narticle_published = Signal()\narticle_archived = Signal()\n\nclass Author(models.Model):\n    name = models.CharField(max_length=100)\n    reputation = models.IntegerField(default=0)\n    email = models.EmailField()\n    \n    def update_reputation(self, points):\n        \"\"\"Update author reputation with bounds checking\"\"\"\n        self.reputation += points\n        self.reputation = max(0, min(100, self.reputation))  # Keep between 0-100\n        self.save()\n    \n    def __str__(self):\n        return f'{self.name} (Rep: {self.reputation})'\n\nclass Article(models.Model):\n    STATE_CHOICES = [\n        ('draft', 'Draft'),\n        ('submitted', 'Submitted for Review'),\n        ('in_review', 'In Review'),\n        ('approved', 'Approved'),\n        ('published', 'Published'),\n        ('archived', 'Archived'),\n    ]\n    \n    # Allowed state transitions\n    ALLOWED_TRANSITIONS = {\n        'draft': ['submitted'],\n        'submitted': ['in_review', 'draft'],\n        'in_review': ['approved', 'draft'],\n        'approved': ['published', 'draft'],\n        'published': ['archived'],\n        'archived': [],  # Terminal state\n    }\n    \n    title = models.CharField(max_length=200)\n    content = models.TextField()\n    author = models.ForeignKey(Author, on_delete=models.CASCADE, related_name='articles')\n    state = models.CharField(max_length=20, choices=STATE_CHOICES, default='draft')\n    quality_score = models.IntegerField(default=0, help_text='0-100 score')\n    submitted_at = models.DateTimeField(null=True, blank=True)\n    published_at = models.DateTimeField(null=True, blank=True)\n    archived_at = models.DateTimeField(null=True, blank=True)\n    \n    # Circuit breaker to prevent signal recursion\n    _processing_signal = False\n    \n    @property\n    def state_transitions(self):\n        \"\"\"Return list of allowed next states\"\"\"\n        return self.ALLOWED_TRANSITIONS.get(self.state, [])\n    \n    def clean(self):\n        \"\"\"Validate model before save\"\"\"\n        if not 0 <= self.quality_score <= 100:\n            raise ValidationError('Quality score must be between 0 and 100')\n        \n        # State-specific validation\n        if self.state == 'published' and not self.approved_at:\n            raise ValidationError('Article must be approved before publishing')\n    \n    def save(self, *args, **kwargs):\n        \"\"\"Override save to handle state changes\"\"\"\n        if not self._processing_signal:\n            self.full_clean()\n        \n        # Store old state for comparison in signals\n        if self.pk:\n            try:\n                old = Article.objects.get(pk=self.pk)\n                self._old_state = old.state\n            except Article.DoesNotExist:\n                self._old_state = None\n        else:\n            self._old_state = None\n        \n        # Update timestamps based on state\n        if self.state == 'submitted' and self._old_state != 'submitted':\n            self.submitted_at = timezone.now()\n        elif self.state == 'published' and self._old_state != 'published':\n            self.published_at = timezone.now()\n        elif self.state == 'archived' and self._old_state != 'archived':\n            self.archived_at = timezone.now()\n        \n        super().save(*args, **kwargs)\n    \n    def __str__(self):\n        return f'{self.title} ({self.state})'\n\nclass ModerationLog(models.Model):\n    article = models.ForeignKey(Article, on_delete=models.CASCADE, related_name='moderation_logs')\n    from_state = models.CharField(max_length=20)\n    to_state = models.CharField(max_length=20)\n    timestamp = models.DateTimeField(default=timezone.now)\n    notes = models.TextField(blank=True)\n    \n    class Meta:\n        ordering = ['-timestamp']\n    \n    def __str__(self):\n        return f'{self.article.title}: {self.from_state} → {self.to_state}'\n\nclass Notification(models.Model):\n    recipient = models.ForeignKey(Author, on_delete=models.CASCADE)\n    message = models.TextField()\n    created_at = models.DateTimeField(default=timezone.now)\n    is_read = models.BooleanField(default=False)\n    \n    class Meta:\n        ordering = ['-created_at']\n    \n    def __str__(self):\n        return f'Notification for {self.recipient.name}'\n\n@receiver(pre_save, sender=Article)\ndef validate_state_transition(sender, instance, **kwargs):\n    \"\"\"Validate that state transition is allowed\"\"\"\n    if instance._old_state and instance._old_state != instance.state:\n        allowed = Article.ALLOWED_TRANSITIONS.get(instance._old_state, [])\n        if instance.state not in allowed:\n            raise ValidationError(\n                f'Invalid state transition: {instance._old_state} → {instance.state}. '\n                f'Allowed: {allowed}'\n            )\n\n@receiver(post_save, sender=Article)\ndef handle_state_change(sender, instance, created, **kwargs):\n    \"\"\"Handle actions triggered by state changes\"\"\"\n    if instance._processing_signal:\n        return\n    \n    instance._processing_signal = True\n    \n    try:\n        old_state = instance._old_state\n        new_state = instance.state\n        \n        # Only process if state actually changed\n        if old_state != new_state:\n            # Create moderation log\n            ModerationLog.objects.create(\n                article=instance,\n                from_state=old_state or '(created)',\n                to_state=new_state,\n                notes=f'Article state changed'\n            )\n            \n            # State-specific actions\n            if new_state == 'submitted':\n                # Notify moderators\n                print(f\"Article '{instance.title}' submitted for review. Notifying moderators...\")\n                \n                # Create notification for system (in real app, would email moderators)\n                Notification.objects.create(\n                    recipient=instance.author,\n                    message=f'Your article \"{instance.title}\" has been submitted for review.'\n                )\n            \n            elif new_state == 'approved':\n                # Notify author and schedule publication\n                print(f\"Article '{instance.title}' approved. Notifying author and scheduling publication...\")\n                \n                Notification.objects.create(\n                    recipient=instance.author,\n                    message=f'Great news! Your article \"{instance.title}\" has been approved.'\n                )\n            \n            elif new_state == 'published':\n                # Send custom signal\n                article_published.send(sender=Article, article=instance)\n                \n                # Update author reputation\n                points = max(10, instance.quality_score // 10)  # 10-20 points\n                instance.author.update_reputation(points)\n                \n                # Create social media post (simulated)\n                print(f\"Article '{instance.title}' published. Creating social media posts...\")\n            \n            elif new_state == 'archived':\n                # Send custom signal\n                article_archived.send(sender=Article, article=instance)\n                \n                # Create backup and remove from search (simulated)\n                print(f\"Article '{instance.title}' archived. Creating backup and removing from search index...\")\n        \n        instance.save()  # Save again to update timestamps\n    finally:\n        instance._processing_signal = False\n\n# Custom signal receivers\n@receiver(article_published)\ndef handle_article_published(sender, article, **kwargs):\n    \"\"\"Handle article published event\"\"\"\n    # Additional business logic for published articles\n    Notification.objects.create(\n        recipient=article.author,\n        message=f'Congratulations! Your article \"{article.title}\" is now live.'\n    )\n    \n    # Simulate social media integration\n    print(f\"📢 New article published: {article.title} by {article.author.name}\")\n\n@receiver(article_archived)\ndef handle_article_archived(sender, article, **kwargs):\n    \"\"\"Handle article archived event\"\"\"\n    # Cleanup and archival tasks\n    print(f\"Article {article.title} archived. Performing cleanup tasks...\")\n    \n    # In real app: create backup, update search index, etc.\n    Notification.objects.create(\n        recipient=article.author,\n        message=f'Your article \"{article.title}\" has been archived as per retention policy.'\n    )",
+      "required_imports": [
+        "django.db.models",
+        "django.db.models.signals.post_save",
+        "django.db.models.signals.pre_save",
+        "django.dispatch.receiver",
+        "django.dispatch.Signal",
+        "django.utils.timezone",
+        "django.core.exceptions.ValidationError"
+      ],
+      "required_structure": {
+        "classes": [
+          {
+            "name": "Author",
+            "parent_class": "models.Model",
+            "has_meta_class": true,
+            "fields": ["name", "reputation", "email"],
+            "methods": ["update_reputation", "__str__"]
+          },
+          {
+            "name": "Article",
+            "parent_class": "models.Model",
+            "has_meta_class": true,
+            "fields": ["title", "content", "author", "state", "quality_score", "submitted_at", "published_at", "archived_at"],
+            "properties": ["state_transitions"],
+            "methods": ["clean", "save", "__str__"]
+          },
+          {
+            "name": "ModerationLog",
+            "parent_class": "models.Model",
+            "has_meta_class": true,
+            "fields": ["article", "from_state", "to_state", "timestamp", "notes"],
+            "methods": ["__str__"]
+          },
+          {
+            "name": "Notification",
+            "parent_class": "models.Model",
+            "has_meta_class": true,
+            "fields": ["recipient", "message", "created_at", "is_read"],
+            "methods": ["__str__"]
+          }
+        ],
+        "signals": [
+          {
+            "type": "pre_save",
+            "model": "Article",
+            "function": "validate_state_transition"
+          },
+          {
+            "type": "post_save",
+            "model": "Article",
+            "function": "handle_state_change"
+          },
+          {
+            "type": "custom",
+            "name": "article_published"
+          },
+          {
+            "type": "custom",
+            "name": "article_archived"
+          }
+        ]
+      },
+      "forbidden_patterns": [
+        "Not validating state transitions",
+        "Allowing direct state assignment without validation",
+        "Creating signal recursion without circuit breaker",
+        "Not storing old state for comparison"
+      ],
+      "is_primary": true,
+      "confidence_threshold": 85.00
+    }
+  ]
+}

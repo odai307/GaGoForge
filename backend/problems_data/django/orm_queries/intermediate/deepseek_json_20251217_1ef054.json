@@ -1,0 +1,140 @@
+{
+  "problem_id": "django-orm_queries-012",
+  "title": "Implement Inventory Restocking Alert Query",
+  "slug": "implement-inventory-restocking-alert-query",
+  "framework": "django",
+  "category": "orm_queries",
+  "difficulty": "intermediate",
+  "description": "You're building an inventory management system for an e-commerce platform. The system tracks products, inventory levels, and sales data.\n\n**Models (for reference):**\n```python\nfrom django.db import models\n\nclass ProductCategory(models.Model):\n    name = models.CharField(max_length=100)\n    description = models.TextField()\n    priority = models.IntegerField(default=1)  # 1=highest priority\n\nclass Product(models.Model):\n    name = models.CharField(max_length=200)\n    sku = models.CharField(max_length=50, unique=True)\n    category = models.ForeignKey(ProductCategory, on_delete=models.PROTECT, related_name='products')\n    price = models.DecimalField(max_digits=10, decimal_places=2)\n    cost = models.DecimalField(max_digits=10, decimal_places=2)\n    created_at = models.DateTimeField(auto_now_add=True)\n    is_active = models.BooleanField(default=True)\n\nclass Inventory(models.Model):\n    product = models.OneToOneField(Product, on_delete=models.CASCADE, related_name='inventory')\n    current_stock = models.IntegerField(default=0)\n    minimum_stock = models.IntegerField(default=10)\n    maximum_stock = models.IntegerField(default=100)\n    last_restocked = models.DateTimeField(null=True, blank=True)\n\nclass Sale(models.Model):\n    product = models.ForeignKey(Product, on_delete=models.PROTECT, related_name='sales')\n    quantity = models.IntegerField()\n    sale_date = models.DateTimeField(auto_now_add=True)\n    unit_price = models.DecimalField(max_digits=10, decimal_places=2)\n\nclass Supplier(models.Model):\n    name = models.CharField(max_length=200)\n    lead_time_days = models.IntegerField()  # Days to restock\n    is_active = models.BooleanField(default=True)\n\nclass ProductSupplier(models.Model):\n    product = models.ForeignKey(Product, on_delete=models.CASCADE)\n    supplier = models.ForeignKey(Supplier, on_delete=models.CASCADE)\n    is_primary = models.BooleanField(default=False)\n```\n\n**Requirements:**\nCreate a Django ORM query function that identifies products needing restocking based on sales velocity and current inventory.\n\n1. Calculate restocking needs:\n   - Products must be active (`is_active=True`)\n   - Current stock below minimum stock level\n   - Or current stock below 7 days of average daily sales\n\n2. For each product, return:\n   - Product details (name, sku, category)\n   - Current stock and minimum stock\n   - Average daily sales (last 30 days)\n   - Days of inventory remaining (current_stock / average_daily_sales)\n   - Recommended restock quantity (maximum_stock - current_stock)\n   - Primary supplier lead time\n\n3. Include:\n   - Only products with sales in the last 30 days\n   - Category priority in ordering (highest priority first)\n   - Products with 0 or negative days inventory should appear first\n\n4. Performance considerations:\n   - Use subqueries for average daily sales calculation\n   - Use conditional expressions for days inventory calculation\n   - Optimize joins with select_related and prefetch_related\n\n**Expected Output:**\nA QuerySet with annotated fields that can be used to generate restocking alerts.\n\n**Example Usage:**\n```python\nalerts = get_restocking_alerts()\nfor alert in alerts:\n    if alert.days_inventory < 0:\n        print(f\"URGENT: {alert.name} has {alert.days_inventory:.1f} days inventory\")\n    print(f\"Restock {alert.recommended_quantity} units of {alert.sku}\")\n```",
+  "description_preview": "Build an ORM query to identify products needing restocking based on sales velocity and inventory levels.",
+  "context_code": "# MODEL DEFINITIONS (for reference only)\n# These models are already defined in your project\nfrom django.db import models\n\n# Models are defined as shown in the description above\n# You'll need to reference these in your ORM query",
+  "starter_code": "",
+  "target_area": "Create the get_restocking_alerts() function with complex ORM annotations and subqueries",
+  "validation_spec": {
+    "required_imports": [
+      "django.db.models",
+      "django.db.models.functions",
+      "django.utils.timezone",
+      "datetime",
+      "django.db.models.expressions"
+    ],
+    "required_structure": {
+      "functions": [
+        {
+          "name": "get_restocking_alerts",
+          "params": [],
+          "returns": "QuerySet"
+        }
+      ]
+    },
+    "behavior_patterns": [
+      {
+        "type": "subquery_usage",
+        "requirements": {
+          "requires_subquery": true,
+          "requires_outer_ref": true,
+          "requires_correlated": true
+        },
+        "description": "Uses subquery with OuterRef for correlated subquery"
+      },
+      {
+        "type": "conditional_expression",
+        "requirements": {
+          "requires_case_when": true,
+          "requires_division_protection": true
+        },
+        "description": "Calculates days_inventory using Case/When with division protection"
+      },
+      {
+        "type": "q_object_usage",
+        "requirements": {
+          "requires_or_condition": true
+        },
+        "description": "Uses Q objects for OR conditions (current_stock < minimum_stock OR days_inventory < 7)"
+      },
+      {
+        "type": "queryset_optimization",
+        "requirements": {
+          "required_optimizations": ["select_related", "prefetch_related"]
+        },
+        "description": "Uses select_related and prefetch_related for optimization"
+      },
+      {
+        "type": "complex_orm_pattern",
+        "requirements": {
+          "min_complexity_score": 25,
+          "requires_correlated_subquery": true,
+          "requires_conditional_annotation": true
+        },
+        "description": "Implements complex ORM query with subqueries and annotations"
+      },
+      {
+        "type": "annotation_pattern",
+        "requirements": {
+          "required_fields": ["current_stock", "minimum_stock", "maximum_stock", "avg_daily_sales", "days_inventory", "recommended_quantity"],
+          "field_types": {
+            "days_inventory": "conditional",
+            "recommended_quantity": "calculation"
+          }
+        },
+        "description": "Annotates all required fields with proper types"
+      }
+    ],
+    "scoring": {
+      "import_weight": 15.00,
+      "structure_weight": 35.00,
+      "behavior_weight": 50.00,
+      "passing_score": 80.00
+    }
+  },
+  "hints": [
+    "Start by creating a subquery for average daily sales calculation using Sum and Count",
+    "Use OuterRef to reference the outer query's product in the subquery",
+    "Use Case/When expressions to handle division by zero when calculating days inventory",
+    "Filter sales by date using timezone.now() - timedelta(days=30)",
+    "Join product with inventory using select_related since it's a OneToOneField",
+    "Use prefetch_related for supplier relationships",
+    "Create complex Q objects for the restocking condition",
+    "Order results by urgency (negative inventory days) then category priority"
+  ],
+  "learning_resources": [
+    "https://docs.djangoproject.com/en/stable/ref/models/expressions/#subquery",
+    "https://docs.djangoproject.com/en/stable/ref/models/conditional-expressions/",
+    "https://docs.djangoproject.com/en/stable/ref/models/querysets/#aggregation-functions",
+    "https://docs.djangoproject.com/en/stable/topics/db/queries/#complex-lookups-with-q-objects"
+  ],
+  "tags": ["django", "orm_queries", "subqueries", "annotations", "business_logic", "intermediate"],
+  "estimated_time_minutes": 40,
+  "patterns": [
+    {
+      "pattern_id": "django-orm_queries-012-pattern-1",
+      "name": "Inventory Alert with Subquery",
+      "description": "Complete solution using subqueries, conditional expressions, and complex annotations",
+      "example_code": "from django.db.models import (\n    F, Q, Sum, Count, Case, When, Value, FloatField,\n    Subquery, OuterRef\n)\nfrom django.utils import timezone\nfrom datetime import timedelta\n\ndef get_restocking_alerts():\n    \"\"\"\n    Returns products that need restocking based on inventory and sales velocity.\n    \"\"\"\n    thirty_days_ago = timezone.now() - timedelta(days=30)\n    \n    # Subquery for average daily sales\n    avg_daily_sales_subquery = Subquery(\n        Sale.objects.filter(\n            product_id=OuterRef('pk'),\n            sale_date__gte=thirty_days_ago\n        )\n        .values('product_id')\n        .annotate(\n            total_quantity=Sum('quantity'),\n            sale_days=Count('sale_date', distinct=True)\n        )\n        .annotate(\n            avg_daily=Case(\n                When(sale_days__gt=0, then=F('total_quantity') / F('sale_days')),\n                default=Value(0.0),\n                output_field=FloatField()\n            )\n        )\n        .values('avg_daily')[:1]\n    )\n    \n    return Product.objects\\\n        .select_related('inventory', 'category')\\\n        .prefetch_related('productsupplier_set__supplier')\\\n        .filter(\n            is_active=True,\n            inventory__isnull=False\n        )\\\n        .annotate(\n            current_stock=F('inventory__current_stock'),\n            minimum_stock=F('inventory__minimum_stock'),\n            maximum_stock=F('inventory__maximum_stock'),\n            avg_daily_sales=Case(\n                When(avg_daily_sales_subquery__isnull=False, \n                     then=avg_daily_sales_subquery),\n                default=Value(0.0),\n                output_field=FloatField()\n            )\n        )\\\n        .annotate(\n            days_inventory=Case(\n                When(avg_daily_sales__gt=0, \n                     then=F('current_stock') / F('avg_daily_sales')),\n                default=Value(float('inf')),\n                output_field=FloatField()\n            ),\n            recommended_quantity=F('maximum_stock') - F('current_stock')\n        )\\\n        .filter(\n            Q(current_stock__lt=F('minimum_stock')) | \n            Q(days_inventory__lt=7)\n        )\\\n        .order_by('days_inventory', '-category__priority')",
+      "required_imports": [
+        "django.db.models",
+        "django.db.models.functions",
+        "django.utils.timezone",
+        "datetime",
+        "django.db.models.expressions"
+      ],
+      "required_structure": {
+        "functions": [
+          {
+            "name": "get_restocking_alerts",
+            "params": [],
+            "returns": "QuerySet"
+          }
+        ]
+      },
+      "forbidden_patterns": [
+        "Using raw() SQL method",
+        "Multiple separate database queries in a loop",
+        "Calculating averages in Python instead of database",
+        "Not handling division by zero"
+      ],
+      "is_primary": true,
+      "confidence_threshold": 85.00
+    }
+  ]
+}

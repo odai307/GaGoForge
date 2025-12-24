@@ -1,0 +1,107 @@
+{
+  "problem_id": "react-routing-002",
+  "title": "Create a User Profile System with Dynamic Routing",
+  "slug": "create-user-profile-system-with-dynamic-routing",
+  "framework": "react",
+  "category": "routing",
+  "difficulty": "beginner",
+  "description": "Build a user profile system that displays different user information based on URL parameters using React Router's dynamic routing.\n\n**Requirements:**\n1. Create an `App` component with routing for:\n   - `/users` - Shows list of users\n   - `/users/:userId` - Shows individual user profile\n2. Create a `UserList` component that displays clickable user names\n3. Create a `UserProfile` component that displays detailed user information\n4. Use the `useParams` hook to extract userId from the URL\n5. Mock user data array with at least 3 users, each with:\n   - id (number)\n   - name (string)\n   - email (string)\n   - bio (string)\n\n**Implementation Details:**\n- UserList should show each user as a Link to their profile page\n- UserProfile should fetch user data based on userId parameter\n- Handle invalid userId by showing \"User not found\" message\n- Add a \"Back to Users\" link on the profile page\n- Use the `useNavigate` hook for programmatic navigation\n\n**Example User Data Structure:**\n```javascript\nconst users = [\n  { id: 1, name: 'Alice Johnson', email: 'alice@example.com', bio: 'Software Developer' },\n  { id: 2, name: 'Bob Smith', email: 'bob@example.com', bio: 'Product Manager' },\n  { id: 3, name: 'Charlie Brown', email: 'charlie@example.com', bio: 'UX Designer' }\n];\n```\n\n**Expected Behavior:**\n- `/users` shows clickable list of all users\n- Clicking a user navigates to `/users/1`, `/users/2`, etc.\n- Profile page shows correct user information based on URL\n- Invalid URLs show \"User not found\"\n- \"Back to Users\" link navigates back to user list",
+  "description_preview": "Implement dynamic user profiles using route parameters with useParams hook",
+  "context_code": "",
+  "starter_code": "",
+  "target_area": "App component with dynamic routing and parameter handling",
+  "validation_spec": {
+    "required_imports": [
+      "react",
+      "react-router-dom.BrowserRouter",
+      "react-router-dom.Routes",
+      "react-router-dom.Route",
+      "react-router-dom.Link",
+      "react-router-dom.useParams",
+      "react-router-dom.useNavigate"
+    ],
+    "required_structure": {
+      "functions": [
+        {
+          "name": "App",
+          "type": "functional_component",
+          "has_export": true,
+          "has_prop_types": false
+        },
+        {
+          "name": "UserList",
+          "type": "functional_component",
+          "has_export": false,
+          "has_prop_types": false
+        },
+        {
+          "name": "UserProfile",
+          "type": "functional_component",
+          "has_export": false,
+          "has_prop_types": false
+        }
+      ]
+    },
+    "behavior_patterns": [
+      {"type": "routing", "routing_type": "react-router"},
+      {"type": "routing", "routing_type": "route_definition", "path": "/users"},
+      {"type": "routing", "routing_type": "route_definition", "path": "/users/:userId"},
+      {"type": "routing", "routing_type": "route_params"},
+      {"type": "routing", "routing_type": "navigation", "method": "use_navigate"}
+    ]
+  },
+  "import_weight": 20.00,
+  "structure_weight": 35.00,
+  "behavior_weight": 45.00,
+  "passing_score": 80.00,
+  "hints": [
+    "Dynamic routes use colon syntax: `/users/:userId`",
+    "Use the useParams hook inside UserProfile to get the userId from the URL",
+    "Find the user by comparing userId parameter with your mock data array",
+    "Use the useNavigate hook for the \"Back to Users\" button functionality",
+    "Remember that URL parameters are strings, so you may need to convert to number"
+  ],
+  "learning_resources": [
+    "https://reactrouter.com/en/main/hooks/use-params",
+    "https://reactrouter.com/en/main/hooks/use-navigate"
+  ],
+  "tags": ["react", "routing", "dynamic-routes", "useParams", "beginner"],
+  "estimated_time_minutes": 35,
+  "patterns": [
+    {
+      "pattern_id": "react-routing-002-pattern-1",
+      "name": "Dynamic Routing with Parameters",
+      "description": "Complete user profile system with dynamic routes and parameter extraction",
+      "example_code": "import React from 'react';\nimport {\n  BrowserRouter,\n  Routes,\n  Route,\n  Link,\n  useParams,\n  useNavigate\n} from 'react-router-dom';\n\n// Mock user data\nconst users = [\n  {\n    id: 1,\n    name: 'Alice Johnson',\n    email: 'alice@example.com',\n    bio: 'Software Developer with 5 years of experience in React and Node.js'\n  },\n  {\n    id: 2,\n    name: 'Bob Smith',\n    email: 'bob@example.com',\n    bio: 'Product Manager specializing in agile development and user-centered design'\n  },\n  {\n    id: 3,\n    name: 'Charlie Brown',\n    email: 'charlie@example.com',\n    bio: 'UX Designer passionate about creating intuitive and beautiful interfaces'\n  }\n];\n\n// UserList Component\nfunction UserList() {\n  return (\n    <div>\n      <h1>User Directory</h1>\n      <ul style={{ listStyle: 'none', padding: 0 }}>\n        {users.map(user => (\n          <li key={user.id} style={{ margin: '10px 0' }}>\n            <Link \n              to={`/users/${user.id}`}\n              style={{\n                textDecoration: 'none',\n                color: '#007bff',\n                fontSize: '18px',\n                display: 'block',\n                padding: '10px',\n                border: '1px solid #ddd',\n                borderRadius: '5px'\n              }}\n            >\n              {user.name}\n            </Link>\n          </li>\n        ))}\n      </ul>\n    </div>\n  );\n}\n\n// UserProfile Component\nfunction UserProfile() {\n  const { userId } = useParams();\n  const navigate = useNavigate();\n  \n  // Convert userId string to number\n  const userIdNum = parseInt(userId);\n  \n  // Find user by ID\n  const user = users.find(u => u.id === userIdNum);\n  \n  // Handle user not found\n  if (!user) {\n    return (\n      <div>\n        <h1>User Not Found</h1>\n        <p>No user exists with ID: {userId}</p>\n        <button onClick={() => navigate('/users')}>\n          Back to Users\n        </button>\n      </div>\n    );\n  }\n  \n  return (\n    <div>\n      <button \n        onClick={() => navigate('/users')}\n        style={{ marginBottom: '20px' }}\n      >\n        ← Back to Users\n      </button>\n      \n      <div style={{\n        padding: '20px',\n        border: '1px solid #ddd',\n        borderRadius: '8px',\n        backgroundColor: '#f9f9f9'\n      }}>\n        <h1>{user.name}</h1>\n        <p><strong>Email:</strong> {user.email}</p>\n        <p><strong>Bio:</strong> {user.bio}</p>\n        <p><strong>User ID:</strong> {user.id}</p>\n      </div>\n    </div>\n  );\n}\n\n// Main App Component\nexport default function App() {\n  return (\n    <BrowserRouter>\n      <nav style={{ padding: '10px', backgroundColor: '#f0f0f0' }}>\n        <Link to=\"/\" style={{ marginRight: '10px' }}>Home</Link>\n        <Link to=\"/users\">Users</Link>\n      </nav>\n      \n      <div style={{ padding: '20px' }}>\n        <Routes>\n          <Route path=\"/\" element={<h1>Welcome to User Management System</h1>} />\n          <Route path=\"/users\" element={<UserList />} />\n          <Route path=\"/users/:userId\" element={<UserProfile />} />\n        </Routes>\n      </div>\n    </BrowserRouter>\n  );\n}",
+      "required_imports": [
+        "react",
+        "react-router-dom.BrowserRouter",
+        "react-router-dom.Routes",
+        "react-router-dom.Route",
+        "react-router-dom.Link",
+        "react-router-dom.useParams",
+        "react-router-dom.useNavigate"
+      ],
+      "required_structure": {
+        "functions": [
+          {
+            "name": "App",
+            "type": "functional_component",
+            "has_export": true
+          },
+          {
+            "name": "UserList",
+            "type": "functional_component"
+          },
+          {
+            "name": "UserProfile",
+            "type": "functional_component"
+          }
+        ]
+      },
+      "forbidden_patterns": ["window.location.href", "regex on pathname", "hash routing"],
+      "is_primary": true,
+      "confidence_threshold": 85.00
+    }
+  ]
+}

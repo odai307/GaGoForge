@@ -1,0 +1,176 @@
+{
+  "problem_id": "django-authentication-011",
+  "title": "Implement Social-Aware Custom User Model",
+  "slug": "implement-social-aware-custom-user-model",
+  "framework": "django",
+  "category": "authentication",
+  "difficulty": "intermediate",
+  "description": "You're building a modern web application that needs to support both traditional email/password authentication and social authentication (Google, GitHub). You need to create a custom user model that can handle multiple authentication methods while maintaining data integrity.\n\n**Requirements:**\n\n1. **Custom User Model Features:**\n   - Must extend `AbstractBaseUser` and implement `PermissionsMixin`\n   - Support for email as primary identifier (no username field)\n   - Profile fields: `display_name`, `avatar_url`, `bio`, `date_of_birth`\n   - Account status: `is_verified`, `verification_token`, `verification_sent_at`\n   - Track: `last_login_ip`, `last_login_user_agent`\n\n2. **Social Authentication Support:**\n   - Users can link multiple social accounts (Google, GitHub, etc.)\n   - Each social account must store: provider name, provider user ID, access token, refresh token, token expiry\n   - Users should be able to login with any linked social account\n   - Primary email must be verified through at least one authentication method\n\n3. **Authentication Logic:**\n   - When a user signs up via social auth, create a user account if it doesn't exist\n   - Link the social account to existing user if email matches\n   - Handle email verification automatically for social auth (if provider verifies emails)\n   - Allow passwordless login for users who only use social auth\n\n4. **Security Requirements:**\n   - Password hashing using Django's default PBKDF2 with SHA256\n   - Social tokens must be encrypted in the database\n   - Implement rate limiting for login attempts\n   - Track failed login attempts and lock accounts after 5 failures\n\n5. **Data Integrity:**\n   - Email must be unique across the system\n   - Users cannot have duplicate social accounts from same provider\n   - When deleting a social account, user should still be able to login with other methods\n   - Cascade deletion of social accounts when user is deleted\n\n**Expected Models to Create:**\n\n1. `CustomUser` model with all required fields\n2. `SocialAccount` model for linked social accounts\n3. `LoginAttempt` model for tracking login attempts\n\n**Example Usage:**\n```python\n# Creating a user via social auth\nuser, created = authenticate_social_user(\n    provider='google',\n    provider_user_id='123456789',\n    email='user@example.com',\n    display_name='John Doe'\n)\n\n# Linking additional social account\nlink_social_account(\n    user=user,\n    provider='github',\n    provider_user_id='987654321',\n    access_token='gho_token123'\n)\n\n# Traditional email/password login\nuser = authenticate(email='user@example.com', password='secure123')\n```\n\n**Constraints:**\n- Must use Django's built-in authentication system\n- Must handle both traditional and social auth seamlessly\n- Must encrypt sensitive social tokens\n- Must implement proper database constraints and relationships",
+  "description_preview": "Create a custom user model with integrated social authentication support and security features.",
+  "context_code": "# BASE MODELS AND IMPORTS (for reference only)\n# You need to implement the models and authentication logic\nfrom django.db import models\nfrom django.contrib.auth.models import AbstractBaseUser, BaseUserManager, PermissionsMixin\nfrom django.utils import timezone\nfrom django.core.mail import send_mail\nfrom django.conf import settings\n\n# You'll need to create:\n# 1. CustomUserManager\n# 2. CustomUser model\n# 3. SocialAccount model\n# 4. LoginAttempt model\n# 5. Authentication helper functions",
+  "starter_code": "",
+  "target_area": "Create the authentication models and helper functions for social-aware user system",
+  "validation_spec": {
+    "required_imports": [
+      "django.db.models",
+      "django.contrib.auth.models",
+      "django.utils.timezone",
+      "django.core.validators",
+      "django.core.exceptions",
+      "cryptography.fernet",
+      "uuid"
+    ],
+    "required_structure": {
+      "classes": [
+        {
+          "name": "CustomUserManager",
+          "parent_class": "BaseUserManager",
+          "required_methods": ["create_user", "create_superuser", "_create_user"]
+        },
+        {
+          "name": "CustomUser",
+          "parent_class": "AbstractBaseUser",
+          "has_permissions_mixin": true,
+          "required_fields": ["email", "display_name", "is_verified", "date_joined"],
+          "required_methods": ["email_user", "get_full_name", "get_short_name", "link_social_account"]
+        },
+        {
+          "name": "SocialAccount",
+          "required_fields": ["user", "provider", "provider_user_id", "access_token", "refresh_token", "token_expiry"],
+          "required_meta": ["unique_together"]
+        },
+        {
+          "name": "LoginAttempt",
+          "required_fields": ["user", "ip_address", "user_agent", "timestamp", "success"]
+        }
+      ],
+      "functions": [
+        {
+          "name": "authenticate_social_user",
+          "params": ["provider", "provider_user_id", "email", "display_name"],
+          "returns": "tuple"
+        },
+        {
+          "name": "link_social_account",
+          "params": ["user", "provider", "provider_user_id", "access_token", "refresh_token"],
+          "returns": "SocialAccount"
+        },
+        {
+          "name": "encrypt_token",
+          "params": ["token"],
+          "returns": "bytes"
+        },
+        {
+          "name": "decrypt_token",
+          "params": ["encrypted_token"],
+          "returns": "str"
+        }
+      ]
+    },
+    "behavior_patterns": [
+      "CustomUser uses email as USERNAME_FIELD",
+      "CustomUserManager validates email and creates user properly",
+      "SocialAccount has unique_together constraint for (provider, provider_user_id)",
+      "Encrypts access_token and refresh_token using Fernet",
+      "Handles email uniqueness with case-insensitive lookup",
+      "Implements account locking after 5 failed login attempts",
+      "Automatically verifies email for social auth if provider is trusted",
+      "Links social account to existing user if email matches",
+      "Provides method to get all linked social accounts for a user",
+      "Handles token refresh for expired social tokens"
+    ]
+  },
+  "import_weight": 15.00,
+  "structure_weight": 35.00,
+  "behavior_weight": 50.00,
+  "passing_score": 80.00,
+  "hints": [
+    "Start by creating CustomUserManager with proper email validation",
+    "Make sure to set EMAIL_FIELD and USERNAME_FIELD correctly in CustomUser",
+    "Use cryptography.fernet for encrypting social tokens (install via pip)",
+    "Implement unique constraint on SocialAccount for (provider, provider_user_id)",
+    "Handle the case where social auth email might differ from primary email",
+    "Create a signal to create LoginAttempt records on login",
+    "Implement account locking logic based on failed LoginAttempt records",
+    "Use Django's get_user_model() for foreign key relationships",
+    "Consider creating a custom authentication backend for social auth"
+  ],
+  "learning_resources": [
+    "https://docs.djangoproject.com/en/stable/topics/auth/customizing/#specifying-a-custom-user-model",
+    "https://docs.djangoproject.com/en/stable/topics/auth/passwords/",
+    "https://cryptography.io/en/latest/fernet/",
+    "https://docs.djangoproject.com/en/stable/topics/db/models/#extra-fields-on-many-to-many-relationships"
+  ],
+  "tags": ["django", "authentication", "custom_user", "social_auth", "security", "intermediate"],
+  "estimated_time_minutes": 40,
+  "patterns": [
+    {
+      "pattern_id": "django-authentication-011-pattern-1",
+      "name": "Social-Aware Custom User System",
+      "description": "Complete implementation of custom user model with social authentication support",
+      "example_code": "import uuid\nfrom datetime import timedelta\n\nfrom django.db import models\nfrom django.contrib.auth.models import AbstractBaseUser, BaseUserManager, PermissionsMixin\nfrom django.utils import timezone\nfrom django.core.validators import validate_email\nfrom django.core.exceptions import ValidationError\nfrom django.conf import settings\nfrom cryptography.fernet import Fernet\n\n# Generate or load encryption key\nfrom django.core.exceptions import ImproperlyConfigured\n\n\ndef get_encryption_key():\n    \"\"\"Get encryption key from settings or generate a test key\"\"\"\n    if hasattr(settings, 'SOCIAL_AUTH_ENCRYPTION_KEY'):\n        return settings.SOCIAL_AUTH_ENCRYPTION_KEY.encode()\n    else:\n        # For development only - in production this should be in settings\n        return Fernet.generate_key()\n\n\ncipher_suite = Fernet(get_encryption_key())\n\n\ndef encrypt_token(token: str) -> bytes:\n    \"\"\"Encrypt a token for storage\"\"\"\n    return cipher_suite.encrypt(token.encode())\n\n\ndef decrypt_token(encrypted_token: bytes) -> str:\n    \"\"\"Decrypt a stored token\"\"\"\n    return cipher_suite.decrypt(encrypted_token).decode()\n\n\nclass CustomUserManager(BaseUserManager):\n    \"\"\"Manager for CustomUser model with email as username\"\"\"\n    \n    def _validate_email(self, email):\n        \"\"\"Validate email format\"\"\"\n        try:\n            validate_email(email)\n            return True\n        except ValidationError:\n            return False\n    \n    def create_user(self, email, password=None, **extra_fields):\n        \"\"\"Create and save a regular user with email and password\"\"\"\n        if not email:\n            raise ValueError('Users must have an email address')\n        \n        if not self._validate_email(email):\n            raise ValueError('Invalid email format')\n        \n        email = self.normalize_email(email)\n        \n        # Set default values\n        if 'display_name' not in extra_fields:\n            extra_fields['display_name'] = email.split('@')[0]\n        \n        if 'is_verified' not in extra_fields:\n            extra_fields['is_verified'] = False\n        \n        user = self.model(email=email, **extra_fields)\n        \n        if password:\n            user.set_password(password)\n        else:\n            user.set_unusable_password()  # For social auth users\n        \n        user.save(using=self._db)\n        return user\n    \n    def create_superuser(self, email, password=None, **extra_fields):\n        \"\"\"Create and save a superuser\"\"\"\n        extra_fields.setdefault('is_staff', True)\n        extra_fields.setdefault('is_superuser', True)\n        extra_fields.setdefault('is_verified', True)\n        \n        if extra_fields.get('is_staff') is not True:\n            raise ValueError('Superuser must have is_staff=True')\n        if extra_fields.get('is_superuser') is not True:\n            raise ValueError('Superuser must have is_superuser=True')\n        \n        return self.create_user(email, password, **extra_fields)\n\n\nclass CustomUser(AbstractBaseUser, PermissionsMixin):\n    \"\"\"Custom User model with social authentication support\"\"\"\n    \n    email = models.EmailField(\n        verbose_name='email address',\n        max_length=255,\n        unique=True,\n        db_index=True\n    )\n    display_name = models.CharField(max_length=150)\n    avatar_url = models.URLField(max_length=500, blank=True, null=True)\n    bio = models.TextField(max_length=500, blank=True)\n    date_of_birth = models.DateField(null=True, blank=True)\n    \n    # Account status\n    is_verified = models.BooleanField(default=False)\n    verification_token = models.CharField(max_length=100, blank=True, null=True)\n    verification_sent_at = models.DateTimeField(null=True, blank=True)\n    \n    # Tracking\n    last_login_ip = models.GenericIPAddressField(null=True, blank=True)\n    last_login_user_agent = models.CharField(max_length=500, blank=True, null=True)\n    date_joined = models.DateTimeField(default=timezone.now)\n    \n    # Django auth fields\n    is_active = models.BooleanField(default=True)\n    is_staff = models.BooleanField(default=False)\n    \n    objects = CustomUserManager()\n    \n    USERNAME_FIELD = 'email'\n    EMAIL_FIELD = 'email'\n    REQUIRED_FIELDS = ['display_name']\n    \n    class Meta:\n        verbose_name = 'user'\n        verbose_name_plural = 'users'\n    \n    def __str__(self):\n        return self.email\n    \n    def get_full_name(self):\n        return self.display_name\n    \n    def get_short_name(self):\n        return self.display_name\n    \n    def email_user(self, subject, message, from_email=None, **kwargs):\n        \"\"\"Send an email to this user\"\"\"\n        send_mail(subject, message, from_email, [self.email], **kwargs)\n    \n    def link_social_account(self, provider, provider_user_id, access_token, \n                           refresh_token=None, token_expiry=None):\n        \"\"\"Link a social account to this user\"\"\"\n        from .models import SocialAccount  # Import here to avoid circular import\n        \n        # Encrypt tokens before storage\n        encrypted_access = encrypt_token(access_token)\n        encrypted_refresh = encrypt_token(refresh_token) if refresh_token else None\n        \n        social_account, created = SocialAccount.objects.update_or_create(\n            provider=provider,\n            provider_user_id=provider_user_id,\n            defaults={\n                'user': self,\n                'access_token': encrypted_access,\n                'refresh_token': encrypted_refresh,\n                'token_expiry': token_expiry\n            }\n        )\n        \n        # Auto-verify email if social provider is trusted\n        trusted_providers = ['google', 'github', 'microsoft']\n        if provider.lower() in trusted_providers and not self.is_verified:\n            self.is_verified = True\n            self.save()\n        \n        return social_account\n    \n    def get_linked_accounts(self):\n        \"\"\"Get all linked social accounts for this user\"\"\"\n        return self.social_accounts.all()\n    \n    def is_account_locked(self):\n        \"\"\"Check if account is locked due to too many failed attempts\"\"\"\n        from .models import LoginAttempt\n        \n        lockout_window = timezone.now() - timedelta(minutes=15)\n        failed_attempts = LoginAttempt.objects.filter(\n            user=self,\n            success=False,\n            timestamp__gte=lockout_window\n        ).count()\n        \n        return failed_attempts >= 5\n\n\nclass SocialAccount(models.Model):\n    \"\"\"Model for linked social authentication accounts\"\"\"\n    \n    PROVIDER_CHOICES = [\n        ('google', 'Google'),\n        ('github', 'GitHub'),\n        ('facebook', 'Facebook'),\n        ('twitter', 'Twitter'),\n        ('microsoft', 'Microsoft'),\n    ]\n    \n    user = models.ForeignKey(\n        settings.AUTH_USER_MODEL,\n        on_delete=models.CASCADE,\n        related_name='social_accounts'\n    )\n    provider = models.CharField(max_length=50, choices=PROVIDER_CHOICES)\n    provider_user_id = models.CharField(max_length=255)\n    \n    # Encrypted tokens\n    access_token = models.BinaryField()  # Store encrypted token\n    refresh_token = models.BinaryField(null=True, blank=True)  # Store encrypted token\n    token_expiry = models.DateTimeField(null=True, blank=True)\n    \n    # Metadata\n    created_at = models.DateTimeField(auto_now_add=True)\n    last_used_at = models.DateTimeField(null=True, blank=True)\n    \n    class Meta:\n        unique_together = [('provider', 'provider_user_id')]\n        verbose_name = 'social account'\n        verbose_name_plural = 'social accounts'\n    \n    def __str__(self):\n        return f\"{self.user.email} - {self.provider}\"\n    \n    def get_access_token(self):\n        \"\"\"Get decrypted access token\"\"\"\n        return decrypt_token(self.access_token)\n    \n    def get_refresh_token(self):\n        \"\"\"Get decrypted refresh token if available\"\"\"\n        if self.refresh_token:\n            return decrypt_token(self.refresh_token)\n        return None\n    \n    def update_token(self, access_token, refresh_token=None, token_expiry=None):\n        \"\"\"Update tokens for this social account\"\"\"\n        self.access_token = encrypt_token(access_token)\n        if refresh_token:\n            self.refresh_token = encrypt_token(refresh_token)\n        if token_expiry:\n            self.token_expiry = token_expiry\n        self.save()\n\n\nclass LoginAttempt(models.Model):\n    \"\"\"Track login attempts for security monitoring\"\"\"\n    \n    user = models.ForeignKey(\n        settings.AUTH_USER_MODEL,\n        on_delete=models.CASCADE,\n        related_name='login_attempts',\n        null=True,  # Allow null for attempts with non-existent users\n        blank=True\n    )\n    email = models.EmailField()  # Store attempted email even if user doesn't exist\n    ip_address = models.GenericIPAddressField()\n    user_agent = models.CharField(max_length=500)\n    timestamp = models.DateTimeField(auto_now_add=True)\n    success = models.BooleanField(default=False)\n    \n    class Meta:\n        ordering = ['-timestamp']\n        indexes = [\n            models.Index(fields=['user', 'timestamp']),\n            models.Index(fields=['email', 'timestamp']),\n            models.Index(fields=['ip_address', 'timestamp']),\n        ]\n    \n    def __str__(self):\n        status = 'SUCCESS' if self.success else 'FAILED'\n        return f\"{self.email} - {status} - {self.timestamp}\"\n\n\n# Authentication helper functions\n\ndef authenticate_social_user(provider, provider_user_id, email, display_name=None, **extra_data):\n    \"\"\"\n    Authenticate or create a user via social authentication\n    Returns: (user, created)\n    \"\"\"\n    User = CustomUser\n    \n    # Normalize email\n    email = User.objects.normalize_email(email)\n    \n    # Try to find existing user by email\n    try:\n        user = User.objects.get(email=email)\n        created = False\n    except User.DoesNotExist:\n        # Create new user\n        if not display_name:\n            display_name = email.split('@')[0]\n        \n        user = User.objects.create_user(\n            email=email,\n            display_name=display_name,\n            is_verified=True,  # Social auth providers typically verify emails\n            **extra_data\n        )\n        created = True\n    \n    # Link or update social account\n    user.link_social_account(\n        provider=provider,\n        provider_user_id=provider_user_id,\n        access_token=extra_data.get('access_token', ''),\n        refresh_token=extra_data.get('refresh_token'),\n        token_expiry=extra_data.get('token_expiry')\n    )\n    \n    return user, created\n\n\ndef link_social_account(user, provider, provider_user_id, access_token, \n                       refresh_token=None, token_expiry=None):\n    \"\"\"Link a new social account to an existing user\"\"\"\n    return user.link_social_account(\n        provider=provider,\n        provider_user_id=provider_user_id,\n        access_token=access_token,\n        refresh_token=refresh_token,\n        token_expiry=token_expiry\n    )",
+      "required_imports": [
+        "django.db.models",
+        "django.contrib.auth.models",
+        "django.utils.timezone",
+        "django.core.validators",
+        "django.core.exceptions",
+        "cryptography.fernet",
+        "uuid"
+      ],
+      "required_structure": {
+        "classes": [
+          {
+            "name": "CustomUserManager",
+            "parent_class": "BaseUserManager",
+            "required_methods": ["create_user", "create_superuser"]
+          },
+          {
+            "name": "CustomUser",
+            "parent_class": "AbstractBaseUser",
+            "has_permissions_mixin": true,
+            "required_fields": ["email", "display_name", "is_verified", "date_joined"],
+            "required_methods": ["get_full_name", "link_social_account", "is_account_locked"]
+          },
+          {
+            "name": "SocialAccount",
+            "required_meta": ["unique_together"],
+            "required_fields": ["user", "provider", "provider_user_id", "access_token"]
+          },
+          {
+            "name": "LoginAttempt",
+            "required_fields": ["user", "email", "ip_address", "user_agent", "success"]
+          }
+        ],
+        "functions": [
+          {
+            "name": "authenticate_social_user",
+            "params": ["provider", "provider_user_id", "email", "display_name"],
+            "returns": "tuple"
+          },
+          {
+            "name": "encrypt_token",
+            "params": ["token"],
+            "returns": "bytes"
+          },
+          {
+            "name": "decrypt_token",
+            "params": ["encrypted_token"],
+            "returns": "str"
+          }
+        ]
+      },
+      "forbidden_patterns": [
+        "Storing plain text tokens in database",
+        "Using username field instead of email",
+        "Not encrypting sensitive social tokens",
+        "Missing unique constraints on social accounts",
+        "Not handling email normalization",
+        "No rate limiting for login attempts",
+        "Not tracking login attempts for security"
+      ],
+      "is_primary": true,
+      "confidence_threshold": 85.00
+    }
+  ]
+}

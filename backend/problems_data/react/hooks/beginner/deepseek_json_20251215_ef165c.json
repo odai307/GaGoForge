@@ -1,0 +1,65 @@
+{
+  "problem_id": "react-hooks-001",
+  "title": "Implement a Simple Counter Component",
+  "slug": "implement-simple-counter-component",
+  "framework": "react",
+  "category": "hooks",
+  "difficulty": "beginner",
+  "description": "Create a React component that implements a basic counter with increment and decrement functionality using the useState hook.\n\n**Requirements:**\n- Create a functional component named `Counter`\n- Initialize state with a default value of 0\n- Display the current count in a heading element\n- Provide two buttons: one to increment (+1) and one to decrement (-1)\n- Ensure the decrement button is disabled when count reaches 0\n- The component should be exported as default\n\n**Expected Behavior:**\n- Initial render shows count as 0 with decrement button disabled\n- Clicking increment button increases count by 1\n- Clicking decrement button decreases count by 1 when count > 0\n- When count is 0, decrement button should be disabled\n\n**Example Usage:**\n```jsx\n// In App.js\nimport Counter from './Counter';\n\nfunction App() {\n  return (\n    <div>\n      <h1>Counter Example</h1>\n      <Counter />\n    </div>\n  );\n}\n```",
+  "description_preview": "Create a React counter component using useState hook with increment/decrement buttons",
+  "context_code": "",
+  "starter_code": "",
+  "target_area": "Counter component implementation",
+  "validation_spec": {
+    "required_imports": ["react", "react.useState"],
+    "required_structure": {
+      "functions": [{
+        "name": "Counter",
+        "type": "functional_component",
+        "has_export": true,
+        "has_prop_types": false
+      }]
+    },
+    "behavior_patterns": [
+      {"type": "hook_call", "hook": "useState", "min_calls": 1},
+      {"type": "state_management", "state_type": "useState"},
+      {"type": "event_handler", "event_type": "onClick", "handler_style": "inline"},
+      {"type": "conditional_rendering", "conditional_type": "ternary"}
+    ]
+  },
+  "import_weight": 20.00,
+  "structure_weight": 40.00,
+  "behavior_weight": 40.00,
+  "passing_score": 75.00,
+  "hints": [
+    "Start by importing React and useState hook from the 'react' package",
+    "Create a functional component that uses useState to initialize a count variable",
+    "Remember that useState returns an array with two elements: the current state and a function to update it",
+    "Use the onClick event handler on buttons to update the state with setCount"
+  ],
+  "learning_resources": [
+    "https://react.dev/reference/react/useState",
+    "https://react.dev/learn/adding-interactivity"
+  ],
+  "tags": ["react", "hooks", "useState", "state-management", "beginner"],
+  "estimated_time_minutes": 20,
+  "patterns": [
+    {
+      "pattern_id": "react-hooks-001-pattern-1",
+      "name": "Basic Counter with useState",
+      "description": "Simple counter implementation using useState hook with increment and decrement functionality",
+      "example_code": "import React, { useState } from 'react';\n\nexport default function Counter() {\n  const [count, setCount] = useState(0);\n\n  const increment = () => {\n    setCount(count + 1);\n  };\n\n  const decrement = () => {\n    if (count > 0) {\n      setCount(count - 1);\n    }\n  };\n\n  return (\n    <div>\n      <h2>Count: {count}</h2>\n      <button onClick={increment}>Increment (+1)</button>\n      <button onClick={decrement} disabled={count === 0}>\n        Decrement (-1)\n      </button>\n      <p>Decrement button is disabled when count is 0</p>\n    </div>\n  );\n}",
+      "required_imports": ["react", "react.useState"],
+      "required_structure": {
+        "functions": [{
+          "name": "Counter",
+          "type": "functional_component",
+          "has_export": true
+        }]
+      },
+      "forbidden_patterns": ["class extends Component", "this.state", "componentDidMount"],
+      "is_primary": true,
+      "confidence_threshold": 85.00
+    }
+  ]
+}

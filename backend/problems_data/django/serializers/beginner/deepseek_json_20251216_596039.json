@@ -1,0 +1,173 @@
+{
+  "problem_id": "django-serializers-003",
+  "title": "Create Nested Author-Book Serializers",
+  "slug": "create-nested-author-book-serializers",
+  "framework": "django",
+  "category": "serializers",
+  "difficulty": "beginner",
+  "description": "Create nested serializers for Author and Book models where Author serializer includes their books.\n\n**Business Scenario:**\nYou're building a library API where you need to serialize author data along with all their books. Use nested serializers to represent the one-to-many relationship.\n\n**Model Definitions:**\n```python\nfrom django.db import models\n\nclass Author(models.Model):\n    first_name = models.CharField(max_length=100)\n    last_name = models.CharField(max_length=100)\n    email = models.EmailField(unique=True)\n    bio = models.TextField(blank=True)\n    date_of_birth = models.DateField()\n    nationality = models.CharField(max_length=100)\n    is_active = models.BooleanField(default=True)\n    created_at = models.DateTimeField(auto_now_add=True)\n    updated_at = models.DateTimeField(auto_now=True)\n    \n    def __str__(self):\n        return f\"{self.first_name} {self.last_name}\"\n    \n    @property\n    def full_name(self):\n        return f\"{self.first_name} {self.last_name}\"\n\nclass Book(models.Model):\n    title = models.CharField(max_length=200)\n    author = models.ForeignKey(Author, on_delete=models.CASCADE, related_name='books')\n    isbn = models.CharField(max_length=13, unique=True)\n    publication_year = models.IntegerField()\n    genre = models.CharField(max_length=100)\n    page_count = models.IntegerField()\n    price = models.DecimalField(max_digits=6, decimal_places=2)\n    created_at = models.DateTimeField(auto_now_add=True)\n    updated_at = models.DateTimeField(auto_now=True)\n    \n    def __str__(self):\n        return self.title\n```\n\n**Requirements:**\n1. Create a BookSerializer class for the Book model\n2. Create an AuthorSerializer class for the Author model\n3. In AuthorSerializer, include a nested BookSerializer for the 'books' relationship using `many=True`\n4. Add validation to both serializers:\n   - **Author validation:**\n     - `first_name` and `last_name`: Required, minimum 2 characters\n     - `email`: Required, valid email format\n     - `date_of_birth`: Cannot be in the future\n   - **Book validation:**\n     - `title`: Required, minimum 2 characters\n     - `isbn`: Required, exactly 13 characters\n     - `publication_year`: Must be between 1000 and current year\n     - `page_count`: Must be positive\n     - `price`: Must be positive\n5. Include read-only fields (`created_at`, `updated_at`)\n6. In AuthorSerializer, include a custom method field `full_name`\n7. In BookSerializer, make author field write-only (users specify author ID when creating books)\n\n**Expected Behavior:**\n- Author serialization includes nested book data\n- Book creation requires author ID\n- All validation rules are enforced\n- Custom fields provide computed data\n\n**Example Output:**\n```json\n{\n  \"id\": 1,\n  \"first_name\": \"Jane\",\n  \"last_name\": \"Austen\",\n  \"full_name\": \"Jane Austen\",\n  \"email\": \"jane@example.com\",\n  \"bio\": \"English novelist...\",\n  \"date_of_birth\": \"1775-12-16\",\n  \"nationality\": \"British\",\n  \"is_active\": true,\n  \"books\": [\n    {\n      \"id\": 1,\n      \"title\": \"Pride and Prejudice\",\n      \"isbn\": \"9780141439518\",\n      \"publication_year\": 1813,\n      \"genre\": \"Novel\",\n      \"page_count\": 432,\n      \"price\": \"9.99\"\n    }\n  ],\n  \"created_at\": \"2023-01-01T10:00:00Z\",\n  \"updated_at\": \"2023-01-01T10:00:00Z\"\n}\n```",
+  "description_preview": "Create nested serializers for Author and Book models with one-to-many relationship",
+  "context_code": "# MODEL DEFINITIONS (for reference only - you need to create the serializers)\nfrom django.db import models\n\nclass Author(models.Model):\n    first_name = models.CharField(max_length=100)\n    last_name = models.CharField(max_length=100)\n    email = models.EmailField(unique=True)\n    bio = models.TextField(blank=True)\n    date_of_birth = models.DateField()\n    nationality = models.CharField(max_length=100)\n    is_active = models.BooleanField(default=True)\n    created_at = models.DateTimeField(auto_now_add=True)\n    updated_at = models.DateTimeField(auto_now=True)\n    \n    def __str__(self):\n        return f\"{self.first_name} {self.last_name}\"\n    \n    @property\n    def full_name(self):\n        return f\"{self.first_name} {self.last_name}\"\n\nclass Book(models.Model):\n    title = models.CharField(max_length=200)\n    author = models.ForeignKey(Author, on_delete=models.CASCADE, related_name='books')\n    isbn = models.CharField(max_length=13, unique=True)\n    publication_year = models.IntegerField()\n    genre = models.CharField(max_length=100)\n    page_count = models.IntegerField()\n    price = models.DecimalField(max_digits=6, decimal_places=2)\n    created_at = models.DateTimeField(auto_now_add=True)\n    updated_at = models.DateTimeField(auto_now=True)\n    \n    def __str__(self):\n        return self.title",
+  "starter_code": "",
+  "target_area": "AuthorSerializer and BookSerializer classes",
+  "validation_spec": {
+    "required_imports": ["rest_framework.serializers", "django.utils.timezone"],
+    "required_structure": {
+      "classes": [
+        {
+          "name": "BookSerializer",
+          "parent_class": "serializers.ModelSerializer",
+          "has_meta_class": true,
+          "meta_class_fields": ["fields", "read_only_fields", "extra_kwargs"],
+          "methods": ["validate_title", "validate_isbn", "validate_publication_year", "validate_page_count", "validate_price"]
+        },
+        {
+          "name": "AuthorSerializer",
+          "parent_class": "serializers.ModelSerializer",
+          "has_meta_class": true,
+          "meta_class_fields": ["fields", "read_only_fields"],
+          "methods": ["validate_first_name", "validate_last_name", "validate_email", "validate_date_of_birth", "get_full_name"]
+        }
+      ]
+    },
+    "behavior_patterns": [
+      {
+        "type": "serializer",
+        "description": "Both serializer classes must inherit from ModelSerializer"
+      },
+      {
+        "type": "nested_serializer",
+        "parent_serializer": "AuthorSerializer",
+        "child_serializer": "BookSerializer",
+        "relationship": "one_to_many",
+        "description": "AuthorSerializer must include nested BookSerializer for books relationship"
+      },
+      {
+        "type": "write_only_field",
+        "field_name": "author",
+        "serializer": "BookSerializer",
+        "description": "BookSerializer author field must be write-only"
+      },
+      {
+        "type": "custom_method_field",
+        "field_name": "full_name",
+        "method_name": "get_full_name",
+        "serializer": "AuthorSerializer",
+        "description": "AuthorSerializer must include custom full_name field"
+      },
+      {
+        "type": "validation_method",
+        "method_name": "validate_first_name",
+        "serializer": "AuthorSerializer",
+        "description": "AuthorSerializer must validate first name"
+      },
+      {
+        "type": "validation_method",
+        "method_name": "validate_last_name",
+        "serializer": "AuthorSerializer",
+        "description": "AuthorSerializer must validate last name"
+      },
+      {
+        "type": "validation_method",
+        "method_name": "validate_email",
+        "serializer": "AuthorSerializer",
+        "description": "AuthorSerializer must validate email"
+      },
+      {
+        "type": "validation_method",
+        "method_name": "validate_date_of_birth",
+        "serializer": "AuthorSerializer",
+        "description": "AuthorSerializer must validate date of birth"
+      },
+      {
+        "type": "validation_method",
+        "method_name": "validate_title",
+        "serializer": "BookSerializer",
+        "description": "BookSerializer must validate title"
+      },
+      {
+        "type": "validation_method",
+        "method_name": "validate_isbn",
+        "serializer": "BookSerializer",
+        "description": "BookSerializer must validate ISBN"
+      },
+      {
+        "type": "validation_method",
+        "method_name": "validate_publication_year",
+        "serializer": "BookSerializer",
+        "description": "BookSerializer must validate publication year"
+      },
+      {
+        "type": "validation_method",
+        "method_name": "validate_page_count",
+        "serializer": "BookSerializer",
+        "description": "BookSerializer must validate page count"
+      },
+      {
+        "type": "validation_method",
+        "method_name": "validate_price",
+        "serializer": "BookSerializer",
+        "description": "BookSerializer must validate price"
+      },
+      {
+        "type": "meta_class",
+        "serializer": "both",
+        "options": ["fields", "read_only_fields"],
+        "description": "Both serializers must include Meta class with fields and read_only_fields"
+      }
+    ],
+    "difficulty": "beginner",
+    "framework": "django"
+  },
+  "import_weight": 15.00,
+  "structure_weight": 40.00,
+  "behavior_weight": 45.00,
+  "passing_score": 75.00,
+  "hints": [
+    "Define BookSerializer first, then use it as a nested serializer in AuthorSerializer",
+    "Use books = BookSerializer(many=True, read_only=True) in AuthorSerializer",
+    "Make author field write-only in BookSerializer using extra_kwargs in Meta class",
+    "For custom fields, use serializers.SerializerMethodField()"
+  ],
+  "learning_resources": [
+    "https://www.django-rest-framework.org/api-guide/serializers/#dealing-with-nested-objects",
+    "https://www.django-rest-framework.org/api-guide/fields/#write_only",
+    "https://www.django-rest-framework.org/api-guide/serializers/#specifying-fields-explicitly"
+  ],
+  "tags": ["django", "serializers", "nested", "one-to-many", "beginner"],
+  "estimated_time_minutes": 30,
+  "patterns": [
+    {
+      "pattern_id": "django-serializers-003-pattern-1",
+      "name": "Nested Author-Book Serializers",
+      "description": "Complete nested serializer implementation with write-only fields",
+      "example_code": "from rest_framework import serializers\nfrom django.utils import timezone\nfrom .models import Author, Book\n\nclass BookSerializer(serializers.ModelSerializer):\n    class Meta:\n        model = Book\n        fields = [\n            'id', 'title', 'author', 'isbn', 'publication_year', \n            'genre', 'page_count', 'price', 'created_at', 'updated_at'\n        ]\n        read_only_fields = ['created_at', 'updated_at']\n        # Make author field write-only (only needed when creating/updating books)\n        extra_kwargs = {\n            'author': {'write_only': True}\n        }\n    \n    def validate_title(self, value):\n        if not value or not value.strip():\n            raise serializers.ValidationError(\"Title cannot be empty.\")\n        \n        if len(value.strip()) < 2:\n            raise serializers.ValidationError(\"Title must be at least 2 characters long.\")\n        \n        return value.strip()\n    \n    def validate_isbn(self, value):\n        if not value:\n            raise serializers.ValidationError(\"ISBN cannot be empty.\")\n        \n        clean_isbn = value.replace('-', '').replace(' ', '')\n        \n        if len(clean_isbn) != 13:\n            raise serializers.ValidationError(\"ISBN must be exactly 13 characters long.\")\n        \n        if not clean_isbn.isdigit():\n            raise serializers.ValidationError(\"ISBN must contain only digits.\")\n        \n        return clean_isbn\n    \n    def validate_publication_year(self, value):\n        current_year = timezone.now().year\n        \n        if value < 1000:\n            raise serializers.ValidationError(\"Publication year must be 1000 or later.\")\n        \n        if value > current_year:\n            raise serializers.ValidationError(\"Publication year cannot be in the future.\")\n        \n        return value\n    \n    def validate_page_count(self, value):\n        if value <= 0:\n            raise serializers.ValidationError(\"Page count must be positive.\")\n        \n        return value\n    \n    def validate_price(self, value):\n        if value <= 0:\n            raise serializers.ValidationError(\"Price must be greater than 0.\")\n        \n        return value\n\n\nclass AuthorSerializer(serializers.ModelSerializer):\n    # Nested serializer for books (read-only)\n    books = BookSerializer(many=True, read_only=True)\n    \n    # Custom field for full name\n    full_name = serializers.SerializerMethodField()\n    \n    class Meta:\n        model = Author\n        fields = [\n            'id', 'first_name', 'last_name', 'full_name', 'email', 'bio',\n            'date_of_birth', 'nationality', 'is_active', 'books',\n            'created_at', 'updated_at'\n        ]\n        read_only_fields = ['created_at', 'updated_at', 'full_name', 'books']\n    \n    def validate_first_name(self, value):\n        if not value or not value.strip():\n            raise serializers.ValidationError(\"First name cannot be empty.\")\n        \n        if len(value.strip()) < 2:\n            raise serializers.ValidationError(\"First name must be at least 2 characters long.\")\n        \n        return value.strip()\n    \n    def validate_last_name(self, value):\n        if not value or not value.strip():\n            raise serializers.ValidationError(\"Last name cannot be empty.\")\n        \n        if len(value.strip()) < 2:\n            raise serializers.ValidationError(\"Last name must be at least 2 characters long.\")\n        \n        return value.strip()\n    \n    def validate_email(self, value):\n        if not value:\n            raise serializers.ValidationError(\"Email cannot be empty.\")\n        \n        # Basic email validation\n        if '@' not in value or '.' not in value:\n            raise serializers.ValidationError(\"Enter a valid email address.\")\n        \n        return value.strip().lower()\n    \n    def validate_date_of_birth(self, value):\n        if not value:\n            raise serializers.ValidationError(\"Date of birth is required.\")\n        \n        today = timezone.now().date()\n        if value > today:\n            raise serializers.ValidationError(\"Date of birth cannot be in the future.\")\n        \n        return value\n    \n    def get_full_name(self, obj):\n        \"\"\"Return the author's full name.\"\"\"\n        return f\"{obj.first_name} {obj.last_name}\"",
+      "required_imports": ["rest_framework.serializers", "django.utils.timezone"],
+      "required_structure": {
+        "classes": [
+          {
+            "name": "BookSerializer",
+            "parent_class": "serializers.ModelSerializer",
+            "has_meta_class": true,
+            "meta_class_fields": ["fields", "read_only_fields", "extra_kwargs"],
+            "methods": ["validate_title", "validate_isbn", "validate_publication_year", "validate_page_count", "validate_price"]
+          },
+          {
+            "name": "AuthorSerializer",
+            "parent_class": "serializers.ModelSerializer",
+            "has_meta_class": true,
+            "meta_class_fields": ["fields", "read_only_fields"],
+            "methods": ["validate_first_name", "validate_last_name", "validate_email", "validate_date_of_birth", "get_full_name"]
+          }
+        ]
+      },
+      "forbidden_patterns": [
+        "no_nested_serializer",
+        "missing_write_only",
+        "incomplete_validation"
+      ],
+      "is_primary": true,
+      "confidence_threshold": 85.00
+    }
+  ]
+}

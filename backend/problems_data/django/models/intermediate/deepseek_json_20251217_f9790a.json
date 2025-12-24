@@ -1,0 +1,172 @@
+{
+  "problem_id": "django-models-003",
+  "title": "Build Event Management System with Custom Managers and Signals",
+  "slug": "build-event-management-system-with-custom-managers-and-signals",
+  "framework": "django",
+  "category": "models",
+  "difficulty": "intermediate",
+  "description": "Create an event management system for a conference organizing company. Implement models with custom managers for complex queries and use Django signals to handle automatic notifications.\n\n**Business Requirements:**\n- Events have title, description, start/end datetime, location, capacity, and status\n- Attendees can register for events with registration date and status\n- Users have profiles with name, email, and company\n- Events can have multiple speakers with their bio and topic\n- The system should automatically:\n  - Send confirmation email when someone registers (simulated with signal)\n  - Update event status to 'full' when capacity is reached\n  - Create attendance records for upcoming events daily\n- Need custom queries to find:\n  - Events happening in the next 7 days\n  - Events with available spots\n  - Popular events (most registrations)\n\n**Models Needed:**\n1. **UserProfile**: Extended user information\n2. **Event**: Conference events with details\n3. **Registration**: Links users to events\n4. **Speaker**: Event speakers\n5. **EventSpeaker**: Through model for event-speaker relationship\n\n**Advanced Requirements:**\n- Create a custom manager for Event with methods: upcoming(), available(), popular()\n- Use Django signals (post_save) to handle automatic actions\n- Implement a daily task method to create attendance records\n- Add calculated fields for registration count\n\n**Constraints:**\n- Event end datetime must be after start datetime\n- Registration date cannot be in the future\n- Event capacity must be positive\n- Users cannot register for past events\n- Users cannot register twice for same event\n\n**Example Usage:**\n```python\n# After implementation, this should work:\nuser = UserProfile.objects.create(\n    name='John Doe',\n    email='john@example.com',\n    company='Tech Corp'\n)\n\nevent = Event.objects.create(\n    title='Python Conference 2024',\n    description='Annual Python developers meetup',\n    start_datetime='2024-10-15 09:00:00',\n    end_datetime='2024-10-17 18:00:00',\n    location='Convention Center',\n    capacity=500\n)\n\n# Custom manager queries\nupcoming = Event.objects.upcoming()  # Events in next 7 days\navailable = Event.objects.available()  # Events with spots left\npopular = Event.objects.popular()  # Events sorted by registrations\n\n# Registration triggers signal\nregistration = Registration.objects.create(\n    user=user,\n    event=event\n)\n# Should trigger post_save signal\n\nprint(event.registration_count)  # Should show 1\nprint(event.is_full)  # Should show False\n\n# Create attendance for tomorrow's events\nevent.create_attendance_records()\n```",
+  "description_preview": "Implement an event management system with custom model managers, Django signals, and automatic business logic.",
+  "context_code": "# MODEL DEFINITIONS (for reference only - you need to create your own implementation)\n# These are the imports you'll need to use:\n# from django.db import models\n# from django.db.models.signals import post_save\n# from django.dispatch import receiver\n# from django.utils import timezone\n# from datetime import timedelta\n\n# Your implementation goes below. Do not modify or reference this context code directly.",
+  "starter_code": "",
+  "target_area": "Create five Django models with custom managers, signals, and business logic methods for an event management system",
+  "validation_spec": {
+    "required_imports": [
+      "django.db.models",
+      "django.db.models.signals.post_save",
+      "django.dispatch.receiver",
+      "django.utils.timezone",
+      "datetime.timedelta"
+    ],
+    "required_structure": {
+      "classes": [
+        {
+          "name": "UserProfile",
+          "parent_class": "models.Model",
+          "has_meta_class": true,
+          "fields": ["name", "email", "company"],
+          "methods": ["__str__"]
+        },
+        {
+          "name": "EventManager",
+          "parent_class": "models.Manager",
+          "methods": ["upcoming", "available", "popular"]
+        },
+        {
+          "name": "Event",
+          "parent_class": "models.Model",
+          "has_custom_manager": true,
+          "manager_name": "objects",
+          "has_meta_class": true,
+          "fields": ["title", "description", "start_datetime", "end_datetime", "location", "capacity", "status"],
+          "properties": ["registration_count", "is_full"],
+          "methods": ["create_attendance_records", "clean", "__str__"]
+        },
+        {
+          "name": "Registration",
+          "parent_class": "models.Model",
+          "has_meta_class": true,
+          "fields": ["user", "event", "registration_date", "status"],
+          "methods": ["__str__"]
+        },
+        {
+          "name": "Speaker",
+          "parent_class": "models.Model",
+          "has_meta_class": true,
+          "fields": ["name", "bio", "email"],
+          "methods": ["__str__"]
+        }
+      ],
+      "signals": [
+        {
+          "type": "post_save",
+          "model": "Registration",
+          "function": "send_registration_confirmation"
+        }
+      ]
+    },
+    "behavior_patterns": [
+      "Event has custom manager with upcoming method filtering by start_datetime",
+      "Event has custom manager with available method checking capacity",
+      "Event has custom manager with popular method ordering by registration count",
+      "Event has property registration_count that counts related registrations",
+      "Event has property is_full that compares registration_count to capacity",
+      "Event has method create_attendance_records that creates records",
+      "Event has clean method validating end_datetime > start_datetime",
+      "Registration has unique_together constraint for user and event",
+      "post_save signal connected to Registration model",
+      "Signal handler sends confirmation (prints message for simulation)"
+    ]
+  },
+  "import_weight": 10.00,
+  "structure_weight": 30.00,
+  "behavior_weight": 60.00,
+  "passing_score": 85.00,
+  "hints": [
+    "Start by creating the UserProfile and Event models with basic fields",
+    "Create a custom manager for Event by inheriting from models.Manager",
+    "Implement the upcoming() method using timezone.now() and timedelta(days=7)",
+    "Add properties to Event that calculate registration_count and is_full using annotations or counts",
+    "Create the Registration model with a unique_together constraint in Meta class",
+    "Implement a post_save signal for Registration that prints a confirmation message",
+    "Add a clean() method to Event to validate datetime ordering",
+    "Create Speaker model and connect to Event through a ManyToManyField with through model"
+  ],
+  "learning_resources": [
+    "https://docs.djangoproject.com/en/stable/topics/db/managers/#custom-managers",
+    "https://docs.djangoproject.com/en/stable/ref/signals/",
+    "https://docs.djangoproject.com/en/stable/ref/models/instances/#validating-objects"
+  ],
+  "tags": ["django", "models", "managers", "signals", "events", "intermediate"],
+  "estimated_time_minutes": 45,
+  "patterns": [
+    {
+      "pattern_id": "django-models-003-pattern-1",
+      "name": "Event System with Managers and Signals",
+      "description": "Complete implementation with custom managers, signals, and business logic",
+      "example_code": "from django.db import models\nfrom django.db.models.signals import post_save\nfrom django.dispatch import receiver\nfrom django.utils import timezone\nfrom datetime import timedelta\n\nclass UserProfile(models.Model):\n    name = models.CharField(max_length=100)\n    email = models.EmailField(unique=True)\n    company = models.CharField(max_length=100, blank=True)\n    \n    def __str__(self):\n        return self.name\n\nclass EventManager(models.Manager):\n    def upcoming(self):\n        \"\"\"Return events happening in the next 7 days\"\"\"\n        now = timezone.now()\n        next_week = now + timedelta(days=7)\n        return self.filter(\n            start_datetime__gte=now,\n            start_datetime__lte=next_week\n        )\n    \n    def available(self):\n        \"\"\"Return events with available spots\"\"\"\n        return self.annotate(\n            reg_count=models.Count('registrations')\n        ).filter(\n            reg_count__lt=models.F('capacity')\n        )\n    \n    def popular(self, limit=10):\n        \"\"\"Return most popular events by registration count\"\"\"\n        return self.annotate(\n            reg_count=models.Count('registrations')\n        ).order_by('-reg_count')[:limit]\n\nclass Event(models.Model):\n    STATUS_CHOICES = [\n        ('draft', 'Draft'),\n        ('published', 'Published'),\n        ('cancelled', 'Cancelled'),\n        ('full', 'Full'),\n    ]\n    \n    title = models.CharField(max_length=200)\n    description = models.TextField()\n    start_datetime = models.DateTimeField()\n    end_datetime = models.DateTimeField()\n    location = models.CharField(max_length=200)\n    capacity = models.PositiveIntegerField()\n    status = models.CharField(\n        max_length=20,\n        choices=STATUS_CHOICES,\n        default='draft'\n    )\n    speakers = models.ManyToManyField('Speaker', through='EventSpeaker')\n    \n    objects = EventManager()\n    \n    @property\n    def registration_count(self):\n        return self.registrations.count()\n    \n    @property\n    def is_full(self):\n        return self.registration_count >= self.capacity\n    \n    def create_attendance_records(self):\n        \"\"\"Create attendance records for all registrations\"\"\"\n        from datetime import date\n        \n        if self.start_datetime.date() == date.today() + timedelta(days=1):\n            for registration in self.registrations.all():\n                # In real implementation, create AttendanceRecord\n                print(f\"Creating attendance record for {registration.user.name}\")\n    \n    def clean(self):\n        if self.end_datetime <= self.start_datetime:\n            raise ValidationError('End datetime must be after start datetime')\n    \n    def save(self, *args, **kwargs):\n        self.full_clean()\n        \n        # Update status if full\n        if self.is_full:\n            self.status = 'full'\n        elif self.status == 'full' and not self.is_full:\n            self.status = 'published'\n        \n        super().save(*args, **kwargs)\n    \n    def __str__(self):\n        return f'{self.title} ({self.start_datetime.date()})'\n\nclass Registration(models.Model):\n    STATUS_CHOICES = [\n        ('pending', 'Pending'),\n        ('confirmed', 'Confirmed'),\n        ('cancelled', 'Cancelled'),\n    ]\n    \n    user = models.ForeignKey(UserProfile, on_delete=models.CASCADE, related_name='registrations')\n    event = models.ForeignKey(Event, on_delete=models.CASCADE, related_name='registrations')\n    registration_date = models.DateTimeField(auto_now_add=True)\n    status = models.CharField(\n        max_length=20,\n        choices=STATUS_CHOICES,\n        default='pending'\n    )\n    \n    class Meta:\n        unique_together = ['user', 'event']\n    \n    def __str__(self):\n        return f'{self.user.name} -> {self.event.title}'\n\n@receiver(post_save, sender=Registration)\ndef send_registration_confirmation(sender, instance, created, **kwargs):\n    if created:\n        # In real application, send email here\n        print(f\"Sending confirmation email to {instance.user.email} for {instance.event.title}\")\n        \n        # Update event status if needed\n        if instance.event.is_full:\n            instance.event.status = 'full'\n            instance.event.save()\n\nclass Speaker(models.Model):\n    name = models.CharField(max_length=100)\n    bio = models.TextField()\n    email = models.EmailField()\n    \n    def __str__(self):\n        return self.name\n\nclass EventSpeaker(models.Model):\n    event = models.ForeignKey(Event, on_delete=models.CASCADE)\n    speaker = models.ForeignKey(Speaker, on_delete=models.CASCADE)\n    topic = models.CharField(max_length=200)\n    \n    class Meta:\n        unique_together = ['event', 'speaker']\n    \n    def __str__(self):\n        return f'{self.speaker.name} at {self.event.title}'",
+      "required_imports": [
+        "django.db.models",
+        "django.db.models.signals.post_save",
+        "django.dispatch.receiver",
+        "django.utils.timezone",
+        "datetime.timedelta"
+      ],
+      "required_structure": {
+        "classes": [
+          {
+            "name": "UserProfile",
+            "parent_class": "models.Model",
+            "has_meta_class": true,
+            "fields": ["name", "email", "company"],
+            "methods": ["__str__"]
+          },
+          {
+            "name": "EventManager",
+            "parent_class": "models.Manager",
+            "methods": ["upcoming", "available", "popular"]
+          },
+          {
+            "name": "Event",
+            "parent_class": "models.Model",
+            "has_custom_manager": true,
+            "manager_name": "objects",
+            "has_meta_class": true,
+            "fields": ["title", "description", "start_datetime", "end_datetime", "location", "capacity", "status"],
+            "properties": ["registration_count", "is_full"],
+            "methods": ["create_attendance_records", "clean", "__str__"]
+          },
+          {
+            "name": "Registration",
+            "parent_class": "models.Model",
+            "has_meta_class": true,
+            "fields": ["user", "event", "registration_date", "status"],
+            "methods": ["__str__"]
+          },
+          {
+            "name": "Speaker",
+            "parent_class": "models.Model",
+            "has_meta_class": true,
+            "fields": ["name", "bio", "email"],
+            "methods": ["__str__"]
+          }
+        ],
+        "signals": [
+          {
+            "type": "post_save",
+            "model": "Registration",
+            "function": "send_registration_confirmation"
+          }
+        ]
+      },
+      "forbidden_patterns": [
+        "Not using custom manager for Event",
+        "Missing unique_together constraint for Registration",
+        "Not implementing clean() method for datetime validation",
+        "Not using properties for calculated fields"
+      ],
+      "is_primary": true,
+      "confidence_threshold": 85.00
+    }
+  ]
+}

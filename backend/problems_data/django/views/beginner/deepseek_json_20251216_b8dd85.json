@@ -1,0 +1,201 @@
+{
+  "problem_id": "django-views-003",
+  "title": "Create User Registration and Authentication Views",
+  "slug": "create-user-registration-and-authentication-views",
+  "framework": "django",
+  "category": "views",
+  "difficulty": "beginner",
+  "description": "Create Django REST Framework views for user registration, authentication, and profile management.\n\n**Business Scenario:**\nYou're building a user authentication system for a web application with registration, login, profile management, and password reset functionality.\n\n**Model and Serializer Definitions:**\n```python\n# Django's built-in User model is used\nfrom django.contrib.auth.models import User\n\n# serializers.py\nfrom rest_framework import serializers\nfrom django.contrib.auth.models import User\nfrom django.contrib.auth.password_validation import validate_password\n\nclass UserRegistrationSerializer(serializers.ModelSerializer):\n    password = serializers.CharField(write_only=True, required=True, validators=[validate_password])\n    password2 = serializers.CharField(write_only=True, required=True)\n    \n    class Meta:\n        model = User\n        fields = ['username', 'email', 'password', 'password2', 'first_name', 'last_name']\n        extra_kwargs = {\n            'first_name': {'required': True},\n            'last_name': {'required': True},\n            'email': {'required': True}\n        }\n    \n    def validate(self, attrs):\n        if attrs['password'] != attrs['password2']:\n            raise serializers.ValidationError({\"password\": \"Password fields didn't match.\"})\n        return attrs\n    \n    def create(self, validated_data):\n        # Remove password2 from validated data\n        validated_data.pop('password2')\n        \n        user = User.objects.create_user(\n            username=validated_data['username'],\n            email=validated_data['email'],\n            password=validated_data['password'],\n            first_name=validated_data['first_name'],\n            last_name=validated_data['last_name']\n        )\n        return user\n\nclass UserProfileSerializer(serializers.ModelSerializer):\n    class Meta:\n        model = User\n        fields = ['id', 'username', 'email', 'first_name', 'last_name', 'date_joined', 'last_login']\n        read_only_fields = ['id', 'username', 'date_joined', 'last_login']\n\nclass ChangePasswordSerializer(serializers.Serializer):\n    old_password = serializers.CharField(required=True, write_only=True)\n    new_password = serializers.CharField(required=True, write_only=True, validators=[validate_password])\n    new_password2 = serializers.CharField(required=True, write_only=True)\n    \n    def validate(self, attrs):\n        if attrs['new_password'] != attrs['new_password2']:\n            raise serializers.ValidationError({\"new_password\": \"New password fields didn't match.\"})\n        return attrs\n```\n\n**Requirements:**\nCreate the following API views in `views.py`:\n\n1. **UserRegistrationView**: Register new users\n   - POST only\n   - Validate passwords match and meet requirements\n   - Create user account\n   - Return user data (excluding password)\n   - Return authentication token (use rest_framework.authtoken)\n\n2. **UserLoginView**: Authenticate users and return token\n   - POST only\n   - Accept username/email and password\n   - Validate credentials\n   - Return authentication token\n   - Return user profile data\n\n3. **UserProfileView**: Get and update user profile\n   - GET: Return current user's profile\n   - PUT/PATCH: Update user profile (email, first_name, last_name)\n   - Require authentication\n\n4. **ChangePasswordView**: Change user password\n   - PUT only\n   - Require old password for verification\n   - Validate new password meets requirements\n   - Update password\n   - Return success message\n\n5. **UserLogoutView**: Logout user (invalidate token)\n   - POST only\n   - Delete authentication token\n   - Require authentication\n   - Return success message\n\n6. **CheckAuthView**: Check if user is authenticated\n   - GET only\n   - Return user info if authenticated\n   - Return 401 if not authenticated\n\n**Expected Behavior:**\n- Proper use of DRF authentication and permissions\n- Token-based authentication for protected endpoints\n- Proper validation of all inputs\n- Secure password handling\n- Appropriate HTTP status codes\n\n**Example Endpoints:**\n```\nPOST   /api/auth/register/     # Register new user\nPOST   /api/auth/login/        # Login and get token\nGET    /api/auth/profile/      # Get user profile\nPUT    /api/auth/profile/      # Update profile\nPUT    /api/auth/change-password/  # Change password\nPOST   /api/auth/logout/       # Logout (invalidate token)\nGET    /api/auth/check/        # Check authentication status\n```",
+  "description_preview": "Create user authentication views with registration, login, profile management, and token-based auth",
+  "context_code": "# SERIALIZER DEFINITIONS (for reference only)\n# You need to create the views in views.py\n\n# serializers.py\nfrom rest_framework import serializers\nfrom django.contrib.auth.models import User\nfrom django.contrib.auth.password_validation import validate_password\n\nclass UserRegistrationSerializer(serializers.ModelSerializer):\n    password = serializers.CharField(write_only=True, required=True, validators=[validate_password])\n    password2 = serializers.CharField(write_only=True, required=True)\n    \n    class Meta:\n        model = User\n        fields = ['username', 'email', 'password', 'password2', 'first_name', 'last_name']\n        extra_kwargs = {\n            'first_name': {'required': True},\n            'last_name': {'required': True},\n            'email': {'required': True}\n        }\n    \n    def validate(self, attrs):\n        if attrs['password'] != attrs['password2']:\n            raise serializers.ValidationError({\"password\": \"Password fields didn't match.\"})\n        return attrs\n    \n    def create(self, validated_data):\n        validated_data.pop('password2')\n        user = User.objects.create_user(\n            username=validated_data['username'],\n            email=validated_data['email'],\n            password=validated_data['password'],\n            first_name=validated_data['first_name'],\n            last_name=validated_data['last_name']\n        )\n        return user\n\nclass UserProfileSerializer(serializers.ModelSerializer):\n    class Meta:\n        model = User\n        fields = ['id', 'username', 'email', 'first_name', 'last_name', 'date_joined', 'last_login']\n        read_only_fields = ['id', 'username', 'date_joined', 'last_login']\n\nclass ChangePasswordSerializer(serializers.Serializer):\n    old_password = serializers.CharField(required=True, write_only=True)\n    new_password = serializers.CharField(required=True, write_only=True, validators=[validate_password])\n    new_password2 = serializers.CharField(required=True, write_only=True)\n    \n    def validate(self, attrs):\n        if attrs['new_password'] != attrs['new_password2']:\n            raise serializers.ValidationError({\"new_password\": \"New password fields didn't match.\"})\n        return attrs",
+  "starter_code": "",
+  "target_area": "User authentication and profile management views",
+  "validation_spec": {
+    "required_imports": [
+      "rest_framework.generics",
+      "rest_framework.views",
+      "rest_framework.response",
+      "rest_framework.status",
+      "rest_framework.permissions",
+      "rest_framework.authentication",
+      "rest_framework.authtoken.models",
+      "rest_framework.authtoken.views",
+      "django.contrib.auth",
+      "django.contrib.auth.models"
+    ],
+    "required_structure": {
+      "classes": [
+        {
+          "name": "UserRegistrationView",
+          "parent_class": "generics.CreateAPIView",
+          "methods": ["create", "perform_create"]
+        },
+        {
+          "name": "UserLoginView",
+          "parent_class": "views.APIView",
+          "methods": ["post"]
+        },
+        {
+          "name": "UserProfileView",
+          "parent_class": "generics.RetrieveUpdateAPIView",
+          "methods": ["get_object"]
+        },
+        {
+          "name": "ChangePasswordView",
+          "parent_class": "generics.UpdateAPIView",
+          "methods": ["get_object", "update"]
+        },
+        {
+          "name": "UserLogoutView",
+          "parent_class": "views.APIView",
+          "methods": ["post"]
+        },
+        {
+          "name": "CheckAuthView",
+          "parent_class": "views.APIView",
+          "methods": ["get"]
+        }
+      ]
+    },
+    "behavior_patterns": [
+      {
+        "type": "authentication_view",
+        "view_class": "UserRegistrationView",
+        "action": "register",
+        "description": "Registration view must create user and token"
+      },
+      {
+        "type": "authentication_view",
+        "view_class": "UserLoginView",
+        "action": "login",
+        "description": "Login view must authenticate and return token"
+      },
+      {
+        "type": "permission_class",
+        "view_class": "UserProfileView",
+        "permission": "IsAuthenticated",
+        "description": "Profile view must require authentication"
+      },
+      {
+        "type": "token_authentication",
+        "view_class": "UserLoginView",
+        "description": "Login must use TokenAuthentication"
+      },
+      {
+        "type": "password_validation",
+        "view_class": "ChangePasswordView",
+        "description": "Password change must validate old password"
+      },
+      {
+        "type": "logout_view",
+        "view_class": "UserLogoutView",
+        "description": "Logout must delete authentication token"
+      },
+      {
+        "type": "auth_check_view",
+        "view_class": "CheckAuthView",
+        "description": "Auth check must return user info or 401"
+      },
+      {
+        "type": "get_object_method",
+        "view_class": "UserProfileView",
+        "description": "Profile view must return current user"
+      },
+      {
+        "type": "create_method",
+        "view_class": "UserRegistrationView",
+        "description": "Registration must override create method"
+      },
+      {
+        "type": "post_method",
+        "view_class": "UserLoginView",
+        "description": "Login must implement post method"
+      },
+      {
+        "type": "update_method",
+        "view_class": "ChangePasswordView",
+        "description": "Password change must override update"
+      }
+    ],
+    "difficulty": "beginner",
+    "framework": "django"
+  },
+  "import_weight": 15.00,
+  "structure_weight": 40.00,
+  "behavior_weight": 45.00,
+  "passing_score": 75.00,
+  "hints": [
+    "Use Token.objects.create(user=user) to create authentication tokens",
+    "For login, use authenticate() from django.contrib.auth",
+    "In protected views, use self.request.user to access current user",
+    "For password change, use check_password() to verify old password"
+  ],
+  "learning_resources": [
+    "https://www.django-rest-framework.org/api-guide/authentication/#tokenauthentication",
+    "https://www.django-rest-framework.org/api-guide/permissions/#isauthenticated",
+    "https://docs.djangoproject.com/en/stable/topics/auth/default/#authenticating-users"
+  ],
+  "tags": ["django", "views", "authentication", "users", "api", "beginner"],
+  "estimated_time_minutes": 40,
+  "patterns": [
+    {
+      "pattern_id": "django-views-003-pattern-1",
+      "name": "Complete User Authentication Views",
+      "description": "All user authentication and profile management views",
+      "example_code": "from rest_framework import generics, views, status, permissions\nfrom rest_framework.response import Response\nfrom rest_framework.authentication import TokenAuthentication\nfrom rest_framework.authtoken.models import Token\nfrom rest_framework.authtoken.views import ObtainAuthToken\nfrom django.contrib.auth import authenticate, login, logout\nfrom django.contrib.auth.models import User\nfrom .serializers import (\n    UserRegistrationSerializer, \n    UserProfileSerializer, \n    ChangePasswordSerializer\n)\n\nclass UserRegistrationView(generics.CreateAPIView):\n    \"\"\"\n    Register a new user and return authentication token.\n    \"\"\"\n    serializer_class = UserRegistrationSerializer\n    permission_classes = [permissions.AllowAny]\n    \n    def create(self, request, *args, **kwargs):\n        serializer = self.get_serializer(data=request.data)\n        serializer.is_valid(raise_exception=True)\n        \n        # Create the user\n        user = serializer.save()\n        \n        # Create authentication token for the new user\n        token, created = Token.objects.get_or_create(user=user)\n        \n        # Get user profile data\n        profile_serializer = UserProfileSerializer(user)\n        \n        response_data = {\n            'user': profile_serializer.data,\n            'token': token.key,\n            'message': 'User registered successfully'\n        }\n        \n        return Response(response_data, status=status.HTTP_201_CREATED)\n\nclass UserLoginView(views.APIView):\n    \"\"\"\n    Authenticate user and return token.\n    \"\"\"\n    permission_classes = [permissions.AllowAny]\n    \n    def post(self, request, *args, **kwargs):\n        # Get credentials from request\n        username = request.data.get('username')\n        password = request.data.get('password')\n        \n        if not username or not password:\n            return Response(\n                {'error': 'Please provide both username and password'},\n                status=status.HTTP_400_BAD_REQUEST\n            )\n        \n        # Authenticate user\n        user = authenticate(username=username, password=password)\n        \n        if not user:\n            # Try authenticating with email\n            try:\n                user_by_email = User.objects.get(email=username)\n                user = authenticate(username=user_by_email.username, password=password)\n            except User.DoesNotExist:\n                user = None\n        \n        if not user:\n            return Response(\n                {'error': 'Invalid credentials'},\n                status=status.HTTP_401_UNAUTHORIZED\n            )\n        \n        # Get or create token\n        token, created = Token.objects.get_or_create(user=user)\n        \n        # Get user profile\n        profile_serializer = UserProfileSerializer(user)\n        \n        response_data = {\n            'user': profile_serializer.data,\n            'token': token.key,\n            'message': 'Login successful'\n        }\n        \n        return Response(response_data)\n\nclass UserProfileView(generics.RetrieveUpdateAPIView):\n    \"\"\"\n    Get and update user profile.\n    \"\"\"\n    serializer_class = UserProfileSerializer\n    permission_classes = [permissions.IsAuthenticated]\n    authentication_classes = [TokenAuthentication]\n    \n    def get_object(self):\n        \"\"\"\n        Return the current authenticated user.\n        \"\"\"\n        return self.request.user\n    \n    def update(self, request, *args, **kwargs):\n        \"\"\"\n        Update user profile with partial updates allowed.\n        \"\"\"\n        partial = kwargs.pop('partial', False)\n        instance = self.get_object()\n        serializer = self.get_serializer(instance, data=request.data, partial=partial)\n        serializer.is_valid(raise_exception=True)\n        self.perform_update(serializer)\n        \n        return Response({\n            'user': serializer.data,\n            'message': 'Profile updated successfully'\n        })\n\nclass ChangePasswordView(generics.UpdateAPIView):\n    \"\"\"\n    Change user password.\n    \"\"\"\n    serializer_class = ChangePasswordSerializer\n    permission_classes = [permissions.IsAuthenticated]\n    authentication_classes = [TokenAuthentication]\n    \n    def get_object(self):\n        return self.request.user\n    \n    def update(self, request, *args, **kwargs):\n        user = self.get_object()\n        serializer = self.get_serializer(data=request.data)\n        \n        if serializer.is_valid():\n            # Check old password\n            if not user.check_password(serializer.validated_data['old_password']):\n                return Response(\n                    {'old_password': 'Wrong password.'},\n                    status=status.HTTP_400_BAD_REQUEST\n                )\n            \n            # Set new password\n            user.set_password(serializer.validated_data['new_password'])\n            user.save()\n            \n            # Update token (optional - creates new token on password change)\n            Token.objects.filter(user=user).delete()\n            new_token = Token.objects.create(user=user)\n            \n            return Response({\n                'message': 'Password updated successfully',\n                'token': new_token.key\n            })\n        \n        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)\n\nclass UserLogoutView(views.APIView):\n    \"\"\"\n    Logout user by deleting authentication token.\n    \"\"\"\n    permission_classes = [permissions.IsAuthenticated]\n    authentication_classes = [TokenAuthentication]\n    \n    def post(self, request, *args, **kwargs):\n        # Delete the token\n        request.user.auth_token.delete()\n        \n        # Logout from session (if using session auth)\n        logout(request)\n        \n        return Response({\n            'message': 'Successfully logged out'\n        })\n\nclass CheckAuthView(views.APIView):\n    \"\"\"\n    Check if user is authenticated and return user info.\n    \"\"\"\n    permission_classes = [permissions.IsAuthenticated]\n    authentication_classes = [TokenAuthentication]\n    \n    def get(self, request, *args, **kwargs):\n        \"\"\"\n        Return current user information if authenticated.\n        \"\"\"\n        user = request.user\n        serializer = UserProfileSerializer(user)\n        \n        return Response({\n            'authenticated': True,\n            'user': serializer.data\n        })",
+      "required_imports": [
+        "rest_framework.generics",
+        "rest_framework.views",
+        "rest_framework.response",
+        "rest_framework.status",
+        "rest_framework.permissions",
+        "rest_framework.authentication",
+        "rest_framework.authtoken.models",
+        "rest_framework.authtoken.views",
+        "django.contrib.auth",
+        "django.contrib.auth.models"
+      ],
+      "required_structure": {
+        "classes": [
+          {
+            "name": "UserRegistrationView",
+            "parent_class": "generics.CreateAPIView",
+            "methods": ["create"]
+          },
+          {
+            "name": "UserLoginView",
+            "parent_class": "views.APIView",
+            "methods": ["post"]
+          },
+          {
+            "name": "UserProfileView",
+            "parent_class": "generics.RetrieveUpdateAPIView",
+            "methods": ["get_object", "update"]
+          },
+          {
+            "name": "ChangePasswordView",
+            "parent_class": "generics.UpdateAPIView",
+            "methods": ["get_object", "update"]
+          },
+          {
+            "name": "UserLogoutView",
+            "parent_class": "views.APIView",
+            "methods": ["post"]
+          },
+          {
+            "name": "CheckAuthView",
+            "parent_class": "views.APIView",
+            "methods": ["get"]
+          }
+        ]
+      },
+      "forbidden_patterns": [
+        "no_authentication",
+        "plain_text_passwords",
+        "missing_token_management"
+      ],
+      "is_primary": true,
+      "confidence_threshold": 85.00
+    }
+  ]
+}

@@ -1,0 +1,142 @@
+{
+  "problem_id": "django-orm_queries-003",
+  "title": "E-commerce Product Inventory Queries",
+  "slug": "ecommerce-product-inventory-queries",
+  "framework": "django",
+  "category": "orm_queries",
+  "difficulty": "beginner",
+  "description": "Write Django ORM queries for an e-commerce system with Product, Category, and Order models.\n\n**Business Scenario:**\nYou're building inventory management queries for an online store with products organized by categories.\n\n**Model Definitions:**\n```python\nfrom django.db import models\n\nclass Category(models.Model):\n    name = models.CharField(max_length=100, unique=True)\n    description = models.TextField(blank=True)\n    is_active = models.BooleanField(default=True)\n    \n    class Meta:\n        verbose_name_plural = \"categories\"\n        ordering = ['name']\n    \n    def __str__(self):\n        return self.name\n\nclass Product(models.Model):\n    name = models.CharField(max_length=200)\n    description = models.TextField()\n    sku = models.CharField(max_length=50, unique=True)  # Stock Keeping Unit\n    category = models.ForeignKey(Category, on_delete=models.PROTECT, related_name='products')\n    price = models.DecimalField(max_digits=10, decimal_places=2)\n    cost = models.DecimalField(max_digits=10, decimal_places=2)  # Wholesale cost\n    stock_quantity = models.IntegerField(default=0)\n    reorder_level = models.IntegerField(default=10)  # Reorder when stock drops below this\n    is_available = models.BooleanField(default=True)\n    created_at = models.DateTimeField(auto_now_add=True)\n    updated_at = models.DateTimeField(auto_now=True)\n    \n    class Meta:\n        ordering = ['name']\n    \n    def __str__(self):\n        return self.name\n    \n    @property\n    def profit_margin(self):\n        \"\"\"Calculate profit margin percentage.\"\"\"\n        if self.price == 0:\n            return 0\n        return ((self.price - self.cost) / self.price) * 100\n    \n    @property\n    def needs_reorder(self):\n        \"\"\"Check if product needs reordering.\"\"\"\n        return self.stock_quantity < self.reorder_level\n\nclass Order(models.Model):\n    ORDER_STATUS = [\n        ('pending', 'Pending'),\n        ('processing', 'Processing'),\n        ('shipped', 'Shipped'),\n        ('delivered', 'Delivered'),\n        ('cancelled', 'Cancelled'),\n    ]\n    \n    order_number = models.CharField(max_length=50, unique=True)\n    product = models.ForeignKey(Product, on_delete=models.PROTECT, related_name='orders')\n    quantity = models.IntegerField()\n    total_price = models.DecimalField(max_digits=10, decimal_places=2)\n    status = models.CharField(max_length=20, choices=ORDER_STATUS, default='pending')\n    order_date = models.DateTimeField(auto_now_add=True)\n    \n    class Meta:\n        ordering = ['-order_date']\n    \n    def __str__(self):\n        return f\"Order {self.order_number}\"\n```\n\n**Requirements:**\nImplement the following functions using Django ORM:\n\n1. **get_products_in_category(category_name)**: Return all products in a specific category\n2. **get_low_stock_products()**: Return products with stock below reorder level\n3. **get_available_products()**: Return products that are available (is_available=True)\n4. **get_high_profit_products(threshold)**: Return products with profit margin > threshold\n5. **get_category_product_counts()**: Return categories with count of products in each\n6. **get_total_inventory_value()**: Return total value of all inventory (stock * cost)\n7. **get_top_selling_products(limit)**: Return products with most orders\n8. **update_product_stock(sku, quantity_change)**: Update product stock (add or subtract)\n9. **get_products_by_price_range(min_price, max_price)**: Return products within price range\n10. **get_pending_orders()**: Return all orders with status 'pending'\n\n**Expected Behavior:**\n- Use appropriate aggregates and annotations\n- Handle stock updates with validation (no negative stock)\n- Optimize queries with select_related/prefetch_related\n- Use F expressions for calculations where appropriate\n\n**Example Usage:**\n```python\n# Get low stock products that need reordering\nlow_stock = get_low_stock_products()\n\n# Get total inventory value\ninventory_value = get_total_inventory_value()\n\n# Update stock after sale\nupdate_product_stock('SKU123', -5)  # Subtract 5 from stock\n```",
+  "description_preview": "Implement e-commerce inventory queries with aggregates, F expressions, and stock management",
+  "context_code": "# MODEL DEFINITIONS (for reference only - you need to write the query functions)\nfrom django.db import models\n\nclass Category(models.Model):\n    name = models.CharField(max_length=100, unique=True)\n    description = models.TextField(blank=True)\n    is_active = models.BooleanField(default=True)\n    \n    class Meta:\n        verbose_name_plural = \"categories\"\n        ordering = ['name']\n    \n    def __str__(self):\n        return self.name\n\nclass Product(models.Model):\n    name = models.CharField(max_length=200)\n    description = models.TextField()\n    sku = models.CharField(max_length=50, unique=True)\n    category = models.ForeignKey(Category, on_delete=models.PROTECT, related_name='products')\n    price = models.DecimalField(max_digits=10, decimal_places=2)\n    cost = models.DecimalField(max_digits=10, decimal_places=2)\n    stock_quantity = models.IntegerField(default=0)\n    reorder_level = models.IntegerField(default=10)\n    is_available = models.BooleanField(default=True)\n    created_at = models.DateTimeField(auto_now_add=True)\n    updated_at = models.DateTimeField(auto_now=True)\n    \n    class Meta:\n        ordering = ['name']\n    \n    def __str__(self):\n        return self.name\n\nclass Order(models.Model):\n    ORDER_STATUS = [\n        ('pending', 'Pending'),\n        ('processing', 'Processing'),\n        ('shipped', 'Shipped'),\n        ('delivered', 'Delivered'),\n        ('cancelled', 'Cancelled'),\n    ]\n    \n    order_number = models.CharField(max_length=50, unique=True)\n    product = models.ForeignKey(Product, on_delete=models.PROTECT, related_name='orders')\n    quantity = models.IntegerField()\n    total_price = models.DecimalField(max_digits=10, decimal_places=2)\n    status = models.CharField(max_length=20, choices=ORDER_STATUS, default='pending')\n    order_date = models.DateTimeField(auto_now_add=True)\n    \n    class Meta:\n        ordering = ['-order_date']\n    \n    def __str__(self):\n        return f\"Order {self.order_number}\"",
+  "starter_code": "",
+  "target_area": "E-commerce inventory query functions",
+  "validation_spec": {
+    "required_imports": ["django.db.models"],
+    "required_structure": {
+      "functions": [
+        {"name": "get_products_in_category"},
+        {"name": "get_low_stock_products"},
+        {"name": "get_available_products"},
+        {"name": "get_high_profit_products"},
+        {"name": "get_category_product_counts"},
+        {"name": "get_total_inventory_value"},
+        {"name": "get_top_selling_products"},
+        {"name": "update_product_stock"},
+        {"name": "get_products_by_price_range"},
+        {"name": "get_pending_orders"}
+      ]
+    },
+    "behavior_patterns": [
+      {
+        "type": "queryset_operation",
+        "operation": "filter",
+        "min_calls": 6,
+        "description": "Must use filter() for category, stock, availability, price range, etc."
+      },
+      {
+        "type": "queryset_operation",
+        "operation": "annotate",
+        "description": "Must use annotate() for product counts and profit margins"
+      },
+      {
+        "type": "queryset_operation",
+        "operation": "aggregate",
+        "description": "Must use aggregate() for inventory value"
+      },
+      {
+        "type": "queryset_operation",
+        "operation": "select_related",
+        "description": "Must use select_related for category relationships"
+      },
+      {
+        "type": "f_expression",
+        "operation": "multiplication",
+        "description": "Must use F() expressions for inventory value calculation"
+      },
+      {
+        "type": "field_lookup",
+        "lookup": "lt",
+        "description": "Must use __lt for low stock comparison"
+      },
+      {
+        "type": "field_lookup",
+        "lookup": "range",
+        "description": "Must use __range for price range"
+      },
+      {
+        "type": "calculation_field",
+        "field_type": "profit_margin",
+        "description": "Must calculate profit margin using price and cost"
+      },
+      {
+        "type": "update_operation",
+        "operation": "update_with_f",
+        "description": "Must use F() expression for stock updates"
+      },
+      {
+        "type": "reverse_relationship",
+        "relationship": "orders",
+        "description": "Must access product.orders for sales data"
+      },
+      {
+        "type": "aggregate_function",
+        "function": "Sum",
+        "description": "Must use Sum for inventory value"
+      },
+      {
+        "type": "aggregate_function",
+        "function": "Count",
+        "description": "Must use Count for product counts"
+      }
+    ],
+    "difficulty": "beginner",
+    "framework": "django"
+  },
+  "import_weight": 15.00,
+  "structure_weight": 40.00,
+  "behavior_weight": 45.00,
+  "passing_score": 75.00,
+  "hints": [
+    "Use F() expressions for calculations in the database (stock * cost)",
+    "For profit margin, you'll need to calculate (price - cost) / price * 100",
+    "Use annotate() with Count('orders') for top selling products",
+    "When updating stock, use F('stock_quantity') + quantity_change"
+  ],
+  "learning_resources": [
+    "https://docs.djangoproject.com/en/stable/ref/models/expressions/#f-expressions",
+    "https://docs.djangoproject.com/en/stable/ref/models/querysets/#annotate",
+    "https://docs.djangoproject.com/en/stable/ref/models/querysets/#aggregate"
+  ],
+  "tags": ["django", "orm", "ecommerce", "inventory", "aggregates", "beginner"],
+  "estimated_time_minutes": 35,
+  "patterns": [
+    {
+      "pattern_id": "django-orm_queries-003-pattern-1",
+      "name": "E-commerce Inventory Queries",
+      "description": "Complete implementation with F expressions and aggregates",
+      "example_code": "from django.db.models import F, Sum, Count, ExpressionWrapper, DecimalField\nfrom django.db.models.functions import Coalesce\nfrom .models import Category, Product, Order\n\ndef get_products_in_category(category_name):\n    \"\"\"Return all products in a specific category.\"\"\"\n    return Product.objects.filter(\n        category__name__iexact=category_name\n    ).select_related('category').order_by('name')\n\ndef get_low_stock_products():\n    \"\"\"Return products with stock below reorder level.\"\"\"\n    return Product.objects.filter(\n        stock_quantity__lt=F('reorder_level')\n    ).order_by('stock_quantity')\n\ndef get_available_products():\n    \"\"\"Return products that are available.\"\"\"\n    return Product.objects.filter(is_available=True).order_by('name')\n\ndef get_high_profit_products(threshold):\n    \"\"\"Return products with profit margin > threshold.\"\"\"\n    # Calculate profit margin in the query\n    return Product.objects.annotate(\n        margin=ExpressionWrapper(\n            ((F('price') - F('cost')) / F('price')) * 100,\n            output_field=DecimalField()\n        )\n    ).filter(margin__gt=threshold).order_by('-margin')\n\ndef get_category_product_counts():\n    \"\"\"Return categories with count of products in each.\"\"\"\n    return Category.objects.annotate(\n        product_count=Count('products')\n    ).order_by('-product_count', 'name')\n\ndef get_total_inventory_value():\n    \"\"\"Return total value of all inventory (stock * cost).\"\"\"\n    result = Product.objects.aggregate(\n        total_value=Coalesce(\n            Sum(F('stock_quantity') * F('cost')),\n            0\n        )\n    )\n    return result['total_value']\n\ndef get_top_selling_products(limit=10):\n    \"\"\"Return products with most orders.\"\"\"\n    return Product.objects.annotate(\n        order_count=Count('orders')\n    ).order_by('-order_count', 'name')[:limit]\n\ndef update_product_stock(sku, quantity_change):\n    \"\"\"Update product stock (add or subtract).\"\"\"\n    # Get the product first to check current stock\n    try:\n        product = Product.objects.get(sku=sku)\n    except Product.DoesNotExist:\n        raise ValueError(f\"Product with SKU {sku} does not exist\")\n    \n    # Calculate new stock quantity\n    new_quantity = product.stock_quantity + quantity_change\n    \n    if new_quantity < 0:\n        raise ValueError(f\"Cannot reduce stock below 0. Current: {product.stock_quantity}, Change: {quantity_change}\")\n    \n    # Update using F expression for atomic operation\n    Product.objects.filter(sku=sku).update(\n        stock_quantity=F('stock_quantity') + quantity_change\n    )\n    \n    # Return updated product\n    return Product.objects.get(sku=sku)\n\ndef get_products_by_price_range(min_price, max_price):\n    \"\"\"Return products within price range.\"\"\"\n    return Product.objects.filter(\n        price__range=(min_price, max_price)\n    ).order_by('price', 'name')\n\ndef get_pending_orders():\n    \"\"\"Return all orders with status 'pending'.\"\"\"\n    return Order.objects.filter(\n        status='pending'\n    ).select_related('product').order_by('order_date')",
+      "required_imports": ["django.db.models"],
+      "required_structure": {
+        "functions": [
+          {"name": "get_products_in_category"},
+          {"name": "get_low_stock_products"},
+          {"name": "get_available_products"},
+          {"name": "get_high_profit_products"},
+          {"name": "get_category_product_counts"},
+          {"name": "get_total_inventory_value"},
+          {"name": "get_top_selling_products"},
+          {"name": "update_product_stock"},
+          {"name": "get_products_by_price_range"},
+          {"name": "get_pending_orders"}
+        ]
+      },
+      "forbidden_patterns": [
+        "python_calculations_in_loop",
+        "no_f_expressions",
+        "multiple_database_hits"
+      ],
+      "is_primary": true,
+      "confidence_threshold": 85.00
+    }
+  ]
+}

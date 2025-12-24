@@ -1,0 +1,137 @@
+{
+  "problem_id": "django-orm_queries-001",
+  "title": "Basic Book Query Operations",
+  "slug": "basic-book-query-operations",
+  "framework": "django",
+  "category": "orm_queries",
+  "difficulty": "beginner",
+  "description": "Write Django ORM queries to perform basic CRUD operations on a Book model.\n\n**Business Scenario:**\nYou're building a library management system and need to implement common database operations for books.\n\n**Model Definition:**\n```python\nfrom django.db import models\n\nclass Book(models.Model):\n    title = models.CharField(max_length=200)\n    author = models.CharField(max_length=100)\n    isbn = models.CharField(max_length=13, unique=True)\n    publication_year = models.IntegerField()\n    price = models.DecimalField(max_digits=6, decimal_places=2)\n    in_stock = models.BooleanField(default=True)\n    created_at = models.DateTimeField(auto_now_add=True)\n    \n    class Meta:\n        ordering = ['title']\n    \n    def __str__(self):\n        return self.title\n```\n\n**Requirements:**\nImplement the following functions using Django ORM:\n\n1. **get_all_books()**: Return all books ordered by title\n2. **get_available_books()**: Return only books that are in stock\n3. **get_books_by_author(author_name)**: Return books by a specific author\n4. **get_expensive_books(threshold)**: Return books with price greater than threshold\n5. **get_recent_books(year)**: Return books published in or after the given year\n6. **search_books_by_title(keyword)**: Return books whose title contains the keyword (case-insensitive)\n7. **get_book_count()**: Return total number of books\n8. **get_average_book_price()**: Return average price of all books\n9. **create_book(title, author, isbn, publication_year, price)**: Create and return a new book\n10. **update_book_stock(isbn, in_stock)**: Update the in_stock status for a book by ISBN\n\n**Expected Behavior:**\n- All functions should return QuerySets (not lists) where applicable\n- Use appropriate Django ORM methods (filter, get, create, update, aggregate)\n- Handle edge cases (no results, etc.) appropriately\n- Use efficient queries (avoid N+1 problems)\n\n**Example Usage:**\n```python\n# Get all available books\nbooks = get_available_books()\n\n# Search for books with 'Python' in title\npython_books = search_books_by_title('Python')\n\n# Get average price\navg_price = get_average_book_price()\n```",
+  "description_preview": "Implement basic Django ORM queries for Book model CRUD operations",
+  "context_code": "# MODEL DEFINITION (for reference only - you need to write the query functions)\nfrom django.db import models\n\nclass Book(models.Model):\n    title = models.CharField(max_length=200)\n    author = models.CharField(max_length=100)\n    isbn = models.CharField(max_length=13, unique=True)\n    publication_year = models.IntegerField()\n    price = models.DecimalField(max_digits=6, decimal_places=2)\n    in_stock = models.BooleanField(default=True)\n    created_at = models.DateTimeField(auto_now_add=True)\n    \n    class Meta:\n        ordering = ['title']\n    \n    def __str__(self):\n        return self.title",
+  "starter_code": "",
+  "target_area": "ORM query functions implementation",
+  "validation_spec": {
+    "required_imports": ["django.db.models"],
+    "required_structure": {
+      "functions": [
+        {"name": "get_all_books"},
+        {"name": "get_available_books"},
+        {"name": "get_books_by_author"},
+        {"name": "get_expensive_books"},
+        {"name": "get_recent_books"},
+        {"name": "search_books_by_title"},
+        {"name": "get_book_count"},
+        {"name": "get_average_book_price"},
+        {"name": "create_book"},
+        {"name": "update_book_stock"}
+      ]
+    },
+    "behavior_patterns": [
+      {
+        "type": "queryset_operation",
+        "operation": "all",
+        "description": "Must use Book.objects.all() for getting all books"
+      },
+      {
+        "type": "queryset_operation",
+        "operation": "filter",
+        "min_calls": 4,
+        "description": "Must use filter() for available books, by author, by price, and by year"
+      },
+      {
+        "type": "queryset_operation",
+        "operation": "order_by",
+        "description": "Must order results appropriately"
+      },
+      {
+        "type": "queryset_operation",
+        "operation": "count",
+        "description": "Must use count() for book count"
+      },
+      {
+        "type": "queryset_operation",
+        "operation": "aggregate",
+        "description": "Must use aggregate() with Avg for average price"
+      },
+      {
+        "type": "queryset_operation",
+        "operation": "create",
+        "description": "Must use create() for new book"
+      },
+      {
+        "type": "queryset_operation",
+        "operation": "update",
+        "description": "Must use update() for stock status"
+      },
+      {
+        "type": "queryset_operation",
+        "operation": "get",
+        "description": "Must use get() or filter() with unique field for updates"
+      },
+      {
+        "type": "field_lookup",
+        "lookup": "contains",
+        "description": "Must use __contains or __icontains for title search"
+      },
+      {
+        "type": "field_lookup",
+        "lookup": "gt",
+        "description": "Must use __gt for price threshold"
+      },
+      {
+        "type": "field_lookup",
+        "lookup": "gte",
+        "description": "Must use __gte for publication year"
+      }
+    ],
+    "difficulty": "beginner",
+    "framework": "django"
+  },
+  "import_weight": 15.00,
+  "structure_weight": 40.00,
+  "behavior_weight": 45.00,
+  "passing_score": 75.00,
+  "hints": [
+    "Use Book.objects as the starting point for all queries",
+    "Chain filter() with field lookups (__gt, __gte, __icontains)",
+    "For aggregates, use from django.db.models import Avg",
+    "Remember to use save() after get() if you're modifying an object"
+  ],
+  "learning_resources": [
+    "https://docs.djangoproject.com/en/stable/topics/db/queries/",
+    "https://docs.djangoproject.com/en/stable/ref/models/querysets/",
+    "https://docs.djangoproject.com/en/stable/topics/db/aggregation/"
+  ],
+  "tags": ["django", "orm", "queries", "crud", "beginner"],
+  "estimated_time_minutes": 25,
+  "patterns": [
+    {
+      "pattern_id": "django-orm_queries-001-pattern-1",
+      "name": "Basic ORM Query Functions",
+      "description": "Complete implementation of all required query functions",
+      "example_code": "from django.db.models import Avg, Q\nfrom .models import Book\n\ndef get_all_books():\n    \"\"\"Return all books ordered by title.\"\"\"\n    return Book.objects.all().order_by('title')\n\ndef get_available_books():\n    \"\"\"Return only books that are in stock.\"\"\"\n    return Book.objects.filter(in_stock=True).order_by('title')\n\ndef get_books_by_author(author_name):\n    \"\"\"Return books by a specific author.\"\"\"\n    return Book.objects.filter(author__iexact=author_name).order_by('title')\n\ndef get_expensive_books(threshold):\n    \"\"\"Return books with price greater than threshold.\"\"\"\n    return Book.objects.filter(price__gt=threshold).order_by('-price')\n\ndef get_recent_books(year):\n    \"\"\"Return books published in or after the given year.\"\"\"\n    return Book.objects.filter(publication_year__gte=year).order_by('publication_year')\n\ndef search_books_by_title(keyword):\n    \"\"\"Return books whose title contains the keyword (case-insensitive).\"\"\"\n    return Book.objects.filter(title__icontains=keyword).order_by('title')\n\ndef get_book_count():\n    \"\"\"Return total number of books.\"\"\"\n    return Book.objects.count()\n\ndef get_average_book_price():\n    \"\"\"Return average price of all books.\"\"\"\n    result = Book.objects.aggregate(avg_price=Avg('price'))\n    return result['avg_price'] if result['avg_price'] is not None else 0\n\ndef create_book(title, author, isbn, publication_year, price, in_stock=True):\n    \"\"\"Create and return a new book.\"\"\"\n    return Book.objects.create(\n        title=title,\n        author=author,\n        isbn=isbn,\n        publication_year=publication_year,\n        price=price,\n        in_stock=in_stock\n    )\n\ndef update_book_stock(isbn, in_stock):\n    \"\"\"Update the in_stock status for a book by ISBN.\"\"\"\n    # Using update() for efficiency (single query)\n    updated_count = Book.objects.filter(isbn=isbn).update(in_stock=in_stock)\n    \n    # Return the updated book if it exists\n    if updated_count > 0:\n        return Book.objects.get(isbn=isbn)\n    return None",
+      "required_imports": ["django.db.models"],
+      "required_structure": {
+        "functions": [
+          {"name": "get_all_books"},
+          {"name": "get_available_books"},
+          {"name": "get_books_by_author"},
+          {"name": "get_expensive_books"},
+          {"name": "get_recent_books"},
+          {"name": "search_books_by_title"},
+          {"name": "get_book_count"},
+          {"name": "get_average_book_price"},
+          {"name": "create_book"},
+          {"name": "update_book_stock"}
+        ]
+      },
+      "forbidden_patterns": [
+        "raw_sql_queries",
+        "inefficient_loops",
+        "missing_imports"
+      ],
+      "is_primary": true,
+      "confidence_threshold": 85.00
+    }
+  ]
+}

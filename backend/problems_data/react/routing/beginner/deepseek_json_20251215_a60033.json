@@ -1,0 +1,121 @@
+{
+  "problem_id": "react-routing-003",
+  "title": "Build a Product Catalog with Nested Routes",
+  "slug": "build-product-catalog-with-nested-routes",
+  "framework": "react",
+  "category": "routing",
+  "difficulty": "beginner",
+  "description": "Create a product catalog system using React Router's nested routes feature to organize products by category.\n\n**Requirements:**\n1. Create an `App` component with the following route structure:\n   - `/products` - Main products page\n   - `/products/:categoryId` - Products by category\n   - `/products/:categoryId/:productId` - Individual product details\n2. Create three components:\n   - `ProductsLayout`: Layout component with navigation sidebar\n   - `ProductsList`: Shows all products or filtered by category\n   - `ProductDetail`: Shows detailed product information\n3. Mock product data with:\n   - id, name, description, price, category\n   - At least 2 categories (e.g., 'electronics', 'clothing')\n   - At least 2 products per category\n4. Use `Outlet` for nested route rendering\n5. Implement breadcrumb navigation showing the current location\n\n**Implementation Details:**\n- ProductsLayout should have a sidebar with links to each category\n- Clicking a category should show only products from that category\n- Clicking a product should show its details page\n- ProductDetail should show full product information\n- Breadcrumbs should show: Products > Category > Product Name\n- Use relative links for navigation\n\n**Example Product Structure:**\n```javascript\nconst products = [\n  {\n    id: 1,\n    name: 'Laptop',\n    category: 'electronics',\n    description: 'High-performance laptop',\n    price: 999.99\n  },\n  {\n    id: 2,\n    name: 'Headphones',\n    category: 'electronics',\n    description: 'Noise-cancelling headphones',\n    price: 199.99\n  }\n];\n```\n\n**Expected Behavior:**\n- `/products` shows all products with category sidebar\n- `/products/electronics` shows only electronics products\n- `/products/electronics/1` shows laptop details\n- Breadcrumbs update based on current route\n- Sidebar stays visible on all product pages",
+  "description_preview": "Implement a product catalog with nested routes using Outlet for layout composition",
+  "context_code": "",
+  "starter_code": "",
+  "target_area": "App component with nested routing and Outlet usage",
+  "validation_spec": {
+    "required_imports": [
+      "react",
+      "react-router-dom.BrowserRouter",
+      "react-router-dom.Routes",
+      "react-router-dom.Route",
+      "react-router-dom.Link",
+      "react-router-dom.Outlet",
+      "react-router-dom.useParams"
+    ],
+    "required_structure": {
+      "functions": [
+        {
+          "name": "App",
+          "type": "functional_component",
+          "has_export": true,
+          "has_prop_types": false
+        },
+        {
+          "name": "ProductsLayout",
+          "type": "functional_component",
+          "has_export": false,
+          "has_prop_types": false
+        },
+        {
+          "name": "ProductsList",
+          "type": "functional_component",
+          "has_export": false,
+          "has_prop_types": false
+        },
+        {
+          "name": "ProductDetail",
+          "type": "functional_component",
+          "has_export": false,
+          "has_prop_types": false
+        }
+      ]
+    },
+    "behavior_patterns": [
+      {"type": "routing", "routing_type": "react-router"},
+      {"type": "routing", "routing_type": "nested_routes"},
+      {"type": "routing", "routing_type": "route_params", "min_calls": 2},
+      {"type": "routing", "routing_type": "navigation", "method": "link_component"}
+    ]
+  },
+  "import_weight": 20.00,
+  "structure_weight": 40.00,
+  "behavior_weight": 40.00,
+  "passing_score": 80.00,
+  "hints": [
+    "Use nested Route components to create the hierarchy: /products → /products/:category → /products/:category/:product",
+    "The ProductsLayout component should contain an Outlet where child routes render",
+    "Use relative links in your navigation (to='electronics' instead of to='/products/electronics')",
+    "Remember to extract both categoryId and productId parameters in ProductDetail",
+    "Breadcrumbs can be built by checking the current URL parameters"
+  ],
+  "learning_resources": [
+    "https://reactrouter.com/en/main/components/outlet",
+    "https://reactrouter.com/en/main/start/concepts#nested-routes"
+  ],
+  "tags": ["react", "routing", "nested-routes", "Outlet", "beginner"],
+  "estimated_time_minutes": 40,
+  "patterns": [
+    {
+      "pattern_id": "react-routing-003-pattern-1",
+      "name": "Nested Routes with Outlet",
+      "description": "Complete product catalog system with nested routes and Outlet for layout",
+      "example_code": "import React from 'react';\nimport {\n  BrowserRouter,\n  Routes,\n  Route,\n  Link,\n  Outlet,\n  useParams,\n  useLocation\n} from 'react-router-dom';\n\n// Mock product data\nconst products = [\n  {\n    id: 1,\n    name: 'Gaming Laptop',\n    category: 'electronics',\n    description: 'High-performance gaming laptop with RTX 3080 and 32GB RAM',\n    price: 1999.99\n  },\n  {\n    id: 2,\n    name: 'Wireless Headphones',\n    category: 'electronics',\n    description: 'Noise-cancelling Bluetooth headphones with 30-hour battery',\n    price: 299.99\n  },\n  {\n    id: 3,\n    name: 'T-Shirt',\n    category: 'clothing',\n    description: '100% cotton t-shirt in various colors and sizes',\n    price: 24.99\n  },\n  {\n    id: 4,\n    name: 'Jeans',\n    category: 'clothing',\n    description: 'Denim jeans with modern fit and stretch material',\n    price: 79.99\n  }\n];\n\n// Breadcrumbs Component\nfunction Breadcrumbs() {\n  const location = useLocation();\n  const { categoryId, productId } = useParams();\n  \n  const pathSegments = location.pathname.split('/').filter(segment => segment);\n  \n  return (\n    <nav style={{ marginBottom: '20px' }}>\n      {pathSegments.map((segment, index) => {\n        const path = '/' + pathSegments.slice(0, index + 1).join('/');\n        const isLast = index === pathSegments.length - 1;\n        \n        // Make segment names readable\n        let displayName = segment;\n        if (segment === 'products') displayName = 'Products';\n        else if (productId && segment === productId) {\n          // Find product name\n          const product = products.find(p => p.id.toString() === productId);\n          displayName = product ? product.name : `Product ${productId}`;\n        } else if (categoryId && segment === categoryId) {\n          // Make category name readable\n          displayName = segment.charAt(0).toUpperCase() + segment.slice(1);\n        }\n        \n        return (\n          <span key={path}>\n            {isLast ? (\n              <strong>{displayName}</strong>\n            ) : (\n              <>\n                <Link to={path}>{displayName}</Link>\n                <span style={{ margin: '0 5px' }}>›</span>\n              </>\n            )}\n          </span>\n        );\n      })}\n    </nav>\n  );\n}\n\n// ProductsLayout Component\nfunction ProductsLayout() {\n  // Get unique categories\n  const categories = [...new Set(products.map(p => p.category))];\n  \n  return (\n    <div style={{ display: 'flex' }}>\n      {/* Sidebar */}\n      <aside style={{\n        width: '200px',\n        padding: '20px',\n        backgroundColor: '#f5f5f5',\n        height: '100vh'\n      }}>\n        <h3>Categories</h3>\n        <ul style={{ listStyle: 'none', padding: 0 }}>\n          <li style={{ margin: '10px 0' }}>\n            <Link to=\"\">All Products</Link>\n          </li>\n          {categories.map(category => (\n            <li key={category} style={{ margin: '10px 0' }}>\n              <Link to={category}>\n                {category.charAt(0).toUpperCase() + category.slice(1)}\n              </Link>\n            </li>\n          ))}\n        </ul>\n      </aside>\n      \n      {/* Main Content */}\n      <div style={{ flex: 1, padding: '20px' }}>\n        <Breadcrumbs />\n        <Outlet /> {/* Child routes render here */}\n      </div>\n    </div>\n  );\n}\n\n// ProductsList Component\nfunction ProductsList() {\n  const { categoryId } = useParams();\n  \n  // Filter products by category if specified\n  const filteredProducts = categoryId \n    ? products.filter(p => p.category === categoryId)\n    : products;\n  \n  return (\n    <div>\n      <h1>\n        {categoryId \n          ? `${categoryId.charAt(0).toUpperCase() + categoryId.slice(1)} Products`\n          : 'All Products'\n        }\n      </h1>\n      \n      {filteredProducts.length === 0 ? (\n        <p>No products found in this category.</p>\n      ) : (\n        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '20px' }}>\n          {filteredProducts.map(product => (\n            <div \n              key={product.id}\n              style={{\n                border: '1px solid #ddd',\n                padding: '15px',\n                borderRadius: '8px'\n              }}\n            >\n              <h3>{product.name}</h3>\n              <p>{product.description}</p>\n              <p><strong>Price: ${product.price.toFixed(2)}</strong></p>\n              <Link to={`${product.category}/${product.id}`}>\n                View Details\n              </Link>\n            </div>\n          ))}\n        </div>\n      )}\n    </div>\n  );\n}\n\n// ProductDetail Component\nfunction ProductDetail() {\n  const { categoryId, productId } = useParams();\n  \n  // Find the product\n  const product = products.find(p => \n    p.id.toString() === productId && p.category === categoryId\n  );\n  \n  if (!product) {\n    return (\n      <div>\n        <h1>Product Not Found</h1>\n        <p>The requested product does not exist.</p>\n        <Link to=\"..\">Back to Products</Link>\n      </div>\n    );\n  }\n  \n  return (\n    <div>\n      <h1>{product.name}</h1>\n      <div style={{\n        backgroundColor: '#f9f9f9',\n        padding: '20px',\n        borderRadius: '8px',\n        marginTop: '20px'\n      }}>\n        <p><strong>Category:</strong> {product.category}</p>\n        <p><strong>Description:</strong> {product.description}</p>\n        <p><strong>Price:</strong> ${product.price.toFixed(2)}</p>\n        <p><strong>Product ID:</strong> {product.id}</p>\n      </div>\n      <div style={{ marginTop: '20px' }}>\n        <Link to=\"..\">← Back to {product.category} products</Link>\n      </div>\n    </div>\n  );\n}\n\n// Main App Component\nexport default function App() {\n  return (\n    <BrowserRouter>\n      <nav style={{ padding: '10px', backgroundColor: '#333', color: 'white' }}>\n        <Link to=\"/\" style={{ color: 'white', marginRight: '10px' }}>Home</Link>\n        <Link to=\"/products\" style={{ color: 'white' }}>Products</Link>\n      </nav>\n      \n      <Routes>\n        <Route path=\"/\" element={<h1 style={{ padding: '20px' }}>Welcome to Our Store</h1>} />\n        <Route path=\"/products\" element={<ProductsLayout />}>\n          <Route index element={<ProductsList />} />\n          <Route path=\":categoryId\" element={<ProductsList />} />\n          <Route path=\":categoryId/:productId\" element={<ProductDetail />} />\n        </Route>\n      </Routes>\n    </BrowserRouter>\n  );\n}",
+      "required_imports": [
+        "react",
+        "react-router-dom.BrowserRouter",
+        "react-router-dom.Routes",
+        "react-router-dom.Route",
+        "react-router-dom.Link",
+        "react-router-dom.Outlet",
+        "react-router-dom.useParams",
+        "react-router-dom.useLocation"
+      ],
+      "required_structure": {
+        "functions": [
+          {
+            "name": "App",
+            "type": "functional_component",
+            "has_export": true
+          },
+          {
+            "name": "ProductsLayout",
+            "type": "functional_component"
+          },
+          {
+            "name": "ProductsList",
+            "type": "functional_component"
+          },
+          {
+            "name": "ProductDetail",
+            "type": "functional_component"
+          },
+          {
+            "name": "Breadcrumbs",
+            "type": "functional_component"
+          }
+        ]
+      },
+      "forbidden_patterns": ["useState for routing", "manual history.push", "anchor tags for navigation"],
+      "is_primary": true,
+      "confidence_threshold": 85.00
+    }
+  ]
+}

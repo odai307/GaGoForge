@@ -1,0 +1,49 @@
+{
+  "django": {
+    "models": "Models",
+    "serializers": "Serializers",
+    "views": "Views",
+    "authentication": "Authentication",
+    "orm_queries": "ORM Queries",
+    "forms": "Forms",
+    "middleware": "Middleware",
+    "signals": "Signals",
+    "permissions": "Permissions"
+  },
+  "react": {
+    "components": "Components",
+    "hooks": "Hooks",
+    "state_management": "State Management",
+    "routing": "Routing",
+    "forms": "Forms",
+    "context": "Context",
+    "performance": "Performance",
+    "lifecycle": "Lifecycle",
+    "props": "Props"
+  },
+  "angular": {
+    "components": "Components",
+    "services": "Services",
+    "directives": "Directives",
+    "pipes": "Pipes",
+    "routing": "Routing",
+    "forms": "Forms",
+    "dependency_injection": "Dependency Injection",
+    "rxjs": "RxJS & Observables",
+    "http": "HTTP & API",
+    "lifecycle": "Lifecycle Hooks",
+    "modules": "Modules",
+    "testing": "Testing"
+  },
+  "express": {
+    "routing": "Routing",
+    "middleware": "Middleware",
+    "authentication": "Authentication",
+    "request_response": "Request/Response",
+    "error_handling": "Error Handling",
+    "validation": "Validation",
+    "sessions": "Sessions",
+    "rest_api": "REST API",
+    "templating": "Templating"
+  }
+}

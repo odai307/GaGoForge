@@ -1,0 +1,133 @@
+{
+  "problem_id": "react-hooks-012", 
+  "title": "Create useFetch Hook with Retry Logic",
+  "slug": "create-use-fetch-hook-with-retry-logic",
+  "framework": "react",
+  "category": "hooks",
+  "difficulty": "intermediate",
+  "description": "Build an advanced `useFetch` hook with retry logic, caching, and error handling for reliable API calls.\n\n**Business Scenario:**\nYou're working on a financial dashboard that displays real-time market data. The API can be unstable during peak hours, so you need a robust fetching solution that:\n1. Automatically retries failed requests\n2. Shows loading states\n3. Caches successful responses\n4. Provides manual refetch capability\n5. Handles request cancellation when component unmounts\n\n**Requirements:**\n1. Create `useFetch` hook that accepts a URL and options object\n2. Return an object with: `data`, `loading`, `error`, `refetch`, `retryCount`\n3. Implement automatic retry logic (3 attempts with exponential backoff)\n4. Add request cancellation using AbortController\n5. Include basic caching (5-minute TTL)\n6. Handle JSON responses automatically\n7. Support manual triggering via `refetch` function\n\n**Expected Behavior:**\n- Shows loading state during fetch\n- Retries failed requests with increasing delays (1s, 2s, 4s)\n- Cancels pending requests on component unmount\n- Caches successful responses to reduce API calls\n- Returns clean error messages\n\n**Example Usage:**\n```typescript\nconst { data, loading, error, refetch } = useFetch(\n  'https://api.marketdata.com/stocks',\n  { \n    retries: 3,\n    cacheTime: 300000 // 5 minutes\n  }\n);\n\n// Manual refetch\n<button onClick={refetch} disabled={loading}>\n  Refresh Data\n</button>\n```\n\n**Edge Cases to Handle:**\n- Network failures\n- HTTP errors (404, 500, etc.)\n- JSON parsing errors\n- Component unmounting during fetch\n- Rapid consecutive calls",
+  "description_preview": "Implement a robust useFetch hook with automatic retries, caching, and request cancellation for unreliable APIs",
+  "context_code": "// Example API response structure (for reference)\ninterface StockData {\n  symbol: string;\n  price: number;\n  change: number;\n  volume: number;\n}\n\n// This shows the expected return type of your hook\n// You need to build the hook that returns this structure\n// const { data, loading, error, refetch, retryCount } = useFetch<StockData>(url, options);",
+  "starter_code": "",
+  "target_area": "useFetch custom hook with advanced features",
+  "validation_spec": {
+    "required_imports": ["react"],
+    "required_structure": {
+      "functions": [
+        {
+          "name": "useFetch",
+          "type": "custom_hook", 
+          "params": ["url", "options"],
+          "returns_object": true,
+          "object_properties": ["data", "loading", "error", "refetch", "retryCount"]
+        }
+      ]
+    },
+    "behavior_patterns": [
+      {
+        "type": "hook_call",
+        "hook": "useState",
+        "min_calls": 3,
+        "description": "Must use useState for data, loading, and error states"
+      },
+      {
+        "type": "hook_call", 
+        "hook": "useEffect",
+        "min_calls": 1,
+        "description": "Must use useEffect for fetching logic"
+      },
+      {
+        "type": "hook_call",
+        "hook": "useRef",
+        "min_calls": 1,
+        "description": "Should use useRef for caching or abort controller"
+      },
+      {
+        "type": "hook_call",
+        "hook": "useCallback",
+        "min_calls": 1,
+        "description": "Should use useCallback for stable function references"
+      },
+      {
+        "type": "constructor_call",
+        "class": "AbortController",
+        "context": "inside_function",
+        "description": "Must instantiate AbortController for request cancellation"
+      },
+      {
+        "type": "method_call",
+        "object": "controller",
+        "method": "abort",
+        "description": "Must call abort() for cleanup"
+      },
+      {
+        "type": "async_pattern",
+        "pattern": "async_await",
+        "context": "fetch_call",
+        "description": "Must use async/await with fetch API"
+      },
+      {
+        "type": "retry_logic",
+        "pattern": "exponential_backoff",
+        "description": "Should implement retry logic with increasing delays"
+      },
+      {
+        "type": "cache_pattern",
+        "pattern": "ttl_cache",
+        "description": "Should include caching with time-to-live"
+      },
+      {
+        "type": "cleanup_function",
+        "hook": "useEffect",
+        "must_return_function": true,
+        "description": "useEffect must return cleanup function"
+      }
+    ],
+    "difficulty": "intermediate",
+    "framework": "react"
+  },
+  "import_weight": 10.00,
+  "structure_weight": 25.00,
+  "behavior_weight": 65.00,
+  "passing_score": 85.00,
+  "hints": [
+    "Start by managing three state variables: data, loading, and error",
+    "Use AbortController inside useEffect to cancel requests on unmount",
+    "Implement retry logic with setTimeout and a retry counter",
+    "For caching, store responses with timestamps and check TTL before making new requests"
+  ],
+  "learning_resources": [
+    "https://react.dev/reference/react/useEffect",
+    "https://developer.mozilla.org/en-US/docs/Web/API/AbortController",
+    "https://developer.mozilla.org/en-US/docs/Web/API/Fetch_API"
+  ],
+  "tags": ["hooks", "custom-hooks", "api", "fetch", "error-handling", "react"],
+  "estimated_time_minutes": 40,
+  "patterns": [
+    {
+      "pattern_id": "react-hooks-012-pattern-1",
+      "name": "Advanced useFetch with Retry and Cache",
+      "description": "Complete implementation with retry logic, caching, and cleanup",
+      "example_code": "import { useState, useEffect, useCallback, useRef } from 'react';\n\ninterface UseFetchOptions {\n  retries?: number;\n  retryDelay?: number;\n  cacheTime?: number;\n  headers?: Record<string, string>;\n}\n\ninterface UseFetchResult<T> {\n  data: T | null;\n  loading: boolean;\n  error: Error | null;\n  refetch: () => Promise<void>;\n  retryCount: number;\n}\n\nfunction useFetch<T = any>(\n  url: string,\n  options: UseFetchOptions = {}\n): UseFetchResult<T> {\n  const {\n    retries = 3,\n    retryDelay = 1000,\n    cacheTime = 300000, // 5 minutes\n    headers = {},\n  } = options;\n  \n  const [data, setData] = useState<T | null>(null);\n  const [loading, setLoading] = useState<boolean>(true);\n  const [error, setError] = useState<Error | null>(null);\n  const [retryCount, setRetryCount] = useState<number>(0);\n  \n  const cache = useRef<Map<string, { data: T; timestamp: number }>>(new Map());\n  const abortController = useRef<AbortController | null>(null);\n  \n  const fetchData = useCallback(async (isRetry = false) => {\n    if (!isRetry) {\n      setLoading(true);\n      setError(null);\n    }\n    \n    // Check cache first\n    const cached = cache.current.get(url);\n    if (cached && Date.now() - cached.timestamp < cacheTime) {\n      setData(cached.data);\n      setLoading(false);\n      return;\n    }\n    \n    // Cancel previous request\n    if (abortController.current) {\n      abortController.current.abort();\n    }\n    \n    abortController.current = new AbortController();\n    \n    let currentRetry = 0;\n    const maxRetries = isRetry ? retries : 0;\n    \n    const attemptFetch = async (attempt: number): Promise<void> => {\n      try {\n        const response = await fetch(url, {\n          headers: {\n            'Content-Type': 'application/json',\n            ...headers,\n          },\n          signal: abortController.current?.signal,\n        });\n        \n        if (!response.ok) {\n          throw new Error(`HTTP ${response.status}: ${response.statusText}`);\n        }\n        \n        const result = await response.json();\n        \n        // Cache successful response\n        cache.current.set(url, { data: result, timestamp: Date.now() });\n        \n        setData(result);\n        setLoading(false);\n        setRetryCount(0);\n      } catch (err) {\n        if (err.name === 'AbortError') {\n          return; // Request was cancelled\n        }\n        \n        if (attempt < maxRetries) {\n          setRetryCount(prev => prev + 1);\n          await new Promise(resolve => \n            setTimeout(resolve, retryDelay * Math.pow(2, attempt))\n          );\n          return attemptFetch(attempt + 1);\n        }\n        \n        setError(err instanceof Error ? err : new Error('Unknown error'));\n        setLoading(false);\n      }\n    };\n    \n    await attemptFetch(0);\n  }, [url, retries, retryDelay, cacheTime, headers]);\n  \n  const refetch = useCallback(async () => {\n    await fetchData(true);\n  }, [fetchData]);\n  \n  useEffect(() => {\n    fetchData();\n    \n    return () => {\n      if (abortController.current) {\n        abortController.current.abort();\n      }\n    };\n  }, [fetchData]);\n  \n  return { data, loading, error, refetch, retryCount };\n}\n\nexport default useFetch;",
+      "required_imports": ["react"],
+      "required_structure": {
+        "functions": [
+          {
+            "name": "useFetch",
+            "type": "custom_hook",
+            "params": ["url", "options"],
+            "returns_object": true,
+            "object_properties": ["data", "loading", "error", "refetch", "retryCount"]
+          }
+        ]
+      },
+      "forbidden_patterns": [
+        "missing_cleanup",
+        "no_abort_controller",
+        "infinite_retry_loop"
+      ],
+      "is_primary": true,
+      "confidence_threshold": 85.00
+    }
+  ]
+}

@@ -1,0 +1,90 @@
+{
+  "problem_id": "react-performance-003",
+  "title": "Prevent Unnecessary Child Re-renders with React.memo",
+  "slug": "prevent-unnecessary-child-re-renders-with-react-memo",
+  "framework": "react",
+  "category": "performance",
+  "difficulty": "beginner",
+  "description": "You're building a dashboard with multiple independent counters. The parent component has a button that updates a value, but this causes ALL child counter components to re-render unnecessarily.\n\n**Business Requirements:**\n1. Create a parent Dashboard component with 3 independent Counter components\n2. Each Counter should display its own count and have increment/decrement buttons\n3. The parent Dashboard has a separate \"Last Updated\" timestamp\n4. Clicking the \"Update Timestamp\" button in the parent should NOT cause child Counters to re-render\n5. Child Counters should only re-render when their own count changes\n\n**Performance Issues to Solve:**\n- Child Counters re-rendering when parent timestamp updates\n- Inefficient re-renders of unchanged components\n- Unnecessary computation in child components\n\n**Expected Behavior:**\n- Each Counter maintains its own independent count state\n- Counter increment/decrement buttons only affect that specific counter\n- \"Update Timestamp\" button updates only the timestamp in parent\n- Child Counters should not re-render when timestamp updates\n- Console logs should show which components are rendering\n\n**Performance Requirements:**\n1. Use `React.memo` to prevent unnecessary re-renders of Counter components\n2. Ensure Counter components only re-render when their props change\n3. Add console logs to demonstrate re-render prevention",
+  "description_preview": "Use React.memo to prevent child components from re-rendering when parent state unrelated to them changes",
+  "context_code": "// No context code needed - build everything from scratch",
+  "starter_code": "",
+  "target_area": "Dashboard with memoized Counter child components",
+  "validation_spec": {
+    "required_imports": ["react"],
+    "required_structure": {
+      "functions": [
+        {
+          "name": "Dashboard",
+          "type": "functional_component",
+          "has_export": true
+        },
+        {
+          "name": "Counter",
+          "type": "functional_component"
+        }
+      ]
+    },
+    "behavior_patterns": [
+      {
+        "type": "memoization",
+        "memo_type": "react_memo"
+      },
+      "Counter component wrapped with React.memo",
+      "Parent Dashboard has timestamp state",
+      "Child Counters have independent state",
+      "Console logs show render prevention",
+      {
+        "type": "conditional_rendering",
+        "conditional_type": "ternary"
+      }
+    ]
+  },
+  "import_weight": 15.00,
+  "structure_weight": 35.00,
+  "behavior_weight": 50.00,
+  "passing_score": 75.00,
+  "hints": [
+    "Create a Counter component that manages its own count state",
+    "Wrap the Counter component with React.memo()",
+    "Add console.log to Counter to see when it renders",
+    "Create a Dashboard component with timestamp state and update button",
+    "Render multiple Counter instances inside Dashboard",
+    "The timestamp update should not trigger Counter re-renders"
+  ],
+  "learning_resources": [
+    "https://react.dev/reference/react/memo",
+    "https://react.dev/learn/render-and-commit#re-renders-when-state-updates"
+  ],
+  "tags": ["react", "performance", "memoization", "re-renders", "optimization", "beginner"],
+  "estimated_time_minutes": 30,
+  "patterns": [
+    {
+      "pattern_id": "react-performance-003-pattern-1",
+      "name": "React.memo Pattern",
+      "description": "Proper use of React.memo to prevent unnecessary re-renders",
+      "example_code": "import React, { useState, memo } from 'react';\n\n// Counter component with React.memo\nconst Counter = memo(function Counter({ name }) {\n  const [count, setCount] = useState(0);\n  \n  console.log(`Counter ${name} is rendering...`);\n  \n  const increment = () => {\n    setCount(prev => prev + 1);\n  };\n  \n  const decrement = () => {\n    setCount(prev => prev - 1);\n  };\n  \n  const reset = () => {\n    setCount(0);\n  };\n  \n  return (\n    <div className=\"counter\">\n      <h3>Counter: {name}</h3>\n      <div className=\"count-display\">Count: {count}</div>\n      <div className=\"counter-buttons\">\n        <button onClick={decrement}>-</button>\n        <button onClick={reset}>Reset</button>\n        <button onClick={increment}>+</button>\n      </div>\n      <div className=\"counter-status\">\n        {count === 0 ? 'Count is zero' : \n         count > 0 ? 'Count is positive' : 'Count is negative'}\n      </div>\n    </div>\n  );\n});\n\n// Parent Dashboard component\nexport function Dashboard() {\n  const [timestamp, setTimestamp] = useState(new Date().toLocaleTimeString());\n  \n  console.log('Dashboard is rendering...');\n  \n  const updateTimestamp = () => {\n    setTimestamp(new Date().toLocaleTimeString());\n  };\n  \n  return (\n    <div className=\"dashboard\">\n      <h2>Performance Dashboard</h2>\n      \n      <div className=\"dashboard-info\">\n        <p>Last Updated: {timestamp}</p>\n        <button onClick={updateTimestamp}>\n          Update Timestamp\n        </button>\n        <p className=\"instruction\">\n          Clicking \"Update Timestamp\" should NOT cause Counters to re-render.\n          Check the console to verify.\n        </p>\n      </div>\n      \n      <div className=\"counters-container\">\n        <Counter name=\"Counter A\" />\n        <Counter name=\"Counter B\" />\n        <Counter name=\"Counter C\" />\n      </div>\n      \n      <div className=\"performance-note\">\n        <p><strong>Performance Note:</strong></p>\n        <p>Each Counter manages its own state independently.</p>\n        <p>Counter components are memoized with React.memo.</p>\n        <p>Updating the timestamp only re-renders the Dashboard, not the Counters.</p>\n      </div>\n    </div>\n  );\n}",
+      "required_imports": ["react"],
+      "required_structure": {
+        "functions": [
+          {
+            "name": "Dashboard",
+            "type": "functional_component",
+            "has_export": true
+          },
+          {
+            "name": "Counter",
+            "type": "functional_component"
+          }
+        ]
+      },
+      "forbidden_patterns": [
+        "Counter component not wrapped with memo",
+        "Passing new object/function props to memoized components",
+        "Missing key props when rendering lists"
+      ],
+      "is_primary": true,
+      "confidence_threshold": 85.00
+    }
+  ]
+}

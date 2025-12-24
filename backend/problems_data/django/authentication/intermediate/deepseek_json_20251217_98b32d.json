@@ -1,0 +1,169 @@
+{
+  "problem_id": "django-authentication-012",
+  "title": "Implement JWT Authentication with Token Blacklisting",
+  "slug": "implement-jwt-authentication-with-token-blacklisting",
+  "framework": "django",
+  "category": "authentication",
+  "difficulty": "intermediate",
+  "description": "You're building a REST API that requires secure JWT-based authentication with the following requirements:\n\n**Requirements:**\n\n1. **JWT Token Generation:**\n   - Generate access tokens (short-lived: 15 minutes) and refresh tokens (long-lived: 7 days)\n   - Tokens must include standard claims: `iss`, `sub`, `exp`, `iat`, `jti`\n   - Custom claims: `user_id`, `email`, `role`, `permissions`\n   - Use asymmetric cryptography (RS256) for signing\n\n2. **Token Blacklisting:**\n   - Implement token blacklisting for logout and security breaches\n   - Store blacklisted tokens until their natural expiration\n   - Support for blacklisting all tokens for a user\n   - Support for blacklisting by token type (access vs refresh)\n\n3. **Refresh Token Rotation:**\n   - When refreshing tokens, issue new refresh token and invalidate the old one\n   - Prevent refresh token reuse (detect and blacklist if reused)\n   - Track refresh token family to prevent token replay attacks\n\n4. **Security Features:**\n   - Token validation with proper signature verification\n   - Check token expiration and blacklist status\n   - Validate issuer and audience claims\n   - Support for token revocation before expiration\n   - Rate limiting for token refresh endpoint\n\n5. **API Endpoints to Implement:**\n   - `/api/auth/login/` - Issue initial token pair\n   - `/api/auth/refresh/` - Refresh access token using refresh token\n   - `/api/auth/logout/` - Blacklist current token\n   - `/api/auth/logout-all/` - Blacklist all tokens for user\n   - `/api/auth/verify/` - Verify token validity\n\n6. **Models Required:**\n   - `BlacklistedToken` - Store blacklisted tokens\n   - `RefreshToken` - Track issued refresh tokens for rotation\n   - `TokenFamily` - Group related tokens for security\n\n**Expected Behavior:**\n\n```python\n# Login\nresponse = {\n    'access': 'eyJ0eXAiOiJKV1QiLCJhbGciOiJSUzI1NiJ9...',\n    'refresh': 'eyJ0eXAiOiJKV1QiLCJhbGciOiJSUzI1NiJ9...',\n    'access_expires': 900,  # 15 minutes in seconds\n    'refresh_expires': 604800  # 7 days in seconds\n}\n\n# Token refresh (returns new tokens, invalidates old refresh token)\nresponse = {\n    'access': 'new_access_token...',\n    'refresh': 'new_refresh_token...'\n}\n\n# Logout (blacklists current token)\nresponse = {'message': 'Successfully logged out'}\n```\n\n**Constraints:**\n- Must use PyJWT library for JWT handling\n- Must implement proper error handling for all edge cases\n- Must store tokens securely (hashed where appropriate)\n- Must handle concurrent token refresh requests safely\n- Must provide comprehensive tests for security scenarios",
+  "description_preview": "Implement secure JWT authentication with token blacklisting, refresh token rotation, and proper security validations.",
+  "context_code": "# BASE IMPORTS AND SETTINGS (for reference only)\n# You need to implement the JWT authentication system\nfrom datetime import datetime, timedelta\nimport jwt\nfrom cryptography.hazmat.primitives import serialization\nfrom django.conf import settings\nfrom django.db import models\nfrom django.utils import timezone\n\n# Required settings (you can assume these exist):\n# JWT_PRIVATE_KEY - RSA private key for signing\n# JWT_PUBLIC_KEY - RSA public key for verification\n# JWT_ISSUER - Token issuer\n# JWT_AUDIENCE - Token audience\n\n# You'll need to create:\n# 1. Authentication backend\n# 2. Token generation functions\n# 3. Token validation functions\n# 4. Blacklisting system\n# 5. API views\n# 6. Required models",
+  "starter_code": "",
+  "target_area": "Create the JWT authentication system with blacklisting and refresh token rotation",
+  "validation_spec": {
+    "required_imports": [
+      "jwt",
+      "datetime",
+      "hashlib",
+      "uuid",
+      "django.db.models",
+      "django.utils.timezone",
+      "django.contrib.auth",
+      "django.core.cache",
+      "cryptography.hazmat.primitives"
+    ],
+    "required_structure": {
+      "classes": [
+        {
+          "name": "BlacklistedToken",
+          "required_fields": ["token_hash", "token_type", "user", "expires_at", "blacklisted_at", "reason"],
+          "required_methods": ["is_blacklisted", "clean_expired"]
+        },
+        {
+          "name": "RefreshToken",
+          "required_fields": ["token_hash", "user", "family", "issued_at", "expires_at", "used_at", "is_active"],
+          "required_methods": ["mark_used", "is_valid"]
+        },
+        {
+          "name": "TokenFamily",
+          "required_fields": ["family_id", "user", "created_at", "revoked_at"]
+        },
+        {
+          "name": "JWTAuthenticationBackend",
+          "parent_class": "object",
+          "required_methods": ["authenticate", "get_user", "generate_tokens", "refresh_tokens", "blacklist_token"]
+        }
+      ],
+      "functions": [
+        {
+          "name": "generate_token_pair",
+          "params": ["user"],
+          "returns": "dict"
+        },
+        {
+          "name": "verify_token",
+          "params": ["token", "token_type"],
+          "returns": "dict"
+        },
+        {
+          "name": "hash_token",
+          "params": ["token"],
+          "returns": "str"
+        }
+      ]
+    },
+    "behavior_patterns": [
+      "Uses RS256 algorithm for JWT signing/verification",
+      "Generates unique jti (JWT ID) for each token",
+      "Stores token hashes (not raw tokens) in database",
+      "Implements refresh token rotation with family tracking",
+      "Blacklists tokens on logout and marks refresh tokens as used",
+      "Validates issuer, audience, and expiration claims",
+      "Handles token refresh with concurrent request safety",
+      "Provides method to revoke all tokens for a user",
+      "Cleans up expired tokens from database periodically",
+      "Includes rate limiting for authentication endpoints",
+      "Uses proper error responses for invalid/expired/blacklisted tokens"
+    ]
+  },
+  "import_weight": 15.00,
+  "structure_weight": 30.00,
+  "behavior_weight": 55.00,
+  "passing_score": 80.00,
+  "hints": [
+    "Use PyJWT library with cryptography backend for RSA tokens",
+    "Generate unique jti using uuid4 for each token",
+    "Hash tokens before storing in database (SHA256)",
+    "Implement refresh token rotation: issue new refresh token, invalidate old",
+    "Create a token family system to detect refresh token replay attacks",
+    "Use Django's cache for rate limiting authentication endpoints",
+    "Implement a management command to clean up expired tokens",
+    "Create custom exceptions for different token validation failures",
+    "Use atomic transactions for token operations to ensure consistency",
+    "Consider implementing token versioning for future security updates"
+  ],
+  "learning_resources": [
+    "https://pyjwt.readthedocs.io/en/stable/",
+    "https://jwt.io/introduction",
+    "https://auth0.com/docs/secure/tokens/refresh-tokens/refresh-token-rotation",
+    "https://docs.djangoproject.com/en/stable/topics/auth/customizing/#writing-an-authentication-backend"
+  ],
+  "tags": ["django", "authentication", "jwt", "security", "rest_api", "intermediate"],
+  "estimated_time_minutes": 45,
+  "patterns": [
+    {
+      "pattern_id": "django-authentication-012-pattern-1",
+      "name": "Secure JWT Authentication System",
+      "description": "Complete JWT authentication implementation with blacklisting, refresh rotation, and security features",
+      "example_code": "import jwt\nimport uuid\nimport hashlib\nfrom datetime import datetime, timedelta\nfrom typing import Optional, Dict, Tuple\n\nfrom django.db import models, transaction\nfrom django.utils import timezone\nfrom django.conf import settings\nfrom django.contrib.auth import get_user_model\nfrom django.core.cache import cache\nfrom django.core.exceptions import ValidationError\nfrom cryptography.hazmat.primitives import serialization\n\nUser = get_user_model()\n\n\ndef hash_token(token: str) -> str:\n    \"\"\"Create SHA256 hash of a token for storage\"\"\"\n    return hashlib.sha256(token.encode()).hexdigest()\n\n\nclass JWTConfig:\n    \"\"\"Configuration for JWT authentication\"\"\"\n    \n    def __init__(self):\n        self.algorithm = 'RS256'\n        self.access_token_lifetime = timedelta(minutes=15)\n        self.refresh_token_lifetime = timedelta(days=7)\n        self.issuer = getattr(settings, 'JWT_ISSUER', 'your-app')\n        self.audience = getattr(settings, 'JWT_AUDIENCE', 'your-app-audience')\n        \n        # Load RSA keys\n        private_key_path = getattr(settings, 'JWT_PRIVATE_KEY_PATH')\n        public_key_path = getattr(settings, 'JWT_PUBLIC_KEY_PATH')\n        \n        with open(private_key_path, 'rb') as f:\n            self.private_key = serialization.load_pem_private_key(\n                f.read(),\n                password=None\n            )\n        \n        with open(public_key_path, 'rb') as f:\n            self.public_key = serialization.load_pem_public_key(f.read())\n    \n    def get_private_key(self):\n        return self.private_key\n    \n    def get_public_key(self):\n        return self.public_key\n\n\njwt_config = JWTConfig()\n\n\nclass TokenFamily(models.Model):\n    \"\"\"Group of related refresh tokens to prevent replay attacks\"\"\"\n    \n    family_id = models.UUIDField(default=uuid.uuid4, unique=True, editable=False)\n    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='token_families')\n    created_at = models.DateTimeField(auto_now_add=True)\n    revoked_at = models.DateTimeField(null=True, blank=True)\n    \n    class Meta:\n        verbose_name = 'token family'\n        verbose_name_plural = 'token families'\n    \n    def __str__(self):\n        return f\"{self.user.email} - {self.family_id}\"\n    \n    def revoke(self):\n        \"\"\"Revoke this token family\"\"\"\n        self.revoked_at = timezone.now()\n        self.save()\n        \n        # Revoke all refresh tokens in this family\n        self.refresh_tokens.update(is_active=False)\n    \n    def is_active(self):\n        return self.revoked_at is None\n\n\nclass RefreshToken(models.Model):\n    \"\"\"Track refresh tokens for rotation\"\"\"\n    \n    token_hash = models.CharField(max_length=64, unique=True, db_index=True)  # SHA256\n    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='refresh_tokens')\n    family = models.ForeignKey(TokenFamily, on_delete=models.CASCADE, related_name='refresh_tokens')\n    issued_at = models.DateTimeField(auto_now_add=True)\n    expires_at = models.DateTimeField()\n    used_at = models.DateTimeField(null=True, blank=True)\n    is_active = models.BooleanField(default=True)\n    \n    class Meta:\n        ordering = ['-issued_at']\n        indexes = [\n            models.Index(fields=['user', 'is_active']),\n            models.Index(fields=['expires_at']),\n        ]\n    \n    def __str__(self):\n        return f\"{self.user.email} - {self.issued_at}\"\n    \n    def mark_used(self):\n        \"\"\"Mark this refresh token as used\"\"\"\n        self.used_at = timezone.now()\n        self.is_active = False\n        self.save()\n    \n    def is_valid(self):\n        \"\"\"Check if refresh token is still valid\"\"\"\n        now = timezone.now()\n        return (\n            self.is_active and\n            self.used_at is None and\n            now < self.expires_at\n        )\n    \n    @classmethod\n    def create_token(cls, user, family=None):\n        \"\"\"Create a new refresh token\"\"\"\n        if family is None:\n            family = TokenFamily.objects.create(user=user)\n        \n        # Generate random token\n        token = str(uuid.uuid4())\n        token_hash = hash_token(token)\n        \n        # Calculate expiration\n        expires_at = timezone.now() + jwt_config.refresh_token_lifetime\n        \n        refresh_token = cls.objects.create(\n            token_hash=token_hash,\n            user=user,\n            family=family,\n            expires_at=expires_at\n        )\n        \n        return refresh_token, token\n\n\nclass BlacklistedToken(models.Model):\n    \"\"\"Store blacklisted tokens\"\"\"\n    \n    TOKEN_TYPES = [\n        ('access', 'Access Token'),\n        ('refresh', 'Refresh Token'),\n    ]\n    \n    BLACKLIST_REASONS = [\n        ('logout', 'User Logout'),\n        ('security', 'Security Breach'),\n        ('refresh', 'Token Refresh'),\n        ('admin', 'Administrator Action'),\n    ]\n    \n    token_hash = models.CharField(max_length=64, db_index=True)  # SHA256\n    token_type = models.CharField(max_length=10, choices=TOKEN_TYPES)\n    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='blacklisted_tokens')\n    expires_at = models.DateTimeField()  # Original token expiration\n    blacklisted_at = models.DateTimeField(auto_now_add=True)\n    reason = models.CharField(max_length=20, choices=BLACKLIST_REASONS)\n    \n    class Meta:\n        indexes = [\n            models.Index(fields=['token_hash', 'token_type']),\n            models.Index(fields=['user', 'blacklisted_at']),\n            models.Index(fields=['expires_at']),\n        ]\n        verbose_name = 'blacklisted token'\n        verbose_name_plural = 'blacklisted tokens'\n    \n    def __str__(self):\n        return f\"{self.token_type} - {self.reason} - {self.blacklisted_at}\"\n    \n    @classmethod\n    def is_blacklisted(cls, token_hash: str, token_type: str) -> bool:\n        \"\"\"Check if a token is blacklisted\"\"\"\n        return cls.objects.filter(\n            token_hash=token_hash,\n            token_type=token_type,\n            expires_at__gt=timezone.now()  # Only check if not expired\n        ).exists()\n    \n    @classmethod\n    def blacklist_token(cls, token_hash: str, token_type: str, user: User, \n                       expires_at: datetime, reason: str):\n        \"\"\"Add a token to the blacklist\"\"\"\n        cls.objects.create(\n            token_hash=token_hash,\n            token_type=token_type,\n            user=user,\n            expires_at=expires_at,\n            reason=reason\n        )\n    \n    @classmethod\n    def clean_expired(cls):\n        \"\"\"Remove expired blacklisted tokens\"\"\"\n        cls.objects.filter(expires_at__lte=timezone.now()).delete()\n    \n    @classmethod\n    def revoke_all_for_user(cls, user: User, reason: str = 'security'):\n        \"\"\"Blacklist all active tokens for a user\"\"\"\n        # This would typically be called from a view\n        # In practice, you'd need to track active tokens to blacklist them\n        pass\n\n\nclass JWTAuthenticationBackend:\n    \"\"\"Custom authentication backend for JWT\"\"\"\n    \n    def __init__(self):\n        self.config = jwt_config\n    \n    def authenticate(self, request, token: str = None):\n        \"\"\"Authenticate a user from JWT token\"\"\"\n        if token is None:\n            # Try to get token from Authorization header\n            auth_header = request.META.get('HTTP_AUTHORIZATION', '')\n            if not auth_header.startswith('Bearer '):\n                return None\n            token = auth_header.split(' ')[1]\n        \n        try:\n            payload = self.verify_token(token, 'access')\n            user_id = payload.get('user_id')\n            \n            if user_id:\n                try:\n                    user = User.objects.get(pk=user_id)\n                    return user\n                except User.DoesNotExist:\n                    return None\n        except (jwt.InvalidTokenError, ValueError):\n            return None\n        \n        return None\n    \n    def get_user(self, user_id):\n        \"\"\"Get user by ID\"\"\"\n        try:\n            return User.objects.get(pk=user_id)\n        except User.DoesNotExist:\n            return None\n    \n    def generate_token_pair(self, user: User) -> Dict[str, str]:\n        \"\"\"Generate new access and refresh tokens\"\"\"\n        with transaction.atomic():\n            # Create new token family for this login session\n            family = TokenFamily.objects.create(user=user)\n            \n            # Generate refresh token\n            refresh_token_obj, refresh_token = RefreshToken.create_token(user, family)\n            \n            # Generate access token\n            access_token = self._generate_access_token(user, refresh_token_obj)\n            \n            return {\n                'access': access_token,\n                'refresh': refresh_token,\n                'access_expires': self.config.access_token_lifetime.total_seconds(),\n                'refresh_expires': self.config.refresh_token_lifetime.total_seconds(),\n            }\n    \n    def refresh_tokens(self, refresh_token: str) -> Dict[str, str]:\n        \"\"\"Refresh access token using refresh token\"\"\"\n        with transaction.atomic():\n            # Verify refresh token\n            try:\n                refresh_hash = hash_token(refresh_token)\n                refresh_token_obj = RefreshToken.objects.select_for_update().get(\n                    token_hash=refresh_hash,\n                    is_active=True\n                )\n            except RefreshToken.DoesNotExist:\n                raise ValueError('Invalid refresh token')\n            \n            # Check if token is valid\n            if not refresh_token_obj.is_valid():\n                raise ValueError('Refresh token expired or already used')\n            \n            # Check token family\n            if not refresh_token_obj.family.is_active():\n                raise ValueError('Token family revoked')\n            \n            # Check if token is blacklisted\n            if BlacklistedToken.is_blacklisted(refresh_hash, 'refresh'):\n                raise ValueError('Refresh token blacklisted')\n            \n            # Mark old refresh token as used\n            refresh_token_obj.mark_used()\n            \n            # Blacklist the used refresh token\n            BlacklistedToken.blacklist_token(\n                token_hash=refresh_hash,\n                token_type='refresh',\n                user=refresh_token_obj.user,\n                expires_at=refresh_token_obj.expires_at,\n                reason='refresh'\n            )\n            \n            # Generate new refresh token in same family\n            new_refresh_token_obj, new_refresh_token = RefreshToken.create_token(\n                refresh_token_obj.user,\n                refresh_token_obj.family\n            )\n            \n            # Generate new access token\n            new_access_token = self._generate_access_token(\n                refresh_token_obj.user,\n                new_refresh_token_obj\n            )\n            \n            return {\n                'access': new_access_token,\n                'refresh': new_refresh_token,\n            }\n    \n    def verify_token(self, token: str, token_type: str) -> Dict:\n        \"\"\"Verify and decode a JWT token\"\"\"\n        try:\n            # Decode token\n            payload = jwt.decode(\n                token,\n                jwt_config.get_public_key(),\n                algorithms=[jwt_config.algorithm],\n                issuer=jwt_config.issuer,\n                audience=jwt_config.audience,\n                options={\n                    'require': ['exp', 'iat', 'iss', 'aud', 'jti', 'user_id'],\n                    'verify_exp': True,\n                    'verify_iss': True,\n                    'verify_aud': True,\n                }\n            )\n            \n            # Check blacklist\n            token_hash = hash_token(token)\n            if BlacklistedToken.is_blacklisted(token_hash, token_type):\n                raise jwt.InvalidTokenError('Token blacklisted')\n            \n            return payload\n            \n        except jwt.ExpiredSignatureError:\n            raise ValueError('Token expired')\n        except jwt.InvalidTokenError as e:\n            raise ValueError(f'Invalid token: {str(e)}')\n    \n    def blacklist_token(self, token: str, token_type: str, user: User, reason: str = 'logout'):\n        \"\"\"Blacklist a token\"\"\"\n        try:\n            # Verify token to get expiration\n            payload = jwt.decode(\n                token,\n                jwt_config.get_public_key(),\n                algorithms=[jwt_config.algorithm],\n                options={'verify_exp': False}  # Don't verify exp for blacklisting\n            )\n            \n            expires_at = datetime.fromtimestamp(payload['exp'], tz=timezone.utc)\n            token_hash = hash_token(token)\n            \n            BlacklistedToken.blacklist_token(\n                token_hash=token_hash,\n                token_type=token_type,\n                user=user,\n                expires_at=expires_at,\n                reason=reason\n            )\n            \n        except jwt.InvalidTokenError:\n            # Still blacklist even if invalid (for security)\n            expires_at = timezone.now() + timedelta(days=1)  # Default expiration\n            token_hash = hash_token(token)\n            \n            BlacklistedToken.blacklist_token(\n                token_hash=token_hash,\n                token_type=token_type,\n                user=user,\n                expires_at=expires_at,\n                reason=reason\n            )\n    \n    def _generate_access_token(self, user: User, refresh_token_obj: RefreshToken) -> str:\n        \"\"\"Generate an access token\"\"\"\n        now = timezone.now()\n        expires_at = now + self.config.access_token_lifetime\n        \n        # User permissions/roles (customize as needed)\n        user_permissions = list(user.get_all_permissions())\n        \n        payload = {\n            'iss': self.config.issuer,\n            'aud': self.config.audience,\n            'exp': expires_at,\n            'iat': now,\n            'jti': str(uuid.uuid4()),\n            'user_id': user.id,\n            'email': user.email,\n            'permissions': user_permissions,\n            'refresh_token_id': refresh_token_obj.id,\n        }\n        \n        # Add custom claims\n        if hasattr(user, 'role'):\n            payload['role'] = user.role\n        \n        # Generate token\n        token = jwt.encode(\n            payload,\n            self.config.get_private_key(),\n            algorithm=self.config.algorithm\n        )\n        \n        return token\n\n\n# Rate limiting decorator\nfrom django.core.cache import cache\nfrom functools import wraps\nfrom django.http import JsonResponse\n\n\ndef rate_limit(key_prefix: str, limit: int, window: int):\n    \"\"\"Rate limiting decorator for authentication endpoints\"\"\"\n    def decorator(view_func):\n        @wraps(view_func)\n        def wrapped_view(request, *args, **kwargs):\n            # Get client identifier\n            ip = request.META.get('REMOTE_ADDR', '')\n            key = f\"rate_limit:{key_prefix}:{ip}\"\n            \n            # Get current count\n            current = cache.get(key, 0)\n            \n            if current >= limit:\n                return JsonResponse(\n                    {'error': 'Rate limit exceeded. Please try again later.'},\n                    status=429\n                )\n            \n            # Increment count\n            if not current:\n                cache.set(key, 1, window)\n            else:\n                cache.incr(key)\n            \n            return view_func(request, *args, **kwargs)\n        return wrapped_view\n    return decorator",
+      "required_imports": [
+        "jwt",
+        "datetime",
+        "hashlib",
+        "uuid",
+        "django.db.models",
+        "django.utils.timezone",
+        "django.contrib.auth",
+        "django.core.cache",
+        "cryptography.hazmat.primitives"
+      ],
+      "required_structure": {
+        "classes": [
+          {
+            "name": "BlacklistedToken",
+            "required_fields": ["token_hash", "token_type", "user", "expires_at", "blacklisted_at", "reason"],
+            "required_methods": ["is_blacklisted", "blacklist_token"]
+          },
+          {
+            "name": "RefreshToken",
+            "required_fields": ["token_hash", "user", "family", "issued_at", "expires_at", "used_at", "is_active"],
+            "required_methods": ["mark_used", "is_valid", "create_token"]
+          },
+          {
+            "name": "TokenFamily",
+            "required_fields": ["family_id", "user", "created_at", "revoked_at"],
+            "required_methods": ["revoke", "is_active"]
+          },
+          {
+            "name": "JWTAuthenticationBackend",
+            "required_methods": ["authenticate", "get_user", "generate_token_pair", "refresh_tokens", "verify_token", "blacklist_token"]
+          }
+        ],
+        "functions": [
+          {
+            "name": "hash_token",
+            "params": ["token"],
+            "returns": "str"
+          },
+          {
+            "name": "rate_limit",
+            "params": ["key_prefix", "limit", "window"],
+            "returns": "decorator"
+          }
+        ]
+      },
+      "forbidden_patterns": [
+        "Storing raw tokens in database",
+        "Using symmetric encryption for JWT",
+        "No refresh token rotation",
+        "No token blacklisting on logout",
+        "No rate limiting on auth endpoints",
+        "Missing token family tracking for security",
+        "Not using atomic transactions for token operations",
+        "No error handling for invalid tokens"
+      ],
+      "is_primary": true,
+      "confidence_threshold": 85.00
+    }
+  ]
+}

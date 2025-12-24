@@ -1,0 +1,125 @@
+{
+  "problem_id": "react-hooks-013",
+  "title": "Build useForm Hook with Validation",
+  "slug": "build-use-form-hook-with-validation",
+  "framework": "react",
+  "category": "hooks",
+  "difficulty": "intermediate",
+  "description": "Create a comprehensive `useForm` hook that handles form state, validation, submission, and error management.\n\n**Business Scenario:**\nYou're building a user registration form for a banking application with strict validation requirements. The form must:\n1. Validate fields in real-time\n2. Show appropriate error messages\n3. Prevent submission until all fields are valid\n4. Handle async validation (e.g., checking if email is already taken)\n5. Reset form state when needed\n6. Track dirty/pristine state for UX improvements\n\n**Requirements:**\n1. Create `useForm` hook that accepts initial values and validation rules\n2. Return object with: `values`, `errors`, `touched`, `isValid`, `handleChange`, `handleBlur`, `handleSubmit`, `resetForm`\n3. Implement synchronous validation for required fields, email format, etc.\n4. Support async validation for server-side checks\n5. Track which fields have been touched (visited)\n6. Calculate overall form validity\n7. Handle form submission with proper loading state\n\n**Expected Behavior:**\n- Real-time validation as user types\n- Error messages appear when field loses focus (onBlur)\n- Submit button disabled until form is valid\n- Async validation shows loading state\n- Form can be reset to initial values\n\n**Example Usage:**\n```typescript\nconst { values, errors, touched, isValid, handleChange, handleBlur, handleSubmit } = useForm(\n  { email: '', password: '', confirmPassword: '' },\n  {\n    email: [\n      { required: true, message: 'Email is required' },\n      { pattern: /^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$/, message: 'Invalid email format' }\n    ],\n    password: [\n      { required: true, message: 'Password is required' },\n      { minLength: 8, message: 'Password must be at least 8 characters' }\n    ],\n    confirmPassword: [\n      {\n        validator: (value, values) => value === values.password,\n        message: 'Passwords must match'\n      }\n    ]\n  }\n);\n```\n\n**Validation Rules to Support:**\n- Required fields\n- Minimum/maximum length\n- Pattern matching (regex)\n- Custom synchronous validators\n- Async validators (returns Promise)",
+  "description_preview": "Implement a useForm hook with comprehensive validation, error handling, and form state management",
+  "context_code": "// Validation rule types (for reference)\ntype ValidationRule = {\n  required?: boolean;\n  minLength?: number;\n  maxLength?: number;\n  pattern?: RegExp;\n  validator?: (value: any, values: Record<string, any>) => boolean | string;\n  asyncValidator?: (value: any) => Promise<boolean | string>;\n  message: string;\n};\n\n// This shows the structure your hook should return\n// You need to build the hook that provides this interface\n// const form = useForm(initialValues, validationRules);",
+  "starter_code": "",
+  "target_area": "useForm custom hook with validation",
+  "validation_spec": {
+    "required_imports": ["react"],
+    "required_structure": {
+      "functions": [
+        {
+          "name": "useForm",
+          "type": "custom_hook",
+          "params": ["initialValues", "validationRules"],
+          "returns_object": true,
+          "object_properties": ["values", "errors", "touched", "isValid", "handleChange", "handleBlur", "handleSubmit", "resetForm", "isSubmitting"]
+        }
+      ]
+    },
+    "behavior_patterns": [
+      {
+        "type": "hook_call",
+        "hook": "useState",
+        "min_calls": 4,
+        "description": "Must use useState for values, errors, touched, and submitting state"
+      },
+      {
+        "type": "hook_call",
+        "hook": "useCallback",
+        "min_calls": 3,
+        "description": "Should use useCallback for stable handler functions"
+      },
+      {
+        "type": "form_validation",
+        "validation_type": "synchronous",
+        "description": "Must implement synchronous validation logic"
+      },
+      {
+        "type": "form_validation",
+        "validation_type": "async",
+        "description": "Should support async validation"
+      },
+      {
+        "type": "event_handler",
+        "event_type": "onChange",
+        "handler_style": "function_reference",
+        "description": "Must provide handleChange function for form inputs"
+      },
+      {
+        "type": "event_handler",
+        "event_type": "onBlur",
+        "handler_style": "function_reference",
+        "description": "Must provide handleBlur function for touch tracking"
+      },
+      {
+        "type": "conditional_rendering",
+        "conditional_type": "ternary",
+        "description": "Should calculate form validity for UI updates"
+      },
+      {
+        "type": "state_management",
+        "state_type": "useState",
+        "description": "Must manage form state with useState"
+      },
+      {
+        "type": "cleanup_function",
+        "hook": "useEffect",
+        "must_return_function": true,
+        "description": "Should cleanup async operations on unmount"
+      }
+    ],
+    "difficulty": "intermediate",
+    "framework": "react"
+  },
+  "import_weight": 10.00,
+  "structure_weight": 25.00,
+  "behavior_weight": 65.00,
+  "passing_score": 85.00,
+  "hints": [
+    "Manage separate state for values, errors, touched fields, and submission status",
+    "Create validation functions that run on change and blur events",
+    "For async validation, track pending validations with useRef",
+    "Calculate overall validity by checking if all fields have no errors"
+  ],
+  "learning_resources": [
+    "https://react.dev/reference/react/useState",
+    "https://react.dev/reference/react/useCallback",
+    "https://react.dev/reference/react/useEffect"
+  ],
+  "tags": ["hooks", "custom-hooks", "forms", "validation", "form-handling", "react"],
+  "estimated_time_minutes": 45,
+  "patterns": [
+    {
+      "pattern_id": "react-hooks-013-pattern-1",
+      "name": "Complete useForm Hook with Validation",
+      "description": "Full implementation with sync/async validation and form state management",
+      "example_code": "import { useState, useCallback, useEffect, useRef } from 'react';\n\ntype ValidationRule = {\n  required?: boolean;\n  minLength?: number;\n  maxLength?: number;\n  pattern?: RegExp;\n  validator?: (value: any, values: Record<string, any>) => boolean | string;\n  asyncValidator?: (value: any) => Promise<boolean | string>;\n  message: string;\n};\n\ntype ValidationRules = Record<string, ValidationRule[]>;\n\ntype UseFormResult<T> = {\n  values: T;\n  errors: Record<keyof T, string>;\n  touched: Record<keyof T, boolean>;\n  isValid: boolean;\n  isSubmitting: boolean;\n  handleChange: (e: React.ChangeEvent<HTMLInputElement>) => void;\n  handleBlur: (e: React.FocusEvent<HTMLInputElement>) => void;\n  handleSubmit: (onSubmit: (values: T) => Promise<void> | void) => (e: React.FormEvent) => Promise<void>;\n  resetForm: () => void;\n  setFieldValue: (name: keyof T, value: any) => void;\n};\n\nfunction useForm<T extends Record<string, any>>(\n  initialValues: T,\n  validationRules: ValidationRules = {}\n): UseFormResult<T> {\n  const [values, setValues] = useState<T>(initialValues);\n  const [errors, setErrors] = useState<Record<keyof T, string>>({} as any);\n  const [touched, setTouched] = useState<Record<keyof T, boolean>>({} as any);\n  const [isSubmitting, setIsSubmitting] = useState<boolean>(false);\n  \n  const pendingValidations = useRef<Record<string, Promise<any>>>({});\n  \n  const validateField = useCallback(async (\n    name: keyof T,\n    value: any,\n    allValues: T\n  ): Promise<string> => {\n    const rules = validationRules[name as string] || [];\n    \n    for (const rule of rules) {\n      // Required validation\n      if (rule.required && (!value || value.toString().trim() === '')) {\n        return rule.message;\n      }\n      \n      // Min length\n      if (rule.minLength !== undefined && value && value.length < rule.minLength) {\n        return rule.message;\n      }\n      \n      // Max length\n      if (rule.maxLength !== undefined && value && value.length > rule.maxLength) {\n        return rule.message;\n      }\n      \n      // Pattern matching\n      if (rule.pattern && value && !rule.pattern.test(value)) {\n        return rule.message;\n      }\n      \n      // Custom validator\n      if (rule.validator) {\n        const result = rule.validator(value, allValues);\n        if (result !== true) {\n          return typeof result === 'string' ? result : rule.message;\n        }\n      }\n      \n      // Async validator\n      if (rule.asyncValidator) {\n        const validationKey = `${name as string}-${value}`;\n        \n        try {\n          const promise = rule.asyncValidator(value);\n          pendingValidations.current[validationKey] = promise;\n          \n          const result = await promise;\n          \n          // Check if this is still the latest validation\n          if (pendingValidations.current[validationKey] === promise) {\n            if (result !== true) {\n              return typeof result === 'string' ? result : rule.message;\n            }\n          }\n        } catch (error) {\n          return 'Validation failed';\n        }\n      }\n    }\n    \n    return '';\n  }, [validationRules]);\n  \n  const validateForm = useCallback(async (): Promise<boolean> => {\n    const newErrors: Record<string, string> = {};\n    let isValid = true;\n    \n    for (const [name, value] of Object.entries(values)) {\n      const error = await validateField(name, value, values);\n      if (error) {\n        newErrors[name] = error;\n        isValid = false;\n      }\n    }\n    \n    setErrors(newErrors as Record<keyof T, string>);\n    return isValid;\n  }, [values, validateField]);\n  \n  const handleChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {\n    const { name, value, type, checked } = e.target;\n    \n    setValues(prev => ({\n      ...prev,\n      [name]: type === 'checkbox' ? checked : value\n    }));\n    \n    // Validate field immediately\n    validateField(name, type === 'checkbox' ? checked : value, {\n      ...values,\n      [name]: type === 'checkbox' ? checked : value\n    }).then(error => {\n      setErrors(prev => ({\n        ...prev,\n        [name]: error\n      }));\n    });\n  }, [validateField, values]);\n  \n  const handleBlur = useCallback((e: React.FocusEvent<HTMLInputElement>) => {\n    const { name } = e.target;\n    \n    setTouched(prev => ({\n      ...prev,\n      [name]: true\n    }));\n  }, []);\n  \n  const setFieldValue = useCallback((name: keyof T, value: any) => {\n    setValues(prev => ({\n      ...prev,\n      [name]: value\n    }));\n    \n    validateField(name, value, {\n      ...values,\n      [name]: value\n    }).then(error => {\n      setErrors(prev => ({\n        ...prev,\n        [name]: error\n      }));\n    });\n  }, [validateField, values]);\n  \n  const resetForm = useCallback(() => {\n    setValues(initialValues);\n    setErrors({} as any);\n    setTouched({} as any);\n    setIsSubmitting(false);\n    pendingValidations.current = {};\n  }, [initialValues]);\n  \n  const handleSubmit = useCallback((onSubmit: (values: T) => Promise<void> | void) => {\n    return async (e: React.FormEvent) => {\n      e.preventDefault();\n      \n      // Mark all fields as touched\n      const allTouched = Object.keys(values).reduce((acc, key) => ({\n        ...acc,\n        [key]: true\n      }), {} as Record<keyof T, boolean>);\n      setTouched(allTouched);\n      \n      // Validate entire form\n      const isValid = await validateForm();\n      \n      if (isValid) {\n        setIsSubmitting(true);\n        try {\n          await onSubmit(values);\n        } finally {\n          setIsSubmitting(false);\n        }\n      }\n    };\n  }, [values, validateForm]);\n  \n  // Calculate overall validity\n  const isValid = Object.values(errors).every(error => !error);\n  \n  // Cleanup pending validations on unmount\n  useEffect(() => {\n    return () => {\n      pendingValidations.current = {};\n    };\n  }, []);\n  \n  return {\n    values,\n    errors,\n    touched,\n    isValid,\n    isSubmitting,\n    handleChange,\n    handleBlur,\n    handleSubmit,\n    resetForm,\n    setFieldValue\n  };\n}\n\nexport default useForm;",
+      "required_imports": ["react"],
+      "required_structure": {
+        "functions": [
+          {
+            "name": "useForm",
+            "type": "custom_hook",
+            "params": ["initialValues", "validationRules"],
+            "returns_object": true,
+            "object_properties": ["values", "errors", "touched", "isValid", "handleChange", "handleBlur", "handleSubmit", "resetForm", "isSubmitting"]
+          }
+        ]
+      },
+      "forbidden_patterns": [
+        "no_validation_rules",
+        "missing_error_state",
+        "no_touch_tracking"
+      ],
+      "is_primary": true,
+      "confidence_threshold": 85.00
+    }
+  ]
+}

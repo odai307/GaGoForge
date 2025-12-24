@@ -1,0 +1,72 @@
+{
+  "problem_id": "django-authentication-001",
+  "title": "Create Custom User Registration Form",
+  "slug": "create-custom-user-registration-form",
+  "framework": "django",
+  "category": "authentication",
+  "difficulty": "beginner",
+  "description": "In a blogging platform, you need to create a user registration form that collects additional information beyond the standard username and password.\n\n**Business Context:**\nYour application uses Django's built-in authentication system with a custom User model. You need to create a registration form that includes additional fields like bio and profile picture.\n\n**Given Models and Context:**\n```python\n# models.py - User model already defined\nfrom django.contrib.auth.models import AbstractUser\nfrom django.db import models\n\nclass BlogUser(AbstractUser):\n    bio = models.TextField(max_length=500, blank=True)\n    profile_picture = models.ImageField(upload_to='profile_pics/', blank=True)\n    date_of_birth = models.DateField(null=True, blank=True)\n    website = models.URLField(blank=True)\n```\n\n**Requirements:**\n1. Create a custom UserRegistrationForm that inherits from Django's UserCreationForm\n2. Include the following fields in the form: username, email, password1, password2, bio, date_of_birth, website\n3. Add custom validation to ensure email is required and valid\n4. Add a help text for the bio field explaining the character limit\n5. The form should save all fields to the BlogUser model\n\n**Expected Behavior:**\n- Form should render all required fields with proper labels and help text\n- Email field should be required and validated\n- Password validation should work as in standard UserCreationForm\n- On successful submission, a new BlogUser should be created with all provided data\n\n**Example Input/Output:**\n```python\n# Example form data\nform_data = {\n    'username': 'johndoe',\n    'email': 'john@example.com',\n    'password1': 'securepassword123',\n    'password2': 'securepassword123',\n    'bio': 'Avid blogger and tech enthusiast',\n    'date_of_birth': '1990-05-15',\n    'website': 'https://johndoe.blog'\n}\n\n# Form should validate and create user\nif form.is_valid():\n    user = form.save()\n    # user should have all provided data saved\n    print(user.username)  # 'johndoe'\n    print(user.email)  # 'john@example.com'\n    print(user.bio)  # 'Avid blogger and tech enthusiast'\n```",
+  "description_preview": "Create a custom user registration form for a blogging platform that collects bio, date of birth, and website in addition to standard fields.",
+  "context_code": "# CONTEXT CODE (for reference only - you need to create the form)\n# This shows the BlogUser model your form will work with\n\nfrom django.contrib.auth.models import AbstractUser\nfrom django.db import models\n\nclass BlogUser(AbstractUser):\n    bio = models.TextField(max_length=500, blank=True)\n    profile_picture = models.ImageField(upload_to='profile_pics/', blank=True)\n    date_of_birth = models.DateField(null=True, blank=True)\n    website = models.URLField(blank=True)\n\n# The standard UserCreationForm is available from:\n# from django.contrib.auth.forms import UserCreationForm",
+  "starter_code": "",
+  "target_area": "forms.py",
+  "validation_spec": {
+    "required_imports": ["django.forms", "django.contrib.auth.forms.UserCreationForm", ".models.BlogUser"],
+    "required_structure": {
+      "class_name": "UserRegistrationForm",
+      "parent_class": "UserCreationForm",
+      "has_meta_class": true,
+      "meta_model": "BlogUser",
+      "fields_count": 7
+    },
+    "behavior_patterns": [
+      "class UserRegistrationForm(UserCreationForm):",
+      "class Meta:",
+      "model = BlogUser",
+      "fields = [",
+      "'email' in fields",
+      "def clean_email(self):",
+      "email = self.cleaned_data.get('email')",
+      "if not email:",
+      "raise forms.ValidationError",
+      "return email",
+      "bio = forms.CharField",
+      "help_text='Maximum 500 characters'"
+    ]
+  },
+  "import_weight": 20.00,
+  "structure_weight": 40.00,
+  "behavior_weight": 40.00,
+  "passing_score": 75.00,
+  "hints": [
+    "Start by inheriting from UserCreationForm which provides password validation",
+    "Define the Meta class inside your form to specify the model and fields",
+    "Add email to the fields list and create a clean_email method for validation",
+    "Use forms.CharField for the bio field with appropriate widget and help text"
+  ],
+  "learning_resources": [
+    "https://docs.djangoproject.com/en/stable/topics/auth/customizing/",
+    "https://docs.djangoproject.com/en/stable/ref/forms/fields/"
+  ],
+  "tags": ["django", "authentication", "forms", "custom-user", "beginner"],
+  "estimated_time_minutes": 25,
+  "patterns": [
+    {
+      "pattern_id": "django-authentication-001-pattern-1",
+      "name": "Extended User Creation Form",
+      "description": "Custom UserCreationForm with additional fields and email validation",
+      "example_code": "# forms.py\nfrom django import forms\nfrom django.contrib.auth.forms import UserCreationForm\nfrom .models import BlogUser\n\nclass UserRegistrationForm(UserCreationForm):\n    \"\"\"Custom registration form for BlogUser with additional fields.\"\"\"\n    \n    # Add custom fields\n    bio = forms.CharField(\n        widget=forms.Textarea(attrs={'rows': 4}),\n        required=False,\n        help_text='Maximum 500 characters',\n        max_length=500\n    )\n    date_of_birth = forms.DateField(\n        required=False,\n        widget=forms.DateInput(attrs={'type': 'date'})\n    )\n    website = forms.URLField(required=False)\n    \n    class Meta:\n        model = BlogUser\n        fields = ['username', 'email', 'password1', 'password2', \n                 'bio', 'date_of_birth', 'website']\n    \n    def clean_email(self):\n        \"\"\"Validate that email is provided and valid.\"\"\"\n        email = self.cleaned_data.get('email')\n        if not email:\n            raise forms.ValidationError('Email is required.')\n        return email",
+      "required_imports": ["django.forms", "django.contrib.auth.forms.UserCreationForm", ".models.BlogUser"],
+      "required_structure": {
+        "class_name": "UserRegistrationForm",
+        "parent_class": "UserCreationForm",
+        "has_meta_class": true,
+        "meta_model": "BlogUser",
+        "has_clean_email": true
+      },
+      "forbidden_patterns": ["ModelForm without UserCreationForm", "no email validation", "missing required fields"],
+      "is_primary": true,
+      "confidence_threshold": 85.00
+    }
+  ]
+}

@@ -1,0 +1,64 @@
+{
+  "problem_id": "django-signals-001",
+  "title": "Create User Profile Signal on User Registration",
+  "slug": "create-user-profile-signal-on-user-registration",
+  "framework": "django",
+  "category": "signals",
+  "difficulty": "beginner",
+  "description": "In a social media application, when a new user registers, you need to automatically create a profile for them with default settings.\n\n**Business Context:**\nYour application has a custom User model and a UserProfile model. Every user should have an associated profile with default values for notifications, privacy settings, and bio.\n\n**Given Models:**\n```python\n# models.py\nfrom django.contrib.auth.models import AbstractUser\nfrom django.db import models\n\nclass CustomUser(AbstractUser):\n    email = models.EmailField(unique=True)\n    date_joined = models.DateTimeField(auto_now_add=True)\n    \nclass UserProfile(models.Model):\n    user = models.OneToOneField(CustomUser, on_delete=models.CASCADE)\n    bio = models.TextField(max_length=500, blank=True)\n    notifications_enabled = models.BooleanField(default=True)\n    profile_public = models.BooleanField(default=True)\n    created_at = models.DateTimeField(auto_now_add=True)\n    updated_at = models.DateTimeField(auto_now=True)\n```\n\n**Requirements:**\n1. Create a Django signal that automatically creates a UserProfile when a new CustomUser is created\n2. The signal should be triggered only on `post_save` for the CustomUser model\n3. Check if the user was created (not updated) before creating the profile\n4. Connect the signal properly so it works when the application loads\n5. Place your solution in `signals.py` file\n\n**Expected Behavior:**\n- When a new user is created via `CustomUser.objects.create()` or admin interface, a UserProfile should be automatically created\n- The UserProfile should have the default values from the model definition\n- Existing users without profiles should NOT get profiles when they're updated\n\n**Example Input/Output:**\n```python\n# Input: Creating a new user\nuser = CustomUser.objects.create_user(\n    username='john_doe',\n    email='john@example.com',\n    password='securepass123'\n)\n\n# Output: UserProfile should exist automatically\nprofile = UserProfile.objects.get(user=user)\nprint(profile.bio)  # Should be empty string\nprint(profile.notifications_enabled)  # Should be True\nprint(profile.profile_public)  # Should be True\n```",
+  "description_preview": "Create a signal that automatically generates a user profile when a new user registers in a social media app.",
+  "context_code": "# MODEL DEFINITIONS (for reference only - you need to create the signal)\n# This shows the models your signal will work with\n\nfrom django.contrib.auth.models import AbstractUser\nfrom django.db import models\n\nclass CustomUser(AbstractUser):\n    email = models.EmailField(unique=True)\n    date_joined = models.DateTimeField(auto_now_add=True)\n    \nclass UserProfile(models.Model):\n    user = models.OneToOneField(CustomUser, on_delete=models.CASCADE)\n    bio = models.TextField(max_length=500, blank=True)\n    notifications_enabled = models.BooleanField(default=True)\n    profile_public = models.BooleanField(default=True)\n    created_at = models.DateTimeField(auto_now_add=True)\n    updated_at = models.DateTimeField(auto_now=True)",
+  "starter_code": "",
+  "target_area": "signals.py",
+  "validation_spec": {
+    "required_imports": ["django.db.models.signals.post_save", "django.dispatch.receiver", "django.conf.settings", ".models.CustomUser", ".models.UserProfile"],
+    "required_structure": {
+      "functions": ["create_user_profile"],
+      "has_signal_receiver": true,
+      "has_post_save_signal": true,
+      "signal_model": "CustomUser",
+      "signal_type": "post_save"
+    },
+    "behavior_patterns": [
+      "def create_user_profile(sender, instance, created, **kwargs):",
+      "if created:",
+      "UserProfile.objects.create(user=instance)",
+      "@receiver(post_save, sender=CustomUser)",
+      "post_save.connect(create_user_profile, sender=CustomUser)"
+    ]
+  },
+  "import_weight": 20.00,
+  "structure_weight": 40.00,
+  "behavior_weight": 40.00,
+  "passing_score": 75.00,
+  "hints": [
+    "Use the post_save signal which is triggered after a model instance is saved",
+    "The signal receiver function should check the 'created' parameter to ensure it only runs for new users",
+    "Use the @receiver decorator or connect() method to register your signal handler",
+    "Make sure to import the CustomUser and UserProfile models correctly"
+  ],
+  "learning_resources": [
+    "https://docs.djangoproject.com/en/stable/ref/signals/",
+    "https://docs.djangoproject.com/en/stable/topics/signals/"
+  ],
+  "tags": ["django", "signals", "models", "post_save", "beginner"],
+  "estimated_time_minutes": 20,
+  "patterns": [
+    {
+      "pattern_id": "django-signals-001-pattern-1",
+      "name": "Post-Save Signal with Receiver Decorator",
+      "description": "Uses @receiver decorator to connect signal handler to post_save signal",
+      "example_code": "# signals.py\nfrom django.db.models.signals import post_save\nfrom django.dispatch import receiver\nfrom django.conf import settings\nfrom .models import CustomUser, UserProfile\n\n@receiver(post_save, sender=CustomUser)\ndef create_user_profile(sender, instance, created, **kwargs):\n    \"\"\"\n    Signal receiver that creates a UserProfile when a new CustomUser is created.\n    \"\"\"\n    if created:\n        UserProfile.objects.create(user=instance)",
+      "required_imports": ["django.db.models.signals.post_save", "django.dispatch.receiver", ".models.CustomUser", ".models.UserProfile"],
+      "required_structure": {
+        "functions": ["create_user_profile"],
+        "has_decorator": true,
+        "decorator_name": "receiver",
+        "signal_model": "CustomUser"
+      },
+      "forbidden_patterns": ["pre_save", "m2m_changed", "delete"],
+      "is_primary": true,
+      "confidence_threshold": 85.00
+    }
+  ]
+}

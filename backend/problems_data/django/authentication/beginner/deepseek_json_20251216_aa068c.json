@@ -1,0 +1,62 @@
+{
+  "problem_id": "django-authentication-002",
+  "title": "Implement Login Required Decorator for Profile View",
+  "slug": "implement-login-required-decorator-for-profile-view",
+  "framework": "django",
+  "category": "authentication",
+  "difficulty": "beginner",
+  "description": "In a social media application, user profiles should only be accessible to logged-in users. Implement proper authentication protection.\n\n**Business Context:**\nYour application has a profile view that displays sensitive user information. This should only be accessible to authenticated users. Unauthenticated users should be redirected to the login page.\n\n**Given Views and Context:**\n```python\n# views.py - Existing views\nfrom django.shortcuts import render, get_object_or_404\nfrom django.contrib.auth.decorators import login_required\nfrom .models import UserProfile\n\n# Other views exist but need protection\n\ndef profile_view(request, username):\n    \"\"\"Display user profile.\"\"\"\n    profile = get_object_or_404(UserProfile, user__username=username)\n    \n    # Check if viewing own profile\n    is_own_profile = (request.user == profile.user)\n    \n    context = {\n        'profile': profile,\n        'is_own_profile': is_own_profile,\n        'posts': profile.user.post_set.all()[:10],\n        'friends_count': profile.friends.count()\n    }\n    \n    return render(request, 'profiles/profile_detail.html', context)\n\n# Other views that need similar protection:\ndef edit_profile_view(request):\n    \"\"\"Edit user profile.\"\"\"\n    pass\n\ndef account_settings_view(request):\n    \"\"\"Account settings page.\"\"\"\n    pass\n```\n\n**Requirements:**\n1. Apply the `@login_required` decorator to the `profile_view` function\n2. Configure the decorator to redirect unauthenticated users to the login page\n3. Ensure the redirect URL includes a `next` parameter to return to the profile page after login\n4. Apply the same protection to `edit_profile_view` and `account_settings_view`\n5. Test that authenticated users can access profiles while unauthenticated users are redirected\n\n**Expected Behavior:**\n- When an unauthenticated user tries to access `/profile/johndoe/`, they should be redirected to `/login/?next=/profile/johndoe/`\n- After successful login, users should be redirected back to the profile page they tried to access\n- Authenticated users should see the profile page normally\n- All three views (profile, edit_profile, account_settings) should have the same protection\n\n**Example Input/Output:**\n```python\n# Unauthenticated user requests profile\n# Request: GET /profile/johndoe/\n# Response: 302 Redirect to /login/?next=/profile/johndoe/\n\n# Authenticated user requests profile\n# Request: GET /profile/johndoe/ (with valid session)\n# Response: 200 OK with profile page\n```",
+  "description_preview": "Apply login_required decorator to protect profile views from unauthorized access in a social media app.",
+  "context_code": "# CONTEXT CODE (for reference only - you need to apply the decorators)\n# This shows the views that need authentication protection\n\nfrom django.shortcuts import render, get_object_or_404\nfrom django.contrib.auth.decorators import login_required\nfrom .models import UserProfile\n\n# The UserProfile model is already defined:\n# class UserProfile(models.Model):\n#     user = models.OneToOneField(User, on_delete=models.CASCADE)\n#     bio = models.TextField(max_length=500, blank=True)\n#     friends = models.ManyToManyField('self', symmetrical=True, blank=True)\n#     # ... other fields\n\n# Template 'profiles/profile_detail.html' exists and works correctly\n\n# You need to apply decorators to these functions:\ndef profile_view(request, username):\n    \"\"\"Display user profile.\"\"\"\n    profile = get_object_or_404(UserProfile, user__username=username)\n    is_own_profile = (request.user == profile.user)\n    context = {\n        'profile': profile,\n        'is_own_profile': is_own_profile,\n        'posts': profile.user.post_set.all()[:10],\n        'friends_count': profile.friends.count()\n    }\n    return render(request, 'profiles/profile_detail.html', context)\n\ndef edit_profile_view(request):\n    \"\"\"Edit user profile.\"\"\"\n    profile = get_object_or_404(UserProfile, user=request.user)\n    # Edit logic here\n    return render(request, 'profiles/edit_profile.html', {'profile': profile})\n\ndef account_settings_view(request):\n    \"\"\"Account settings page.\"\"\"\n    return render(request, 'profiles/account_settings.html')",
+  "starter_code": "",
+  "target_area": "views.py",
+  "validation_spec": {
+    "required_imports": ["django.contrib.auth.decorators.login_required"],
+    "required_structure": {
+      "decorated_functions": ["profile_view", "edit_profile_view", "account_settings_view"],
+      "decorator_name": "login_required",
+      "decorator_count": 3
+    },
+    "behavior_patterns": [
+      "@login_required",
+      "def profile_view",
+      "@login_required",
+      "def edit_profile_view",
+      "@login_required",
+      "def account_settings_view"
+    ]
+  },
+  "import_weight": 15.00,
+  "structure_weight": 45.00,
+  "behavior_weight": 40.00,
+  "passing_score": 75.00,
+  "hints": [
+    "The @login_required decorator should be placed directly above each function definition",
+    "Make sure to import login_required from django.contrib.auth.decorators",
+    "The decorator automatically handles redirects with the 'next' parameter",
+    "Apply the same decorator pattern to all three view functions"
+  ],
+  "learning_resources": [
+    "https://docs.djangoproject.com/en/stable/topics/auth/default/#the-login-required-decorator",
+    "https://docs.djangoproject.com/en/stable/ref/contrib/auth/"
+  ],
+  "tags": ["django", "authentication", "decorators", "views", "beginner"],
+  "estimated_time_minutes": 20,
+  "patterns": [
+    {
+      "pattern_id": "django-authentication-002-pattern-1",
+      "name": "Login Required Decorator Application",
+      "description": "Applying login_required decorator to multiple view functions",
+      "example_code": "# views.py\nfrom django.shortcuts import render, get_object_or_404\nfrom django.contrib.auth.decorators import login_required\nfrom .models import UserProfile\n\n@login_required\ndef profile_view(request, username):\n    \"\"\"Display user profile. Requires login.\"\"\"\n    profile = get_object_or_404(UserProfile, user__username=username)\n    is_own_profile = (request.user == profile.user)\n    context = {\n        'profile': profile,\n        'is_own_profile': is_own_profile,\n        'posts': profile.user.post_set.all()[:10],\n        'friends_count': profile.friends.count()\n    }\n    return render(request, 'profiles/profile_detail.html', context)\n\n@login_required\ndef edit_profile_view(request):\n    \"\"\"Edit user profile. Requires login.\"\"\"\n    profile = get_object_or_404(UserProfile, user=request.user)\n    # Edit logic here\n    return render(request, 'profiles/edit_profile.html', {'profile': profile})\n\n@login_required\ndef account_settings_view(request):\n    \"\"\"Account settings page. Requires login.\"\"\"\n    return render(request, 'profiles/account_settings.html')",
+      "required_imports": ["django.contrib.auth.decorators.login_required"],
+      "required_structure": {
+        "decorated_functions": ["profile_view", "edit_profile_view", "account_settings_view"],
+        "decorator_count": 3,
+        "decorator_position": "above_function"
+      },
+      "forbidden_patterns": ["if not request.user.is_authenticated:", "manual redirect logic", "missing decorator"],
+      "is_primary": true,
+      "confidence_threshold": 85.00
+    }
+  ]
+}

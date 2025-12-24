@@ -1,0 +1,68 @@
+{
+  "problem_id": "django-signals-002",
+  "title": "Update Product Cache on Price Change",
+  "slug": "update-product-cache-on-price-change",
+  "framework": "django",
+  "category": "signals",
+  "difficulty": "beginner",
+  "description": "In an e-commerce application, product prices are cached for performance. When a product's price changes, you need to invalidate the cache.\n\n**Business Context:**\nThe Product model has a price field that gets cached in Redis for fast access. When the price updates, the cached value becomes stale and needs to be cleared.\n\n**Given Models:**\n```python\n# models.py\nfrom django.db import models\nfrom django.core.cache import cache\n\nclass Product(models.Model):\n    name = models.CharField(max_length=200)\n    sku = models.CharField(max_length=50, unique=True)\n    price = models.DecimalField(max_digits=10, decimal_places=2)\n    description = models.TextField()\n    in_stock = models.PositiveIntegerField(default=0)\n    last_updated = models.DateTimeField(auto_now=True)\n    \n    def cache_key(self):\n        return f'product_price_{self.pk}'\n    \n    def cache_price(self):\n        \"\"\"Cache the current price\"\"\"\n        cache.set(self.cache_key(), self.price, timeout=3600)\n```\n\n**Requirements:**\n1. Create a signal that clears the price cache when a Product's price is updated\n2. The signal should only trigger when the price field specifically changes\n3. Compare old and new price values to detect changes\n4. Use `post_save` signal to ensure changes are saved before cache clearing\n5. Clear the specific product's cache key when price changes\n\n**Expected Behavior:**\n- When a product's price is modified, its cache entry should be deleted\n- If other fields change but price stays the same, cache should remain\n- The cache key should be generated using the product's cache_key() method\n\n**Example Input/Output:**\n```python\n# Create a product\nproduct = Product.objects.create(\n    name='Laptop',\n    sku='LP001',\n    price=999.99,\n    description='High performance laptop',\n    in_stock=10\n)\n\n# Cache the price\nproduct.cache_price()\nprint(cache.get(product.cache_key()))  # Output: 999.99\n\n# Update price\nproduct.price = 899.99\nproduct.save()\n\n# Cache should be cleared\nprint(cache.get(product.cache_key()))  # Output: None (cache cleared)\n```",
+  "description_preview": "Implement a signal that clears cached product prices when they are updated in an e-commerce system.",
+  "context_code": "# MODEL DEFINITIONS (for reference only - you need to create the signal)\n# This shows the Product model your signal will work with\n\nfrom django.db import models\nfrom django.core.cache import cache\n\nclass Product(models.Model):\n    name = models.CharField(max_length=200)\n    sku = models.CharField(max_length=50, unique=True)\n    price = models.DecimalField(max_digits=10, decimal_places=2)\n    description = models.TextField()\n    in_stock = models.PositiveIntegerField(default=0)\n    last_updated = models.DateTimeField(auto_now=True)\n    \n    def cache_key(self):\n        return f'product_price_{self.pk}'\n    \n    def cache_price(self):\n        \"\"\"Cache the current price\"\"\"\n        cache.set(self.cache_key(), self.price, timeout=3600)",
+  "starter_code": "",
+  "target_area": "signals.py",
+  "validation_spec": {
+    "required_imports": ["django.db.models.signals.post_save", "django.dispatch.receiver", "django.core.cache.cache", ".models.Product"],
+    "required_structure": {
+      "functions": ["clear_price_cache"],
+      "has_signal_receiver": true,
+      "has_post_save_signal": true,
+      "signal_model": "Product",
+      "checks_field_change": true
+    },
+    "behavior_patterns": [
+      "def clear_price_cache(sender, instance, **kwargs):",
+      "try:",
+      "old_price = Product.objects.get(pk=instance.pk).price",
+      "if old_price != instance.price:",
+      "cache.delete(instance.cache_key())",
+      "except Product.DoesNotExist:",
+      "pass",
+      "@receiver(post_save, sender=Product)"
+    ]
+  },
+  "import_weight": 20.00,
+  "structure_weight": 35.00,
+  "behavior_weight": 45.00,
+  "passing_score": 75.00,
+  "hints": [
+    "You'll need to retrieve the old price from the database to compare with the new price",
+    "Use a try-except block to handle the case where the product doesn't exist yet",
+    "The cache.delete() method removes a specific key from the cache",
+    "Remember to check if the price actually changed before clearing cache"
+  ],
+  "learning_resources": [
+    "https://docs.djangoproject.com/en/stable/topics/cache/",
+    "https://docs.djangoproject.com/en/stable/ref/signals/#post-save"
+  ],
+  "tags": ["django", "signals", "cache", "post_save", "beginner"],
+  "estimated_time_minutes": 25,
+  "patterns": [
+    {
+      "pattern_id": "django-signals-002-pattern-1",
+      "name": "Price Change Detection with Cache Invalidation",
+      "description": "Detects price changes and clears corresponding cache entries",
+      "example_code": "# signals.py\nfrom django.db.models.signals import post_save\nfrom django.dispatch import receiver\nfrom django.core.cache import cache\nfrom .models import Product\n\n@receiver(post_save, sender=Product)\ndef clear_price_cache(sender, instance, **kwargs):\n    \"\"\"\n    Clear cache when product price changes.\n    \"\"\"\n    try:\n        # Get the product from database to compare prices\n        old_product = Product.objects.get(pk=instance.pk)\n        if old_product.price != instance.price:\n            # Price changed, clear the cache\n            cache.delete(instance.cache_key())\n    except Product.DoesNotExist:\n        # Product is being created, not updated\n        pass",
+      "required_imports": ["django.db.models.signals.post_save", "django.dispatch.receiver", "django.core.cache.cache", ".models.Product"],
+      "required_structure": {
+        "functions": ["clear_price_cache"],
+        "has_decorator": true,
+        "decorator_name": "receiver",
+        "signal_model": "Product",
+        "has_try_except": true
+      },
+      "forbidden_patterns": ["pre_save", "m2m_changed", "delete", "cache.set"],
+      "is_primary": true,
+      "confidence_threshold": 85.00
+    }
+  ]
+}

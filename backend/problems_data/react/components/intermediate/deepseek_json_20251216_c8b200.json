@@ -1,0 +1,182 @@
+{
+  "problem_id": "react-components-011",
+  "title": "Build a Reusable Modal Component with Portal, Animation, and Accessibility",
+  "slug": "reusable-modal-component-with-portal-animation-accessibility",
+  "framework": "react",
+  "category": "components",
+  "difficulty": "intermediate",
+  "description": "Create a highly reusable Modal component that uses React Portal for proper DOM structure, includes animations, and follows WCAG accessibility guidelines.\n\n**Requirements:**\n1. Create a Modal component using React.createPortal for proper DOM rendering\n2. Implement smooth open/close animations using CSS transitions or a library\n3. Follow accessibility guidelines:\n   - Trap focus within modal when open\n   - Close on Escape key press\n   - Close on overlay click\n   - Manage aria attributes (aria-modal, aria-labelledby, aria-describedby)\n   - Return focus to trigger element when closed\n4. Component props:\n   - isOpen: boolean (controlled component)\n   - onClose: function to call when modal should close\n   - title: string for modal title\n   - children: modal content\n   - size: 'sm' | 'md' | 'lg' | 'xl' (default: 'md')\n5. Features:\n   - Overlay with semi-transparent background\n   - Close button in top-right corner\n   - Animated entrance/exit\n   - Prevent body scroll when modal is open\n   - Support for custom footer with action buttons\n\n**Expected Behavior:**\n- Modal renders in a portal outside the main app root\n- Smooth fade-in/scale-up animation on open\n- Focus trapped inside modal (tab navigation cycles within modal)\n- Escape key closes modal\n- Clicking overlay closes modal\n- Body scroll locked when modal is open\n- Returns focus to element that opened the modal\n\n**Example Usage:**\n```javascript\n<Modal\n  isOpen={isModalOpen}\n  onClose={() => setIsModalOpen(false)}\n  title=\"Confirm Action\"\n  size=\"md\"\n>\n  <p>Are you sure you want to proceed?</p>\n  <div className=\"modal-footer\">\n    <button onClick={() => setIsModalOpen(false)}>Cancel</button>\n    <button onClick={handleConfirm}>Confirm</button>\n  </div>\n</Modal>\n```",
+  "description_preview": "Create a production-ready Modal component with Portal rendering, animations, focus trapping, and full accessibility support.",
+  "context_code": "// ACCESSIBILITY GUIDELINES (for reference only)\n// - Use React.createPortal to render modal at document.body level\n// - Trap focus: document.activeElement should cycle within modal\n// - aria-modal=\"true\" on modal container\n// - aria-labelledby pointing to title element\n// - aria-describedby pointing to content element (optional)\n// - Close on Escape (keydown event with key === 'Escape')\n// - Return focus to previously focused element\n\n// Animation classes example:\n// .modal-enter { opacity: 0; transform: scale(0.9); }\n// .modal-enter-active { opacity: 1; transform: scale(1); transition: all 300ms; }\n// .modal-exit { opacity: 1; transform: scale(1); }\n// .modal-exit-active { opacity: 0; transform: scale(0.9); transition: all 300ms; }",
+  "starter_code": "",
+  "target_area": "Complete Modal component with Portal, animations, and accessibility features",
+  "validation_spec": {
+    "required_imports": ["react", "react-dom"],
+    "required_structure": {
+      "functions": [
+        {
+          "name": "Modal",
+          "type": "functional_component",
+          "has_export": true,
+          "props": ["isOpen", "onClose", "title", "children", "size"],
+          "description": "Main Modal component with portal and accessibility"
+        },
+        {
+          "name": "useFocusTrap",
+          "type": "custom_hook",
+          "has_export": false,
+          "description": "Custom hook for focus trapping (optional but recommended)"
+        }
+      ]
+    },
+    "behavior_patterns": [
+      {
+        "type": "constructor_call",
+        "class": "createPortal",
+        "object": "ReactDOM",
+        "context": "modal_rendering",
+        "description": "Must use ReactDOM.createPortal to render modal"
+      },
+      {
+        "type": "hook_call",
+        "hook": "useEffect",
+        "min_calls": 2,
+        "description": "Must use useEffect for focus trap, event listeners, and body scroll lock"
+      },
+      {
+        "type": "hook_call",
+        "hook": "useRef",
+        "min_calls": 2,
+        "description": "Must use useRef for modal container, focusable elements, and previous focus"
+      },
+      {
+        "type": "hook_call",
+        "hook": "useCallback",
+        "min_calls": 1,
+        "description": "Should use useCallback for event handlers"
+      },
+      {
+        "type": "event_handler",
+        "event_type": "onKeyDown",
+        "handler_action": "close_on_escape",
+        "key": "Escape",
+        "description": "Must handle Escape key to close modal"
+      },
+      {
+        "type": "event_handler",
+        "event_type": "onClick",
+        "handler_action": "close_on_overlay",
+        "target": "overlay",
+        "description": "Must close modal when overlay is clicked"
+      },
+      {
+        "type": "accessibility",
+        "attribute": "aria-modal",
+        "value": "true",
+        "element": "modal_container",
+        "description": "Must set aria-modal=\"true\" on modal container"
+      },
+      {
+        "type": "accessibility",
+        "attribute": "aria-labelledby",
+        "references": "modal_title",
+        "description": "Must set aria-labelledby referencing title element"
+      },
+      {
+        "type": "focus_management",
+        "action": "trap_focus",
+        "scope": "modal_content",
+        "description": "Must trap focus within modal when open"
+      },
+      {
+        "type": "focus_management",
+        "action": "return_focus",
+        "element": "trigger",
+        "description": "Must return focus to previously focused element when modal closes"
+      },
+      {
+        "type": "dom_manipulation",
+        "action": "prevent_body_scroll",
+        "condition": "modal_open",
+        "description": "Must prevent body scroll when modal is open"
+      },
+      {
+        "type": "conditional_rendering",
+        "conditional_type": "logical_and",
+        "condition": "isOpen",
+        "description": "Must conditionally render modal based on isOpen prop"
+      },
+      {
+        "type": "animation",
+        "technique": "css_transition",
+        "states": ["enter", "enter_active", "exit", "exit_active"],
+        "description": "Should implement CSS transitions for smooth animations"
+      },
+      {
+        "type": "prop_validation",
+        "props": ["isOpen", "onClose", "title"],
+        "required": true,
+        "description": "Must validate required props (isOpen, onClose, title)"
+      }
+    ],
+    "difficulty": "intermediate",
+    "framework": "react",
+    "import_weight": 10.00,
+    "structure_weight": 35.00,
+    "behavior_weight": 55.00,
+    "passing_score": 82.00
+  },
+  "import_weight": 10.00,
+  "structure_weight": 35.00,
+  "behavior_weight": 55.00,
+  "passing_score": 82.00,
+  "hints": [
+    "Use ReactDOM.createPortal to render the modal at document.body level for proper z-index stacking",
+    "Implement a custom useFocusTrap hook or handle focus trapping within useEffect",
+    "For focus trapping, find all focusable elements within modal and handle Tab/Shift+Tab navigation",
+    "Store the previously focused element in a ref to restore focus when modal closes",
+    "Use useEffect to add/remove event listeners for Escape key and to lock/unlock body scroll",
+    "Implement CSS classes for enter/exit animations and conditionally apply them",
+    "Make sure onClick on overlay only closes modal when the actual overlay is clicked, not modal content",
+    "Use aria-modal, aria-labelledby, and role=\"dialog\" for proper screen reader support",
+    "Consider using a ref to get all focusable elements: 'button, [href], input, select, textarea, [tabindex]:not([tabindex=\"-1\"])'"
+  ],
+  "learning_resources": [
+    "https://react.dev/reference/react-dom/createPortal",
+    "https://developer.mozilla.org/en-US/docs/Web/Accessibility/ARIA/Roles/dialog_role",
+    "https://www.w3.org/WAI/ARIA/apg/patterns/dialogmodal/",
+    "https://react.dev/learn/manipulating-the-dom-with-refs"
+  ],
+  "tags": ["react", "components", "modal", "portal", "accessibility", "animation", "focus-trap", "intermediate"],
+  "estimated_time_minutes": 45,
+  "patterns": [
+    {
+      "pattern_id": "react-components-011-pattern-1",
+      "name": "Accessible Modal with Portal and Focus Trap",
+      "description": "Complete modal component with React Portal, focus trapping, animations, and WCAG compliance",
+      "example_code": "import React, { useEffect, useRef, useCallback } from 'react';\nimport ReactDOM from 'react-dom';\n\nconst Modal = ({ \n  isOpen, \n  onClose, \n  title, \n  children, \n  size = 'md',\n  showCloseButton = true \n}) => {\n  const modalRef = useRef(null);\n  const overlayRef = useRef(null);\n  const previousFocusRef = useRef(null);\n  const modalContentRef = useRef(null);\n  \n  // Focus trap: get all focusable elements within modal\n  const getFocusableElements = useCallback(() => {\n    if (!modalContentRef.current) return [];\n    \n    return modalContentRef.current.querySelectorAll(\n      'button, [href], input, select, textarea, [tabindex]:not([tabindex=\"-1\"])'\n    );\n  }, []);\n  \n  // Handle focus trapping\n  const handleTabKey = useCallback((e) => {\n    if (!isOpen) return;\n    \n    const focusableElements = getFocusableElements();\n    if (focusableElements.length === 0) return;\n    \n    const firstElement = focusableElements[0];\n    const lastElement = focusableElements[focusableElements.length - 1];\n    \n    if (e.shiftKey) {\n      // Shift + Tab\n      if (document.activeElement === firstElement) {\n        lastElement.focus();\n        e.preventDefault();\n      }\n    } else {\n      // Tab\n      if (document.activeElement === lastElement) {\n        firstElement.focus();\n        e.preventDefault();\n      }\n    }\n  }, [isOpen, getFocusableElements]);\n  \n  // Handle Escape key\n  const handleKeyDown = useCallback((e) => {\n    if (e.key === 'Escape' && isOpen) {\n      onClose();\n    }\n    if (e.key === 'Tab') {\n      handleTabKey(e);\n    }\n  }, [isOpen, onClose, handleTabKey]);\n  \n  // Handle overlay click\n  const handleOverlayClick = useCallback((e) => {\n    if (e.target === overlayRef.current) {\n      onClose();\n    }\n  }, [onClose]);\n  \n  // Lock body scroll when modal is open\n  useEffect(() => {\n    if (isOpen) {\n      // Store previously focused element\n      previousFocusRef.current = document.activeElement;\n      \n      // Lock body scroll\n      document.body.style.overflow = 'hidden';\n      \n      // Add event listeners\n      document.addEventListener('keydown', handleKeyDown);\n      \n      // Focus first focusable element\n      setTimeout(() => {\n        const focusableElements = getFocusableElements();\n        if (focusableElements.length > 0) {\n          focusableElements[0].focus();\n        } else if (modalRef.current) {\n          modalRef.current.focus();\n        }\n      }, 100);\n      \n      return () => {\n        // Restore body scroll\n        document.body.style.overflow = '';\n        \n        // Remove event listeners\n        document.removeEventListener('keydown', handleKeyDown);\n        \n        // Restore focus\n        if (previousFocusRef.current) {\n          previousFocusRef.current.focus();\n        }\n      };\n    }\n  }, [isOpen, handleKeyDown, getFocusableElements]);\n  \n  // Don't render if not open\n  if (!isOpen) return null;\n  \n  const sizeClasses = {\n    sm: 'max-w-sm',\n    md: 'max-w-md',\n    lg: 'max-w-lg',\n    xl: 'max-w-xl'\n  };\n  \n  const modalContent = (\n    <div \n      className=\"modal-overlay\" \n      ref={overlayRef}\n      onClick={handleOverlayClick}\n      role=\"presentation\"\n      style={{\n        position: 'fixed',\n        top: 0,\n        left: 0,\n        right: 0,\n        bottom: 0,\n        backgroundColor: 'rgba(0, 0, 0, 0.5)',\n        display: 'flex',\n        alignItems: 'center',\n        justifyContent: 'center',\n        zIndex: 1000,\n        animation: 'fadeIn 0.3s ease-out'\n      }}\n    >\n      <div \n        ref={modalRef}\n        className={`modal-container ${sizeClasses[size]}`}\n        role=\"dialog\"\n        aria-modal=\"true\"\n        aria-labelledby=\"modal-title\"\n        style={{\n          backgroundColor: 'white',\n          borderRadius: '8px',\n          padding: '24px',\n          width: '90%',\n          maxHeight: '90vh',\n          overflowY: 'auto',\n          animation: 'slideIn 0.3s ease-out',\n          position: 'relative'\n        }}\n        tabIndex={-1}\n      >\n        <div \n          ref={modalContentRef}\n          style={{ outline: 'none' }}\n        >\n          {/* Header */}\n          <div style={{ \n            display: 'flex', \n            justifyContent: 'space-between', \n            alignItems: 'center',\n            marginBottom: '16px'\n          }}>\n            <h2 \n              id=\"modal-title\"\n              style={{ margin: 0, fontSize: '1.5rem', fontWeight: 'bold' }}\n            >\n              {title}\n            </h2>\n            \n            {showCloseButton && (\n              <button\n                onClick={onClose}\n                aria-label=\"Close modal\"\n                style={{\n                  background: 'none',\n                  border: 'none',\n                  fontSize: '1.5rem',\n                  cursor: 'pointer',\n                  padding: '4px',\n                  lineHeight: 1\n                }}\n              >\n                ×\n              </button>\n            )}\n          </div>\n          \n          {/* Content */}\n          <div className=\"modal-content\" style={{ marginBottom: '24px' }}>\n            {children}\n          </div>\n        </div>\n      </div>\n    </div>\n  );\n  \n  return ReactDOM.createPortal(\n    modalContent,\n    document.body\n  );\n};\n\n// CSS for animations (to be added to global styles)\n/*\n@keyframes fadeIn {\n  from { opacity: 0; }\n  to { opacity: 1; }\n}\n\n@keyframes slideIn {\n  from { \n    opacity: 0;\n    transform: translateY(-20px) scale(0.95);\n  }\n  to { \n    opacity: 1;\n    transform: translateY(0) scale(1);\n  }\n}\n\n.modal-container:focus {\n  outline: 2px solid #3b82f6;\n  outline-offset: 2px;\n}\n*/\n\nexport default Modal;",
+      "required_imports": ["react", "react-dom"],
+      "required_structure": {
+        "functions": [
+          {
+            "name": "Modal",
+            "type": "functional_component",
+            "has_export": true,
+            "props": ["isOpen", "onClose", "title", "children", "size"]
+          }
+        ]
+      },
+      "forbidden_patterns": [
+        "Not using ReactDOM.createPortal",
+        "Missing focus trapping logic",
+        "No Escape key handling",
+        "Not preventing body scroll",
+        "Missing accessibility attributes",
+        "Not returning focus to trigger element",
+        "Using inline styles exclusively (should support CSS classes)"
+      ],
+      "is_primary": true,
+      "confidence_threshold": 85.00
+    }
+  ]
+}

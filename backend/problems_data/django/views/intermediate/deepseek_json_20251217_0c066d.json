@@ -1,0 +1,164 @@
+{
+  "problem_id": "django-views-011",
+  "title": "Implement Company Resource API with Dynamic Permission System",
+  "slug": "implement-company-resource-api-with-dynamic-permission-system",
+  "framework": "django",
+  "category": "views",
+  "difficulty": "intermediate",
+  "description": "You're building a company resource management system where different departments have access to different resources. The system needs dynamic permission checking based on user roles, departments, and resource types.\n\n**Models (for reference):**\n```python\nfrom django.db import models\nfrom django.contrib.auth.models import User\n\nclass Department(models.Model):\n    name = models.CharField(max_length=100)\n    code = models.CharField(max_length=10, unique=True)\n\nclass EmployeeProfile(models.Model):\n    user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='profile')\n    department = models.ForeignKey(Department, on_delete=models.PROTECT, related_name='employees')\n    job_title = models.CharField(max_length=100)\n    hire_date = models.DateField()\n    is_manager = models.BooleanField(default=False)\n\nclass ResourceType(models.Model):\n    \"\"\"Types of resources (documents, equipment, software, etc.)\"\"\"\n    name = models.CharField(max_length=100)\n    access_level = models.CharField(max_length=20, choices=[\n        ('public', 'Public'),\n        ('department', 'Department'),\n        ('confidential', 'Confidential'),\n        ('restricted', 'Restricted')\n    ])\n\nclass CompanyResource(models.Model):\n    \"\"\"Resources that employees can access\"\"\"\n    name = models.CharField(max_length=200)\n    description = models.TextField()\n    resource_type = models.ForeignKey(ResourceType, on_delete=models.PROTECT, related_name='resources')\n    owner_department = models.ForeignKey(Department, on_delete=models.PROTECT, related_name='owned_resources')\n    created_by = models.ForeignKey(User, on_delete=models.PROTECT, related_name='created_resources')\n    created_at = models.DateTimeField(auto_now_add=True)\n    updated_at = models.DateTimeField(auto_now=True)\n    is_active = models.BooleanField(default=True)\n    metadata = models.JSONField(default=dict)  # Additional resource-specific data\n\nclass ResourceAccessLog(models.Model):\n    \"\"\"Audit log for resource access\"\"\"\n    resource = models.ForeignKey(CompanyResource, on_delete=models.CASCADE, related_name='access_logs')\n    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='resource_accesses')\n    access_type = models.CharField(max_length=20, choices=[\n        ('view', 'View'),\n        ('download', 'Download'),\n        ('edit', 'Edit'),\n        ('delete', 'Delete')\n    ])\n    accessed_at = models.DateTimeField(auto_now_add=True)\n    ip_address = models.GenericIPAddressField()\n    user_agent = models.CharField(max_length=500)\n```\n\n**Requirements:**\n\nCreate a Class-Based View API with the following endpoints:\n\n1. **Resource List API (`GET /api/resources/`)**\n   - List all resources user has access to\n   - Filter by: department, resource_type, created_by, is_active\n   - Search by: name, description\n   - Order by: created_at, updated_at, name\n   - Pagination with 20 items per page\n\n2. **Resource Detail API (`GET /api/resources/<id>/`)**\n   - Show full resource details\n   - Include access permissions for current user\n   - Log the access\n\n3. **Create Resource API (`POST /api/resources/`)**\n   - Only managers or users from owner_department can create\n   - Validate all fields\n   - Set created_by automatically\n   - Handle metadata JSON field validation\n\n4. **Update Resource API (`PUT/PATCH /api/resources/<id>/`)**\n   - Only resource owner (created_by) or managers can update\n   - Partial updates allowed\n   - Update updated_at timestamp\n   - Validate changes against user permissions\n\n5. **Delete Resource API (`DELETE /api/resources/<id>/`)**\n   - Only managers can delete resources\n   - Soft delete (set is_active=False)\n   - Log the deletion\n\n**Permission Rules:**\n- **Public resources**: All authenticated users can view\n- **Department resources**: Only users from same department can view\n- **Confidential resources**: Only managers and resource owner can view\n- **Restricted resources**: Only resource owner can view\n- **Managers**: Have full access to all resources in their department\n- **Resource owners**: Can edit/delete their own resources\n\n**Additional Requirements:**\n- Create custom mixins for permission checking\n- Implement request throttling (100 requests/hour per user)\n- Add comprehensive audit logging\n- Handle all edge cases and errors gracefully\n- Use Django REST Framework for API\n- Implement proper serialization\n\n**Expected Response Format:**\n```json\n{\n    \"id\": 1,\n    \"name\": \"Annual Budget Report\",\n    \"description\": \"Q4 budget analysis\",\n    \"resource_type\": {\"id\": 1, \"name\": \"Document\", \"access_level\": \"confidential\"},\n    \"owner_department\": {\"id\": 1, \"name\": \"Finance\", \"code\": \"FIN\"},\n    \"created_by\": {\"id\": 5, \"username\": \"jane.doe\", \"email\": \"jane@company.com\"},\n    \"created_at\": \"2024-01-15T10:30:00Z\",\n    \"updated_at\": \"2024-01-15T10:30:00Z\",\n    \"is_active\": true,\n    \"metadata\": {\"file_size\": 2048000, \"file_type\": \"pdf\"},\n    \"permissions\": {\"can_view\": true, \"can_edit\": false, \"can_delete\": false}\n}\n```\n\n**Error Responses:**\n- 403 Forbidden when permission denied\n- 404 Not Found when resource doesn't exist or user can't access\n- 400 Bad Request for validation errors\n- 429 Too Many Requests when rate limit exceeded",
+  "description_preview": "Create a class-based API view with dynamic permissions, custom mixins, audit logging, and request throttling.",
+  "context_code": "# MODELS (for reference only)\n# These models are already defined in your project\nfrom django.db import models\nfrom django.contrib.auth.models import User\n\n# Models are defined as shown above\n# You need to create the views, serializers, and permission logic",
+  "starter_code": "",
+  "target_area": "Create the class-based views, custom mixins, serializers, and permission system for the resource API",
+  "validation_spec": {
+    "required_imports": [
+      "rest_framework.views",
+      "rest_framework.generics",
+      "rest_framework.viewsets",
+      "rest_framework.permissions",
+      "rest_framework.response",
+      "rest_framework.status",
+      "rest_framework.exceptions",
+      "django_filters.rest_framework",
+      "django.core.cache",
+      "django.utils.decorators"
+    ],
+    "required_structure": {
+      "classes": [
+        {
+          "name": "DepartmentPermissionMixin",
+          "required_methods": ["check_department_access", "check_resource_permissions", "get_user_department"]
+        },
+        {
+          "name": "ResourceAccessMixin",
+          "required_methods": ["log_access", "get_access_type", "should_log_access"]
+        },
+        {
+          "name": "ThrottleMixin",
+          "required_methods": ["check_throttle", "get_throttle_key", "throttle_exceeded"]
+        },
+        {
+          "name": "ResourceSerializer",
+          "parent_class": "serializers.ModelSerializer",
+          "required_fields": ["name", "description", "resource_type", "owner_department"],
+          "required_methods": ["validate", "get_permissions"]
+        },
+        {
+          "name": "ResourceListView",
+          "parent_class": "generics.ListCreateAPIView",
+          "required_mixins": ["DepartmentPermissionMixin", "ThrottleMixin"],
+          "required_methods": ["get_queryset", "perform_create", "filter_queryset", "paginate_queryset"]
+        },
+        {
+          "name": "ResourceDetailView",
+          "parent_class": "generics.RetrieveUpdateDestroyAPIView",
+          "required_mixins": ["DepartmentPermissionMixin", "ResourceAccessMixin", "ThrottleMixin"],
+          "required_methods": ["get_object", "perform_update", "perform_destroy", "retrieve"]
+        }
+      ],
+      "functions": [
+        {
+          "name": "rate_limit_decorator",
+          "params": ["rate", "method"],
+          "returns": "decorator"
+        }
+      ]
+    },
+    "behavior_patterns": [
+      "Uses Django REST Framework class-based views",
+      "Implements custom permission checking in mixins",
+      "Filters queryset based on user permissions",
+      "Logs resource access in ResourceAccessLog",
+      "Implements request throttling with cache",
+      "Handles soft delete (is_active=False)",
+      "Validates metadata JSON field",
+      "Provides pagination with page_size=20",
+      "Includes search and filtering functionality",
+      "Returns appropriate HTTP status codes",
+      "Serializes nested relationships (resource_type, owner_department)",
+      "Includes permission info in response",
+      "Handles partial updates (PATCH)",
+      "Sets timestamps automatically",
+      "Checks user department for department-level access"
+    ]
+  },
+  "import_weight": 15.00,
+  "structure_weight": 35.00,
+  "behavior_weight": 50.00,
+  "passing_score": 80.00,
+  "hints": [
+    "Start by creating custom mixins for common functionality",
+    "Use Django REST Framework's permissions.IsAuthenticated as base",
+    "Implement get_queryset() to filter based on user permissions",
+    "Create a custom serializer with validate() method for metadata",
+    "Use Django Filter for filtering capabilities",
+    "Implement throttle checking in dispatch() method",
+    "Override perform_create() to set created_by automatically",
+    "Use select_related/prefetch_related for performance",
+    "Create a custom exception for permission denied with detail",
+    "Consider using ViewSet instead of separate views for cleaner code"
+  ],
+  "learning_resources": [
+    "https://www.django-rest-framework.org/api-guide/views/",
+    "https://www.django-rest-framework.org/api-guide/generic-views/",
+    "https://www.django-rest-framework.org/api-guide/permissions/",
+    "https://www.django-rest-framework.org/api-guide/throttling/"
+  ],
+  "tags": ["django", "views", "class_based_views", "permissions", "rest_api", "intermediate"],
+  "estimated_time_minutes": 45,
+  "patterns": [
+    {
+      "pattern_id": "django-views-011-pattern-1",
+      "name": "Class-Based View with Dynamic Permissions",
+      "description": "Complete implementation of resource API with permission mixins, throttling, and audit logging",
+      "example_code": "from django.db import transaction\nfrom django.utils.decorators import method_decorator\nfrom django.views.decorators.cache import never_cache\nfrom django.core.cache import cache\nfrom django_filters import rest_framework as filters\nfrom rest_framework import viewsets, status, permissions, serializers\nfrom rest_framework.decorators import action\nfrom rest_framework.response import Response\nfrom rest_framework.exceptions import PermissionDenied, NotFound, ValidationError\n\nfrom .models import CompanyResource, ResourceType, Department, ResourceAccessLog\nfrom .serializers import ResourceSerializer\n\n\nclass DepartmentPermissionMixin:\n    \"\"\"Mixin for department-based permission checking\"\"\"\n    \n    def get_user_department(self, user):\n        \"\"\"Get user's department from profile\"\"\"\n        if hasattr(user, 'profile') and user.profile.department:\n            return user.profile.department\n        return None\n    \n    def check_department_access(self, user, resource):\n        \"\"\"Check if user has access to resource based on department\"\"\"\n        user_dept = self.get_user_department(user)\n        resource_type = resource.resource_type\n        \n        # Public resources - all authenticated users\n        if resource_type.access_level == 'public':\n            return True\n        \n        # Department resources - same department\n        if resource_type.access_level == 'department':\n            return user_dept == resource.owner_department\n        \n        # Confidential resources - managers or owner\n        if resource_type.access_level == 'confidential':\n            is_manager = hasattr(user, 'profile') and user.profile.is_manager\n            is_owner = resource.created_by == user\n            return is_manager or is_owner or (user_dept == resource.owner_department)\n        \n        # Restricted resources - only owner\n        if resource_type.access_level == 'restricted':\n            return resource.created_by == user\n        \n        return False\n    \n    def check_resource_permissions(self, user, resource, action='view'):\n        \"\"\"Check specific permissions for a resource\"\"\"\n        if not self.check_department_access(user, resource):\n            return False\n        \n        # Additional checks based on action\n        if action == 'edit':\n            # Only owner or managers can edit\n            is_manager = hasattr(user, 'profile') and user.profile.is_manager\n            is_owner = resource.created_by == user\n            return is_manager or is_owner\n        \n        if action == 'delete':\n            # Only managers can delete\n            is_manager = hasattr(user, 'profile') and user.profile.is_manager\n            return is_manager\n        \n        return True\n\n\nclass ResourceAccessMixin:\n    \"\"\"Mixin for logging resource access\"\"\"\n    \n    def log_access(self, resource, user, access_type, request):\n        \"\"\"Log resource access\"\"\"\n        ResourceAccessLog.objects.create(\n            resource=resource,\n            user=user,\n            access_type=access_type,\n            ip_address=self.get_client_ip(request),\n            user_agent=request.META.get('HTTP_USER_AGENT', '')\n        )\n    \n    def get_access_type(self, request):\n        \"\"\"Determine access type from request method\"\"\"\n        method = request.method\n        if method == 'GET':\n            return 'view'\n        elif method == 'PUT' or method == 'PATCH':\n            return 'edit'\n        elif method == 'DELETE':\n            return 'delete'\n        elif method == 'POST':\n            return 'create'\n        return 'view'\n    \n    def get_client_ip(self, request):\n        \"\"\"Get client IP address\"\"\"\n        x_forwarded_for = request.META.get('HTTP_X_FORWARDED_FOR')\n        if x_forwarded_for:\n            ip = x_forwarded_for.split(',')[0]\n        else:\n            ip = request.META.get('REMOTE_ADDR')\n        return ip\n\n\nclass ThrottleMixin:\n    \"\"\"Mixin for request throttling\"\"\"\n    \n    THROTTLE_RATE = 100  # requests per hour\n    THROTTLE_WINDOW = 3600  # 1 hour in seconds\n    \n    def check_throttle(self, request):\n        \"\"\"Check if request should be throttled\"\"\"\n        if not request.user.is_authenticated:\n            return True  # Always throttle unauthenticated\n        \n        throttle_key = self.get_throttle_key(request)\n        request_count = cache.get(throttle_key, 0)\n        \n        return request_count < self.THROTTLE_RATE\n    \n    def get_throttle_key(self, request):\n        \"\"\"Get cache key for throttling\"\"\"\n        user_id = request.user.id\n        hour = int(time.time()) // 3600\n        return f\"throttle:user:{user_id}:{hour}\"\n    \n    def increment_throttle(self, request):\n        \"\"\"Increment throttle counter\"\"\"\n        throttle_key = self.get_throttle_key(request)\n        try:\n            cache.incr(throttle_key)\n        except ValueError:\n            cache.set(throttle_key, 1, self.THROTTLE_WINDOW)\n    \n    def throttle_exceeded(self, request):\n        \"\"\"Handle throttle exceeded\"\"\"\n        return Response(\n            {\"error\": \"Rate limit exceeded. Please try again later.\"},\n            status=status.HTTP_429_TOO_MANY_REQUESTS\n        )\n\n\nclass ResourceFilter(filters.FilterSet):\n    \"\"\"Filter for resources\"\"\"\n    \n    department = filters.CharFilter(field_name='owner_department__code')\n    resource_type = filters.CharFilter(field_name='resource_type__name')\n    created_by = filters.CharFilter(field_name='created_by__username')\n    search = filters.CharFilter(method='filter_search')\n    \n    class Meta:\n        model = CompanyResource\n        fields = ['department', 'resource_type', 'created_by', 'is_active']\n    \n    def filter_search(self, queryset, name, value):\n        \"\"\"Search by name or description\"\"\"\n        return queryset.filter(\n            models.Q(name__icontains=value) |\n            models.Q(description__icontains=value)\n        )\n\n\nclass ResourceSerializer(serializers.ModelSerializer):\n    \"\"\"Serializer for CompanyResource\"\"\"\n    \n    resource_type = serializers.PrimaryKeyRelatedField(queryset=ResourceType.objects.all())\n    owner_department = serializers.PrimaryKeyRelatedField(queryset=Department.objects.all())\n    created_by = serializers.ReadOnlyField(source='created_by.username')\n    permissions = serializers.SerializerMethodField()\n    \n    class Meta:\n        model = CompanyResource\n        fields = [\n            'id', 'name', 'description', 'resource_type', 'owner_department',\n            'created_by', 'created_at', 'updated_at', 'is_active', 'metadata',\n            'permissions'\n        ]\n        read_only_fields = ['created_by', 'created_at', 'updated_at', 'is_active']\n    \n    def validate(self, data):\n        \"\"\"Validate resource data\"\"\"\n        # Check metadata is valid JSON\n        metadata = data.get('metadata', {})\n        if not isinstance(metadata, dict):\n            raise serializers.ValidationError({\"metadata\": \"Must be a JSON object\"})\n        \n        # Check if user has permission to create in this department\n        request = self.context.get('request')\n        if request and request.method == 'POST':\n            user = request.user\n            department = data.get('owner_department')\n            \n            # Check if user is manager or in the department\n            is_manager = hasattr(user, 'profile') and user.profile.is_manager\n            user_dept = self.get_user_department(user)\n            \n            if not is_manager and user_dept != department:\n                raise serializers.ValidationError(\n                    {\"owner_department\": \"You don't have permission to create resources in this department\"}\n                )\n        \n        return data\n    \n    def get_user_department(self, user):\n        \"\"\"Helper to get user department\"\"\"\n        if hasattr(user, 'profile') and user.profile.department:\n            return user.profile.department\n        return None\n    \n    def get_permissions(self, obj):\n        \"\"\"Get permissions for current user\"\"\"\n        request = self.context.get('request')\n        if not request or not request.user.is_authenticated:\n            return {\"can_view\": False, \"can_edit\": False, \"can_delete\": False}\n        \n        user = request.user\n        is_manager = hasattr(user, 'profile') and user.profile.is_manager\n        is_owner = obj.created_by == user\n        user_dept = self.get_user_department(user)\n        \n        # Check department access\n        can_view = self.check_department_access(user, obj)\n        \n        return {\n            \"can_view\": can_view,\n            \"can_edit\": (is_manager or is_owner) and can_view,\n            \"can_delete\": is_manager and can_view\n        }\n    \n    def check_department_access(self, user, resource):\n        \"\"\"Check department access (duplicate from mixin for serializer context)\"\"\"\n        user_dept = self.get_user_department(user)\n        resource_type = resource.resource_type\n        \n        if resource_type.access_level == 'public':\n            return True\n        elif resource_type.access_level == 'department':\n            return user_dept == resource.owner_department\n        elif resource_type.access_level == 'confidential':\n            is_manager = hasattr(user, 'profile') and user.profile.is_manager\n            is_owner = resource.created_by == user\n            return is_manager or is_owner or (user_dept == resource.owner_department)\n        elif resource_type.access_level == 'restricted':\n            return resource.created_by == user\n        \n        return False\n\n\nclass ResourceViewSet(DepartmentPermissionMixin, ResourceAccessMixin, ThrottleMixin,\n                      viewsets.ModelViewSet):\n    \"\"\"ViewSet for CompanyResource\"\"\"\n    \n    serializer_class = ResourceSerializer\n    permission_classes = [permissions.IsAuthenticated]\n    filter_backends = [filters.DjangoFilterBackend]\n    filterset_class = ResourceFilter\n    pagination_class = pagination.PageNumberPagination\n    page_size = 20\n    \n    @method_decorator(never_cache)\n    def dispatch(self, request, *args, **kwargs):\n        \"\"\"Override dispatch to add throttling\"\"\"\n        # Check throttle\n        if not self.check_throttle(request):\n            return self.throttle_exceeded(request)\n        \n        # Increment throttle counter\n        self.increment_throttle(request)\n        \n        return super().dispatch(request, *args, **kwargs)\n    \n    def get_queryset(self):\n        \"\"\"Get queryset filtered by user permissions\"\"\"\n        queryset = CompanyResource.objects.filter(is_active=True)\\\n            .select_related('resource_type', 'owner_department', 'created_by')\\\n            .order_by('-created_at')\n        \n        # Apply permission filtering\n        user = self.request.user\n        user_dept = self.get_user_department(user)\n        is_manager = hasattr(user, 'profile') and user.profile.is_manager\n        \n        # If user is manager, they can see all resources in their department\n        if is_manager and user_dept:\n            return queryset.filter(owner_department=user_dept)\n        \n        # Filter by resource access levels\n        q_objects = models.Q()\n        \n        # Public resources\n        q_objects |= models.Q(resource_type__access_level='public')\n        \n        # Department resources - same department\n        if user_dept:\n            q_objects |= models.Q(\n                resource_type__access_level='department',\n                owner_department=user_dept\n            )\n        \n        # Confidential resources - user's department or user is owner\n        if user_dept:\n            q_objects |= models.Q(\n                resource_type__access_level='confidential',\n                owner_department=user_dept\n            )\n        q_objects |= models.Q(\n            resource_type__access_level='confidential',\n            created_by=user\n        )\n        \n        # Restricted resources - user is owner\n        q_objects |= models.Q(\n            resource_type__access_level='restricted',\n            created_by=user\n        )\n        \n        return queryset.filter(q_objects).distinct()\n    \n    def retrieve(self, request, *args, **kwargs):\n        \"\"\"Retrieve a resource and log access\"\"\"\n        instance = self.get_object()\n        \n        # Log the access\n        self.log_access(instance, request.user, 'view', request)\n        \n        serializer = self.get_serializer(instance)\n        return Response(serializer.data)\n    \n    def perform_create(self, serializer):\n        \"\"\"Create a resource\"\"\"\n        with transaction.atomic():\n            # Set created_by to current user\n            serializer.save(created_by=self.request.user)\n            \n            # Log the creation\n            resource = serializer.instance\n            self.log_access(resource, self.request.user, 'create', self.request)\n    \n    def perform_update(self, serializer):\n        \"\"\"Update a resource\"\"\"\n        instance = self.get_object()\n        \n        # Check edit permission\n        if not self.check_resource_permissions(self.request.user, instance, 'edit'):\n            raise PermissionDenied(\"You don't have permission to edit this resource\")\n        \n        with transaction.atomic():\n            # Update updated_at\n            serializer.save()\n            \n            # Log the edit\n            self.log_access(instance, self.request.user, 'edit', self.request)\n    \n    def perform_destroy(self, instance):\n        \"\"\"Soft delete a resource\"\"\"\n        # Check delete permission\n        if not self.check_resource_permissions(self.request.user, instance, 'delete'):\n            raise PermissionDenied(\"You don't have permission to delete this resource\")\n        \n        with transaction.atomic():\n            # Soft delete\n            instance.is_active = False\n            instance.save()\n            \n            # Log the deletion\n            self.log_access(instance, self.request.user, 'delete', self.request)\n    \n    def get_object(self):\n        \"\"\"Get object with permission check\"\"\"\n        obj = super().get_object()\n        \n        # Check view permission\n        if not self.check_resource_permissions(self.request.user, obj, 'view'):\n            raise NotFound(\"Resource not found or access denied\")\n        \n        return obj\n\n\n# URL Configuration example\n# router = routers.DefaultRouter()\n# router.register(r'resources', ResourceViewSet, basename='resource')\n# urlpatterns = router.urls",
+      "required_imports": [
+        "django.db.models",
+        "rest_framework",
+        "django_filters",
+        "django.core.cache",
+        "django.utils.decorators",
+        "django.db.transaction"
+      ],
+      "required_structure": {
+        "classes": [
+          {
+            "name": "DepartmentPermissionMixin",
+            "required_methods": ["get_user_department", "check_department_access", "check_resource_permissions"]
+          },
+          {
+            "name": "ResourceFilter",
+            "parent_class": "filters.FilterSet",
+            "required_methods": ["filter_search"]
+          },
+          {
+            "name": "ResourceSerializer",
+            "parent_class": "serializers.ModelSerializer",
+            "required_fields": ["permissions"],
+            "required_methods": ["validate", "get_permissions"]
+          },
+          {
+            "name": "ResourceViewSet",
+            "parent_class": "viewsets.ModelViewSet",
+            "required_mixins": ["DepartmentPermissionMixin", "ResourceAccessMixin", "ThrottleMixin"],
+            "required_methods": ["get_queryset", "perform_create", "perform_update", "perform_destroy", "retrieve"]
+          }
+        ]
+      },
+      "forbidden_patterns": [
+        "Using function-based views instead of class-based",
+        "No permission checking in get_queryset",
+        "Hard-coding permission logic instead of using mixins",
+        "No audit logging for resource access",
+        "No request throttling",
+        "Returning raw model instances instead of serialized data",
+        "No error handling for permission denied",
+        "Not handling soft delete properly",
+        "Missing pagination",
+        "No filtering/search capabilities"
+      ],
+      "is_primary": true,
+      "confidence_threshold": 85.00
+    }
+  ]
+}

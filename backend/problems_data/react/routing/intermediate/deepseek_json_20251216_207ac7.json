@@ -1,0 +1,215 @@
+{
+  "problem_id": "react-routing-012",
+  "title": "Implement Lazy Loading, Code Splitting, and Route Prefetching",
+  "slug": "lazy-loading-code-splitting-route-prefetching",
+  "framework": "react",
+  "category": "routing",
+  "difficulty": "intermediate",
+  "description": "Create an optimized React application with lazy loading, code splitting, route prefetching, and error boundaries to improve performance and user experience.\n\n**Requirements:**\n1. Implement lazy loading for routes using React.lazy() and Suspense\n2. Create code-split bundles for:\n   - Main app bundle\n   - Authentication bundle (login, register, etc.)\n   - Dashboard bundle\n   - Admin bundle\n   - Settings bundle\n   - Profile bundle\n3. Implement route prefetching:\n   - Prefetch next likely route on hover\n   - Prefetch on route prediction (based on user behavior)\n   - Cancel prefetch if not needed\n4. Add error boundaries for:\n   - Chunk loading errors\n   - Route component errors\n   - Network errors during lazy loading\n5. Implement loading states:\n   - Skeleton screens for routes\n   - Progress indicators for bundle loading\n   - Fallback UI for slow connections\n6. Features:\n   - Dynamic imports with webpack magic comments\n   - Retry mechanism for failed chunk loads\n   - Route-based chunk naming\n   - Bundle analysis reporting\n\n**Expected Behavior:**\n- Initial bundle loads quickly with minimal JavaScript\n- Routes load on demand when accessed\n- Prefetching loads bundles before user clicks\n- Error boundaries catch and display friendly errors\n- Loading states provide good UX during transitions\n- Failed loads can be retried\n- Bundle names are meaningful for debugging\n\n**Example Route Structure:**\n```javascript\n// Main routes loaded immediately\nconst MainLayout = React.lazy(() => import('./layouts/MainLayout'));\n\n// Feature routes loaded on demand\nconst Dashboard = React.lazy(() => \n  import(/* webpackChunkName: \"dashboard\" */ './pages/Dashboard')\n);\nconst AdminPanel = React.lazy(() => \n  import(/* webpackChunkName: \"admin\" */ './pages/AdminPanel')\n);\nconst UserProfile = React.lazy(() => \n  import(/* webpackChunkName: \"profile\" */ './pages/UserProfile')\n);\n```",
+  "description_preview": "Optimize React application performance with lazy loading, code splitting, route prefetching, and robust error handling.",
+  "context_code": "// PERFORMANCE OPTIMIZATION PATTERNS (for reference only)\n// Code splitting with React.lazy:\n// const Component = React.lazy(() => import('./Component'))\n//\n// Webpack magic comments:\n// /* webpackChunkName: \"chunk-name\" */\n// /* webpackPrefetch: true */\n// /* webpackPreload: true */\n//\n// Error Boundary component must implement:\n// static getDerivedStateFromError()\n// componentDidCatch()\n//\n// Prefetching strategies:\n// - On hover of navigation link\n// - On route prediction (user likely to visit next)\n// - After main content loads\n//\n// Loading states:\n// - Skeleton screens (content placeholders)\n// - Progress indicators\n// - Delayed spinners (show after 200ms)",
+  "starter_code": "",
+  "target_area": "Complete performance optimization system with lazy loading, code splitting, and prefetching",
+  "validation_spec": {
+    "required_imports": ["react", "react-router-dom"],
+    "required_structure": {
+      "functions": [
+        {
+          "name": "AppRouter",
+          "type": "functional_component",
+          "has_export": true,
+          "description": "Main router with lazy-loaded routes"
+        },
+        {
+          "name": "RouteErrorBoundary",
+          "type": "class_component",
+          "has_export": true,
+          "description": "Error boundary for route loading errors"
+        },
+        {
+          "name": "PrefetchLink",
+          "type": "functional_component",
+          "has_export": true,
+          "extends": "NavLink",
+          "description": "Enhanced NavLink with prefetching"
+        },
+        {
+          "name": "usePrefetch",
+          "type": "custom_hook",
+          "has_export": true,
+          "description": "Custom hook for route prefetching logic"
+        }
+      ]
+    },
+    "behavior_patterns": [
+      {
+        "type": "constructor_call",
+        "class": "lazy",
+        "object": "React",
+        "min_calls": 5,
+        "description": "Must use React.lazy() for at least 5 route components"
+      },
+      {
+        "type": "jsx_element",
+        "element": "Suspense",
+        "contains": "lazy_component",
+        "description": "Must wrap lazy components with React.Suspense"
+      },
+      {
+        "type": "webpack_comment",
+        "comment": "webpackChunkName",
+        "min_occurrences": 3,
+        "description": "Must use webpackChunkName in dynamic imports"
+      },
+      {
+        "type": "webpack_comment",
+        "comment": "webpackPrefetch",
+        "min_occurrences": 2,
+        "description": "Should use webpackPrefetch for critical routes"
+      },
+      {
+        "type": "error_boundary",
+        "component": "class",
+        "methods": ["getDerivedStateFromError", "componentDidCatch"],
+        "description": "Must implement error boundary with required methods"
+      },
+      {
+        "type": "error_handling",
+        "feature": "chunk_retry",
+        "max_retries": 3,
+        "description": "Must implement retry mechanism for failed chunk loads"
+      },
+      {
+        "type": "prefetching",
+        "trigger": "hover",
+        "element": "link",
+        "description": "Must prefetch routes on link hover"
+      },
+      {
+        "type": "prefetching",
+        "trigger": "visibility",
+        "element": "viewport",
+        "description": "Should prefetch routes when they become visible in viewport"
+      },
+      {
+        "type": "loading_state",
+        "type": "skeleton",
+        "matches": "component_structure",
+        "description": "Must implement skeleton screens matching component structure"
+      },
+      {
+        "type": "loading_state",
+        "type": "progress_indicator",
+        "shows": "percentage",
+        "description": "Should show loading progress for large bundles"
+      },
+      {
+        "type": "performance",
+        "feature": "intersection_observer",
+        "purpose": "lazy_load",
+        "description": "Should use IntersectionObserver for viewport-based loading"
+      },
+      {
+        "type": "routing",
+        "pattern": "nested_suspense",
+        "description": "Should use nested Suspense boundaries for granular loading"
+      },
+      {
+        "type": "custom_hook",
+        "hook_name": "usePrefetch",
+        "parameters": ["routePath", "options"],
+        "returns": ["prefetch", "cancelPrefetch"],
+        "description": "Must create usePrefetch hook for programmatic prefetching"
+      },
+      {
+        "type": "event_handler",
+        "event_type": "onMouseEnter",
+        "handler_action": "prefetch",
+        "element": "link",
+        "description": "Links must prefetch on mouse enter"
+      },
+      {
+        "type": "event_handler",
+        "event_type": "onTouchStart",
+        "handler_action": "prefetch",
+        "element": "link",
+        "description": "Links must prefetch on touch start for mobile"
+      }
+    ],
+    "difficulty": "intermediate",
+    "framework": "react",
+    "import_weight": 5.00,
+    "structure_weight": 30.00,
+    "behavior_weight": 65.00,
+    "passing_score": 85.00
+  },
+  "import_weight": 5.00,
+  "structure_weight": 30.00,
+  "behavior_weight": 65.00,
+  "passing_score": 85.00,
+  "hints": [
+    "Use React.lazy() with dynamic imports for route components",
+    "Wrap lazy components with Suspense and provide fallback UI",
+    "Create an ErrorBoundary component to catch chunk loading errors",
+    "Implement a retry mechanism that re-attempts failed imports",
+    "Create a PrefetchLink component that extends NavLink with prefetching",
+    "Use IntersectionObserver to prefetch routes when they become visible",
+    "Implement skeleton screens that match the structure of your components",
+    "Use webpack magic comments (webpackChunkName, webpackPrefetch) for bundle control",
+    "Create a usePrefetch hook for programmatic route prefetching",
+    "Consider using React.SuspenseList for coordinating multiple Suspense boundaries",
+    "Implement a loading progress bar that shows bundle download progress"
+  ],
+  "learning_resources": [
+    "https://react.dev/reference/react/lazy",
+    "https://react.dev/reference/react/Suspense",
+    "https://webpack.js.org/guides/code-splitting/",
+    "https://developer.mozilla.org/en-US/docs/Web/API/Intersection_Observer_API"
+  ],
+  "tags": ["react", "routing", "performance", "lazy-loading", "code-splitting", "prefetching", "error-boundary", "intermediate"],
+  "estimated_time_minutes": 55,
+  "patterns": [
+    {
+      "pattern_id": "react-routing-012-pattern-1",
+      "name": "Performance-Optimized Routing with Lazy Loading",
+      "description": "Complete routing system with lazy loading, code splitting, prefetching, and error boundaries",
+      "example_code": "import React, { lazy, Suspense, useState, useEffect, useRef } from 'react';\nimport { \n  BrowserRouter, \n  Routes, \n  Route, \n  NavLink, \n  useLocation \n} from 'react-router-dom';\n\n// Error Boundary Component\nclass RouteErrorBoundary extends React.Component {\n  constructor(props) {\n    super(props);\n    this.state = { hasError: false, error: null, errorInfo: null };\n  }\n  \n  static getDerivedStateFromError(error) {\n    return { hasError: true, error };\n  }\n  \n  componentDidCatch(error, errorInfo) {\n    this.setState({ errorInfo });\n    console.error('Route loading error:', error, errorInfo);\n  }\n  \n  handleRetry = () => {\n    this.setState({ hasError: false, error: null, errorInfo: null });\n    // Force re-render of children\n    this.forceUpdate();\n  };\n  \n  render() {\n    if (this.state.hasError) {\n      return (\n        <div className=\"error-boundary\">\n          <h2>Something went wrong loading this page</h2>\n          <details style={{ whiteSpace: 'pre-wrap' }}>\n            {this.state.error && this.state.error.toString()}\n            <br />\n            {this.state.errorInfo?.componentStack}\n          </details>\n          <button onClick={this.handleRetry}>\n            Try Again\n          </button>\n        </div>\n      );\n    }\n    \n    return this.props.children;\n  }\n}\n\n// Custom hook for prefetching\nconst usePrefetch = () => {\n  const prefetchCache = useRef(new Set());\n  \n  const prefetch = (importFn, routeName) => {\n    if (prefetchCache.current.has(routeName)) {\n      return; // Already prefetched\n    }\n    \n    console.log(`Prefetching: ${routeName}`);\n    prefetchCache.current.add(routeName);\n    \n    // Start prefetching\n    importFn().catch(error => {\n      console.warn(`Failed to prefetch ${routeName}:`, error);\n      prefetchCache.current.delete(routeName);\n    });\n  };\n  \n  const cancelPrefetch = (routeName) => {\n    // In a real app, you might want to cancel the fetch\n    console.log(`Cancelled prefetch: ${routeName}`);\n  };\n  \n  return { prefetch, cancelPrefetch, prefetchCache };\n};\n\n// Enhanced NavLink with prefetching\nconst PrefetchLink = ({ to, children, prefetchOn = 'hover', ...props }) => {\n  const { prefetch } = usePrefetch();\n  const [isPrefetched, setIsPrefetched] = useState(false);\n  \n  // Map routes to their import functions\n  const routeImports = {\n    '/dashboard': () => import(/* webpackChunkName: \"dashboard\" */ './pages/Dashboard'),\n    '/admin': () => import(/* webpackChunkName: \"admin\" */ './pages/Admin'),\n    '/profile': () => import(/* webpackChunkName: \"profile\" */ './pages/Profile'),\n    '/settings': () => import(/* webpackChunkName: \"settings\" */ './pages/Settings'),\n    '/analytics': () => import(/* webpackChunkName: \"analytics\" */ './pages/Analytics'),\n  };\n  \n  const handlePrefetch = () => {\n    if (isPrefetched || !routeImports[to]) return;\n    \n    prefetch(routeImports[to], to);\n    setIsPrefetched(true);\n  };\n  \n  const eventHandlers = {};\n  \n  if (prefetchOn.includes('hover')) {\n    eventHandlers.onMouseEnter = handlePrefetch;\n    eventHandlers.onFocus = handlePrefetch;\n  }\n  \n  if (prefetchOn.includes('touch')) {\n    eventHandlers.onTouchStart = handlePrefetch;\n  }\n  \n  return (\n    <NavLink to={to} {...props} {...eventHandlers}>\n      {children}\n    </NavLink>\n  );\n};\n\n// Lazy-loaded components with retry mechanism\nconst lazyWithRetry = (componentImport, maxRetries = 3) => {\n  return lazy(async () => {\n    let retries = 0;\n    \n    while (true) {\n      try {\n        return await componentImport();\n      } catch (error) {\n        if (retries >= maxRetries) {\n          throw error;\n        }\n        retries++;\n        \n        // Wait before retrying (exponential backoff)\n        await new Promise(resolve => \n          setTimeout(resolve, 1000 * Math.pow(2, retries))\n        );\n        \n        console.log(`Retrying chunk load (attempt ${retries})`);\n      }\n    }\n  });\n};\n\n// Lazy load route components\nconst Dashboard = lazyWithRetry(() => \n  import(/* webpackChunkName: \"dashboard\", webpackPrefetch: true */ './pages/Dashboard')\n);\n\nconst Admin = lazyWithRetry(() => \n  import(/* webpackChunkName: \"admin\" */ './pages/Admin')\n);\n\nconst Profile = lazyWithRetry(() => \n  import(/* webpackChunkName: \"profile\", webpackPrefetch: true */ './pages/Profile')\n);\n\nconst Settings = lazyWithRetry(() => \n  import(/* webpackChunkName: \"settings\" */ './pages/Settings')\n);\n\nconst Analytics = lazyWithRetry(() => \n  import(/* webpackChunkName: \"analytics\" */ './pages/Analytics')\n);\n\n// Skeleton components\nconst DashboardSkeleton = () => (\n  <div className=\"skeleton-dashboard\">\n    <div className=\"skeleton-header\" />\n    <div className=\"skeleton-widgets\">\n      {[...Array(4)].map((_, i) => (\n        <div key={i} className=\"skeleton-widget\" />\n      ))}\n    </div>\n    <div className=\"skeleton-chart\" />\n  </div>\n);\n\nconst AdminSkeleton = () => (\n  <div className=\"skeleton-admin\">\n    <div className=\"skeleton-table\" />\n  </div>\n);\n\n// Main App Router\nconst AppRouter = () => {\n  const location = useLocation();\n  \n  // Prefetch routes based on current location\n  useEffect(() => {\n    const routePredictions = {\n      '/dashboard': ['/profile', '/settings'],\n      '/profile': ['/dashboard', '/settings'],\n      '/settings': ['/dashboard', '/profile'],\n    };\n    \n    const predictions = routePredictions[location.pathname] || [];\n    const { prefetch } = usePrefetch();\n    \n    predictions.forEach(route => {\n      // Small delay to avoid blocking main thread\n      setTimeout(() => {\n        const routeImports = {\n          '/dashboard': () => import('./pages/Dashboard'),\n          '/profile': () => import('./pages/Profile'),\n          '/settings': () => import('./pages/Settings'),\n        };\n        \n        if (routeImports[route]) {\n          prefetch(routeImports[route], route);\n        }\n      }, 100);\n    });\n  }, [location]);\n  \n  return (\n    <Routes>\n      <Route \n        path=\"/\" \n        element={\n          <Suspense fallback={<div>Loading Home...</div>}>\n            <HomePage />\n          </Suspense>\n        } \n      />\n      \n      <Route \n        path=\"/dashboard\" \n        element={\n          <RouteErrorBoundary>\n            <Suspense fallback={<DashboardSkeleton />}>\n              <Dashboard />\n            </Suspense>\n          </RouteErrorBoundary>\n        } \n      />\n      \n      <Route \n        path=\"/admin\" \n        element={\n          <RouteErrorBoundary>\n            <Suspense fallback={<AdminSkeleton />}>\n              <Admin />\n            </Suspense>\n          </RouteErrorBoundary>\n        } \n      />\n      \n      <Route \n        path=\"/profile\" \n        element={\n          <RouteErrorBoundary>\n            <Suspense fallback={<div>Loading Profile...</div>}>\n              <Profile />\n            </Suspense>\n          </RouteErrorBoundary>\n        } \n      />\n      \n      <Route \n        path=\"/settings\" \n        element={\n          <RouteErrorBoundary>\n            <Suspense fallback={<div>Loading Settings...</div>}>\n              <Settings />\n            </Suspense>\n          </RouteErrorBoundary>\n        } \n      />\n      \n      <Route \n        path=\"/analytics\" \n        element={\n          <RouteErrorBoundary>\n            <Suspense fallback={<div>Loading Analytics...</div>}>\n              <Analytics />\n            </Suspense>\n          </RouteErrorBoundary>\n        } \n      />\n    </Routes>\n  );\n};\n\n// Main App Component\nconst App = () => {\n  return (\n    <BrowserRouter>\n      <div className=\"app\">\n        <nav>\n          <PrefetchLink to=\"/dashboard\" prefetchOn={['hover', 'touch']}>\n            Dashboard\n          </PrefetchLink>\n          <PrefetchLink to=\"/admin\" prefetchOn={['hover']}>\n            Admin\n          </PrefetchLink>\n          <PrefetchLink to=\"/profile\" prefetchOn={['hover', 'touch']}>\n            Profile\n          </PrefetchLink>\n          <PrefetchLink to=\"/settings\" prefetchOn={['hover']}>\n            Settings\n          </PrefetchLink>\n          <PrefetchLink to=\"/analytics\" prefetchOn={['hover']}>\n            Analytics\n          </PrefetchLink>\n        </nav>\n        \n        <main>\n          <AppRouter />\n        </main>\n      </div>\n    </BrowserRouter>\n  );\n};\n\nexport { App, RouteErrorBoundary, PrefetchLink, usePrefetch };",
+      "required_imports": ["react", "react-router-dom"],
+      "required_structure": {
+        "functions": [
+          {
+            "name": "AppRouter",
+            "type": "functional_component",
+            "has_export": true
+          },
+          {
+            "name": "RouteErrorBoundary",
+            "type": "class_component",
+            "has_export": true
+          },
+          {
+            "name": "PrefetchLink",
+            "type": "functional_component",
+            "has_export": true
+          },
+          {
+            "name": "usePrefetch",
+            "type": "custom_hook",
+            "has_export": true
+          }
+        ]
+      },
+      "forbidden_patterns": [
+        "Not using React.lazy for route splitting",
+        "Missing Suspense boundaries",
+        "No error boundaries for chunk loading",
+        "Hardcoded import paths without webpack comments",
+        "No retry mechanism for failed loads",
+        "Missing skeleton loading states",
+        "Not implementing prefetching on user interaction"
+      ],
+      "is_primary": true,
+      "confidence_threshold": 85.00
+    }
+  ]
+}

@@ -1,0 +1,132 @@
+{
+  "problem_id": "django-models-001",
+  "title": "Implement Library Management System Models",
+  "slug": "implement-library-management-system-models",
+  "framework": "django",
+  "category": "models",
+  "difficulty": "intermediate",
+  "description": "You're building a library management system for a local community library. Create the Django models to represent books, authors, and book copies.\n\n**Business Requirements:**\n- The library needs to track books with ISBN, title, and publication year\n- Each book can have multiple authors (many-to-many relationship)\n- Each author has a name, nationality, and birth date\n- The library needs to track physical copies of books with unique barcode, acquisition date, and status (available/borrowed/maintenance)\n- Books should be categorized by genre (Fiction, Non-Fiction, Science, History, etc.)\n- The system should automatically track when a book copy was last updated\n\n**Model Definitions Needed:**\n1. **Book**: Represents a book title with ISBN, title, publication year, and genre\n2. **Author**: Represents an author with personal details\n3. **BookCopy**: Represents physical copies of books in the library\n\n**Constraints:**\n- ISBN should be unique and exactly 13 characters\n- Barcode for each copy must be unique\n- Publication year cannot be in the future\n- Author's birth date cannot be in the future\n- Book copy status should only accept predefined choices\n\n**Expected Behavior:**\n- When saving a BookCopy, it should automatically set last_updated to current time\n- Book model should have a method to check if any copies are available\n- Author model should calculate age based on birth date\n\n**Example Usage:**\n```python\n# After implementation, this should work:\nbook = Book.objects.create(\n    isbn='9781234567897',\n    title='Django for Professionals',\n    publication_year=2023,\n    genre='Non-Fiction'\n)\n\nauthor = Author.objects.create(\n    name='Jane Developer',\n    nationality='US',\n    birth_date='1990-05-15'\n)\n\nbook.authors.add(author)\n\ncopy = BookCopy.objects.create(\n    book=book,\n    barcode='LIB-001-2024',\n    status='available'\n)\n\nprint(book.has_available_copies())  # Should return True\nprint(author.age)  # Should calculate age based on birth date\n```",
+  "description_preview": "Create Django models for a library system with books, authors, and physical copies including relationships, constraints, and custom methods.",
+  "context_code": "# MODEL DEFINITIONS (for reference only - you need to create your own implementation)\n# These are the imports you'll need to use:\n# from django.db import models\n# from django.core.validators import MinValueValidator, MaxValueValidator\n# from django.utils import timezone\n# import datetime\n\n# Your implementation goes below. Do not modify or reference this context code directly.",
+  "starter_code": "",
+  "target_area": "Create three Django models: Book, Author, and BookCopy with proper fields, relationships, validators, and custom methods",
+  "validation_spec": {
+    "required_imports": [
+      "django.db.models",
+      "django.core.validators.MinValueValidator",
+      "django.core.validators.MaxValueValidator",
+      "django.utils.timezone",
+      "datetime"
+    ],
+    "required_structure": {
+      "classes": [
+        {
+          "name": "Book",
+          "parent_class": "models.Model",
+          "has_meta_class": true,
+          "fields": ["isbn", "title", "publication_year", "genre"],
+          "methods": ["has_available_catches", "__str__"]
+        },
+        {
+          "name": "Author",
+          "parent_class": "models.Model",
+          "has_meta_class": true,
+          "fields": ["name", "nationality", "birth_date"],
+          "properties": ["age"],
+          "methods": ["__str__"]
+        },
+        {
+          "name": "BookCopy",
+          "parent_class": "models.Model",
+          "has_meta_class": true,
+          "fields": ["book", "barcode", "acquisition_date", "status", "last_updated"],
+          "methods": ["save", "__str__"]
+        }
+      ]
+    },
+    "behavior_patterns": [
+      "Book model has CharField for isbn with max_length=13 and unique=True",
+      "Book model has CharField for title",
+      "Book model has IntegerField for publication_year with validators",
+      "Book model has CharField for genre with choices",
+      "Book model has ManyToManyField to Author",
+      "Author model has DateField for birth_date",
+      "BookCopy model has ForeignKey to Book with on_delete=models.CASCADE",
+      "BookCopy model has CharField for barcode with unique=True",
+      "BookCopy model has CharField for status with choices",
+      "BookCopy model has DateTimeField for last_updated with auto_now=True",
+      "Book model method has_available_copies returns boolean",
+      "Author model has property age that calculates from birth_date",
+      "BookCopy save method calls super().save()"
+    ]
+  },
+  "import_weight": 15.00,
+  "structure_weight": 30.00,
+  "behavior_weight": 55.00,
+  "passing_score": 80.00,
+  "hints": [
+    "Start by defining the Book model with basic fields and a ManyToManyField for authors",
+    "Implement validators for publication_year to ensure it's not in the future",
+    "Create choices for genre field using a tuple of tuples",
+    "For BookCopy, use auto_now=True for last_updated and auto_now_add=True for acquisition_date",
+    "Override the save method in BookCopy to update timestamps appropriately",
+    "In the Author model, create a property that calculates age using datetime.date.today()",
+    "Add a method to Book that checks related BookCopy objects for available status"
+  ],
+  "learning_resources": [
+    "https://docs.djangoproject.com/en/stable/topics/db/models/",
+    "https://docs.djangoproject.com/en/stable/ref/models/fields/",
+    "https://docs.djangoproject.com/en/stable/ref/models/instances/#django.db.models.Model.save"
+  ],
+  "tags": ["django", "models", "relationships", "validators", "intermediate"],
+  "estimated_time_minutes": 35,
+  "patterns": [
+    {
+      "pattern_id": "django-models-001-pattern-1",
+      "name": "Complete Library Model Implementation",
+      "description": "Standard implementation with proper field types, relationships, and custom methods",
+      "example_code": "from django.db import models\nfrom django.core.validators import MinValueValidator, MaxValueValidator\nfrom django.utils import timezone\nimport datetime\n\nclass Book(models.Model):\n    GENRE_CHOICES = [\n        ('Fiction', 'Fiction'),\n        ('Non-Fiction', 'Non-Fiction'),\n        ('Science', 'Science'),\n        ('History', 'History'),\n        ('Biography', 'Biography'),\n    ]\n    \n    isbn = models.CharField(max_length=13, unique=True)\n    title = models.CharField(max_length=200)\n    publication_year = models.IntegerField(\n        validators=[\n            MinValueValidator(1000),\n            MaxValueValidator(datetime.date.today().year)\n        ]\n    )\n    genre = models.CharField(max_length=50, choices=GENRE_CHOICES)\n    authors = models.ManyToManyField('Author', related_name='books')\n    \n    def has_available_copies(self):\n        return self.bookcopy_set.filter(status='available').exists()\n    \n    def __str__(self):\n        return f'{self.title} ({self.publication_year})'\n\nclass Author(models.Model):\n    name = models.CharField(max_length=100)\n    nationality = models.CharField(max_length=50)\n    birth_date = models.DateField()\n    \n    @property\n    def age(self):\n        today = datetime.date.today()\n        return today.year - self.birth_date.year - ((today.month, today.day) < (self.birth_date.month, self.birth_date.day))\n    \n    def __str__(self):\n        return self.name\n\nclass BookCopy(models.Model):\n    STATUS_CHOICES = [\n        ('available', 'Available'),\n        ('borrowed', 'Borrowed'),\n        ('maintenance', 'Under Maintenance'),\n    ]\n    \n    book = models.ForeignKey(Book, on_delete=models.CASCADE)\n    barcode = models.CharField(max_length=50, unique=True)\n    acquisition_date = models.DateField(auto_now_add=True)\n    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='available')\n    last_updated = models.DateTimeField(auto_now=True)\n    \n    def save(self, *args, **kwargs):\n        self.last_updated = timezone.now()\n        super().save(*args, **kwargs)\n    \n    def __str__(self):\n        return f'{self.book.title} - {self.barcode} ({self.status})'",
+      "required_imports": [
+        "django.db.models",
+        "django.core.validators.MinValueValidator",
+        "django.core.validators.MaxValueValidator",
+        "django.utils.timezone",
+        "datetime"
+      ],
+      "required_structure": {
+        "classes": [
+          {
+            "name": "Book",
+            "parent_class": "models.Model",
+            "has_meta_class": true,
+            "fields": ["isbn", "title", "publication_year", "genre", "authors"],
+            "methods": ["has_available_copies", "__str__"]
+          },
+          {
+            "name": "Author",
+            "parent_class": "models.Model",
+            "has_meta_class": true,
+            "fields": ["name", "nationality", "birth_date"],
+            "properties": ["age"],
+            "methods": ["__str__"]
+          },
+          {
+            "name": "BookCopy",
+            "parent_class": "models.Model",
+            "has_meta_class": true,
+            "fields": ["book", "barcode", "acquisition_date", "status", "last_updated"],
+            "methods": ["save", "__str__"]
+          }
+        ]
+      },
+      "forbidden_patterns": [
+        "Using TextField for short text fields",
+        "Missing on_delete parameter in ForeignKey",
+        "Not using choices for limited options",
+        "Hardcoding current year instead of datetime.date.today().year"
+      ],
+      "is_primary": true,
+      "confidence_threshold": 85.00
+    }
+  ]
+}

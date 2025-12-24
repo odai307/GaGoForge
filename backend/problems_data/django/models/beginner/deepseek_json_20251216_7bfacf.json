@@ -1,0 +1,281 @@
+{
+  "problem_id": "django-models-002",
+  "title": "Create E-commerce Product Catalog Models",
+  "slug": "create-ecommerce-product-catalog-models",
+  "framework": "django",
+  "category": "models",
+  "difficulty": "beginner",
+  "description": "Create Django models for an e-commerce product catalog with categories, products, and inventory tracking.\n\n**Business Scenario:**\nYou're building an online store that needs to manage products organized in categories, track inventory, and handle product variations (like sizes and colors).\n\n**Requirements:**\nCreate the following models in `models.py`:\n\n1. **Category Model**:\n   - `name`: CharField, max_length=100, unique, required\n   - `slug`: SlugField, max_length=100, unique, for URLs\n   - `description`: TextField, optional\n   - `parent`: ForeignKey to self (for nested categories), null=True, blank=True\n   - `is_active`: BooleanField, default=True\n   - `display_order`: IntegerField, default=0 (for sorting)\n   - `created_at`: DateTimeField, auto_now_add=True\n   - `updated_at`: DateTimeField, auto_now=True\n   \n   - Meta: ordering by display_order, then name\n   - `__str__`: Return name\n   - Method `get_absolute_url`: Return URL for category\n   - Property `product_count`: Return count of active products in category\n\n2. **Product Model**:\n   - `name`: CharField, max_length=200, required\n   - `slug`: SlugField, max_length=200, unique, for URLs\n   - `sku`: CharField, max_length=50, unique, required (Stock Keeping Unit)\n   - `description`: TextField, required\n   - `short_description`: CharField, max_length=300, optional\n   - `category`: ForeignKey to Category, on_delete=PROTECT, related_name='products'\n   - `price`: DecimalField, max_digits=10, decimal_places=2, required\n   - `compare_at_price`: DecimalField, max_digits=10, decimal_places=2, optional (original price for sales)\n   - `cost`: DecimalField, max_digits=10, decimal_places=2, optional (wholesale cost)\n   - `stock_quantity`: IntegerField, default=0\n   - `reorder_level`: IntegerField, default=10 (reorder when stock below this)\n   - `weight`: DecimalField, max_digits=6, decimal_places=2, optional (in kg)\n   - `is_active`: BooleanField, default=True\n   - `is_featured`: BooleanField, default=False\n   - `created_at`: DateTimeField, auto_now_add=True\n   - `updated_at`: DateTimeField, auto_now=True\n   \n   - Meta: ordering by name\n   - `__str__`: Return name with SKU\n   - Method `get_absolute_url`: Return URL for product\n   - Property `profit_margin`: Calculate profit percentage\n   - Property `needs_reorder`: Check if stock below reorder level\n   - Property `on_sale`: Check if compare_at_price > price\n\n3. **ProductImage Model**:\n   - `product`: ForeignKey to Product, on_delete=CASCADE, related_name='images'\n   - `image`: ImageField, upload_to='products/'\n   - `alt_text`: CharField, max_length=200, optional\n   - `is_primary`: BooleanField, default=False\n   - `display_order`: IntegerField, default=0\n   - `created_at`: DateTimeField, auto_now_add=True\n   \n   - Meta: ordering by display_order\n   - `__str__`: Return product name with image order\n\n4. **ProductVariant Model**:\n   - `product`: ForeignKey to Product, on_delete=CASCADE, related_name='variants'\n   - `sku_suffix`: CharField, max_length=10, required (appended to product SKU)\n   - `name`: CharField, max_length=100, required (e.g., \"Large\", \"Red\")\n   - `price_adjustment`: DecimalField, max_digits=10, decimal_places=2, default=0\n   - `stock_quantity`: IntegerField, default=0\n   - `is_active`: BooleanField, default=True\n   - `created_at`: DateTimeField, auto_now_add=True\n   - `updated_at`: DateTimeField, auto_now=True\n   \n   - Meta: ordering by name\n   - `__str__`: Return product name with variant\n   - Property `full_sku`: Return product SKU + suffix\n   - Property `final_price`: Return product price + adjustment\n\n5. **ProductReview Model**:\n   - `product`: ForeignKey to Product, on_delete=CASCADE, related_name='reviews'\n   - `rating`: IntegerField, choices 1-5\n   - `title`: CharField, max_length=200, required\n   - `comment`: TextField, required\n   - `user_name`: CharField, max_length=100, required\n   - `user_email`: EmailField, required\n   - `is_approved`: BooleanField, default=False\n   - `created_at`: DateTimeField, auto_now_add=True\n   - `updated_at`: DateTimeField, auto_now=True\n   \n   - Meta: ordering by -created_at\n   - `__str__`: Return product name with rating\n   - Property `star_rating`: Return star representation (★★★★★)\n\n**Expected Behavior:**\n- Proper hierarchical category structure\n- Complete product information with variants\n- Image handling with primary image selection\n- Review system with approval process\n- Inventory tracking with reorder alerts\n- Price calculations and profit margins\n\n**Example Usage:**\n```python\n# Create a category\nclothing = Category.objects.create(\n    name=\"Clothing\",\n    slug=\"clothing\",\n    description=\"All clothing items\"\n)\n\n# Create a product\ntshirt = Product.objects.create(\n    name=\"Cotton T-Shirt\",\n    slug=\"cotton-t-shirt\",\n    sku=\"TSHIRT001\",\n    category=clothing,\n    price=19.99,\n    compare_at_price=24.99\n)\n\n# Check if product needs reorder\nif tshirt.needs_reorder:\n    print(f\"{tshirt.name} needs reordering\")\n\n# Check sale status\nif tshirt.on_sale:\n    print(f\"{tshirt.name} is on sale!\")\n```",
+  "description_preview": "Create e-commerce models for categories, products, images, variants, and reviews",
+  "context_code": "# You need to create the models in models.py\n# This is a reference for what you're building\n\n# Expected model relationships:\n# Category N───1 Category (self-referential for hierarchy)\n# Category 1───N Product\n# Product  1───N ProductImage\n# Product  1───N ProductVariant\n# Product  1───N ProductReview",
+  "starter_code": "",
+  "target_area": "E-commerce product catalog Django models",
+  "validation_spec": {
+    "required_imports": ["django.db.models", "django.urls"],
+    "required_structure": {
+      "classes": [
+        {
+          "name": "Category",
+          "parent_class": "models.Model",
+          "has_meta_class": true,
+          "meta_class_options": ["ordering"],
+          "methods": ["__str__", "get_absolute_url"],
+          "properties": ["product_count"]
+        },
+        {
+          "name": "Product",
+          "parent_class": "models.Model",
+          "has_meta_class": true,
+          "meta_class_options": ["ordering"],
+          "methods": ["__str__", "get_absolute_url"],
+          "properties": ["profit_margin", "needs_reorder", "on_sale"]
+        },
+        {
+          "name": "ProductImage",
+          "parent_class": "models.Model",
+          "has_meta_class": true,
+          "meta_class_options": ["ordering"],
+          "methods": ["__str__"]
+        },
+        {
+          "name": "ProductVariant",
+          "parent_class": "models.Model",
+          "has_meta_class": true,
+          "meta_class_options": ["ordering"],
+          "methods": ["__str__"],
+          "properties": ["full_sku", "final_price"]
+        },
+        {
+          "name": "ProductReview",
+          "parent_class": "models.Model",
+          "has_meta_class": true,
+          "meta_class_options": ["ordering"],
+          "methods": ["__str__"],
+          "properties": ["star_rating"]
+        }
+      ]
+    },
+    "behavior_patterns": [
+      {
+        "type": "model_field",
+        "field_type": "CharField",
+        "min_count": 15,
+        "description": "Must include CharFields for names, SKUs, slugs, etc."
+      },
+      {
+        "type": "model_field",
+        "field_type": "SlugField",
+        "min_count": 2,
+        "description": "Must include SlugFields for category and product URLs"
+      },
+      {
+        "type": "model_field",
+        "field_type": "ForeignKey",
+        "min_count": 6,
+        "description": "Must include ForeignKeys for all relationships"
+      },
+      {
+        "type": "model_field",
+        "field_type": "DecimalField",
+        "min_count": 5,
+        "description": "Must include DecimalFields for prices, costs, weight"
+      },
+      {
+        "type": "model_field",
+        "field_type": "IntegerField",
+        "min_count": 6,
+        "description": "Must include IntegerFields for stock, ratings, display orders"
+      },
+      {
+        "type": "model_field",
+        "field_type": "BooleanField",
+        "min_count": 6,
+        "description": "Must include BooleanFields for status flags"
+      },
+      {
+        "type": "model_field",
+        "field_type": "TextField",
+        "min_count": 3,
+        "description": "Must include TextFields for descriptions and comments"
+      },
+      {
+        "type": "model_field",
+        "field_type": "ImageField",
+        "description": "Must include ImageField for product images"
+      },
+      {
+        "type": "model_field",
+        "field_type": "EmailField",
+        "description": "Must include EmailField for review emails"
+      },
+      {
+        "type": "self_referential_foreignkey",
+        "model": "Category",
+        "field_name": "parent",
+        "description": "Category must have self-referential ForeignKey for hierarchy"
+      },
+      {
+        "type": "foreign_key_relationship",
+        "from_model": "Product",
+        "to_model": "Category",
+        "on_delete": "PROTECT",
+        "description": "Product must have ForeignKey to Category"
+      },
+      {
+        "type": "cascade_relationship",
+        "from_model": "ProductImage",
+        "to_model": "Product",
+        "description": "ProductImage must cascade delete with product"
+      },
+      {
+        "type": "cascade_relationship",
+        "from_model": "ProductVariant",
+        "to_model": "Product",
+        "description": "ProductVariant must cascade delete with product"
+      },
+      {
+        "type": "cascade_relationship",
+        "from_model": "ProductReview",
+        "to_model": "Product",
+        "description": "ProductReview must cascade delete with product"
+      },
+      {
+        "type": "get_absolute_url_method",
+        "model": "Category",
+        "description": "Category must have get_absolute_url method"
+      },
+      {
+        "type": "get_absolute_url_method",
+        "model": "Product",
+        "description": "Product must have get_absolute_url method"
+      },
+      {
+        "type": "property_method",
+        "model": "Category",
+        "property_name": "product_count",
+        "description": "Category must have product_count property"
+      },
+      {
+        "type": "property_method",
+        "model": "Product",
+        "property_name": "profit_margin",
+        "description": "Product must have profit_margin property"
+      },
+      {
+        "type": "property_method",
+        "model": "Product",
+        "property_name": "needs_reorder",
+        "description": "Product must have needs_reorder property"
+      },
+      {
+        "type": "property_method",
+        "model": "Product",
+        "property_name": "on_sale",
+        "description": "Product must have on_sale property"
+      },
+      {
+        "type": "property_method",
+        "model": "ProductVariant",
+        "property_name": "full_sku",
+        "description": "ProductVariant must have full_sku property"
+      },
+      {
+        "type": "property_method",
+        "model": "ProductVariant",
+        "property_name": "final_price",
+        "description": "ProductVariant must have final_price property"
+      },
+      {
+        "type": "property_method",
+        "model": "ProductReview",
+        "property_name": "star_rating",
+        "description": "ProductReview must have star_rating property"
+      },
+      {
+        "type": "field_choices",
+        "model": "ProductReview",
+        "field_name": "rating",
+        "choices_count": 5,
+        "description": "ProductReview rating must have 1-5 choices"
+      }
+    ],
+    "difficulty": "beginner",
+    "framework": "django"
+  },
+  "import_weight": 15.00,
+  "structure_weight": 40.00,
+  "behavior_weight": 45.00,
+  "passing_score": 75.00,
+  "hints": [
+    "Use self-referential ForeignKey for category hierarchy (parent field)",
+    "SlugField automatically generates URL-friendly strings from other fields",
+    "For profit margin calculation: ((price - cost) / price) * 100",
+    "Use @property decorator for calculated properties that don't need database storage"
+  ],
+  "learning_resources": [
+    "https://docs.djangoproject.com/en/stable/ref/models/fields/#slugfield",
+    "https://docs.djangoproject.com/en/stable/ref/models/fields/#imagefield",
+    "https://docs.djangoproject.com/en/stable/ref/models/instances/#get-absolute-url"
+  ],
+  "tags": ["django", "models", "ecommerce", "catalog", "beginner"],
+  "estimated_time_minutes": 40,
+  "patterns": [
+    {
+      "pattern_id": "django-models-002-pattern-1",
+      "name": "Complete E-commerce Catalog Models",
+      "description": "All five e-commerce models with proper fields and relationships",
+      "example_code": "from django.db import models\nfrom django.urls import reverse\n\nclass Category(models.Model):\n    \"\"\"Model representing a product category.\"\"\"\n    name = models.CharField(max_length=100, unique=True)\n    slug = models.SlugField(max_length=100, unique=True)\n    description = models.TextField(blank=True)\n    parent = models.ForeignKey(\n        'self',\n        on_delete=models.CASCADE,\n        null=True,\n        blank=True,\n        related_name='children'\n    )\n    is_active = models.BooleanField(default=True)\n    display_order = models.IntegerField(default=0)\n    created_at = models.DateTimeField(auto_now_add=True)\n    updated_at = models.DateTimeField(auto_now=True)\n    \n    class Meta:\n        verbose_name_plural = \"categories\"\n        ordering = ['display_order', 'name']\n    \n    def __str__(self):\n        return self.name\n    \n    def get_absolute_url(self):\n        return reverse('category_detail', kwargs={'slug': self.slug})\n    \n    @property\n    def product_count(self):\n        \"\"\"Return count of active products in this category.\"\"\"\n        return self.products.filter(is_active=True).count()\n\nclass Product(models.Model):\n    \"\"\"Model representing a product.\"\"\"\n    name = models.CharField(max_length=200)\n    slug = models.SlugField(max_length=200, unique=True)\n    sku = models.CharField(max_length=50, unique=True)\n    description = models.TextField()\n    short_description = models.CharField(max_length=300, blank=True)\n    category = models.ForeignKey(\n        Category,\n        on_delete=models.PROTECT,\n        related_name='products'\n    )\n    price = models.DecimalField(max_digits=10, decimal_places=2)\n    compare_at_price = models.DecimalField(\n        max_digits=10, \n        decimal_places=2, \n        blank=True, \n        null=True\n    )\n    cost = models.DecimalField(\n        max_digits=10, \n        decimal_places=2, \n        blank=True, \n        null=True\n    )\n    stock_quantity = models.IntegerField(default=0)\n    reorder_level = models.IntegerField(default=10)\n    weight = models.DecimalField(\n        max_digits=6, \n        decimal_places=2, \n        blank=True, \n        null=True\n    )\n    is_active = models.BooleanField(default=True)\n    is_featured = models.BooleanField(default=False)\n    created_at = models.DateTimeField(auto_now_add=True)\n    updated_at = models.DateTimeField(auto_now=True)\n    \n    class Meta:\n        ordering = ['name']\n    \n    def __str__(self):\n        return f\"{self.name} ({self.sku})\"\n    \n    def get_absolute_url(self):\n        return reverse('product_detail', kwargs={'slug': self.slug})\n    \n    @property\n    def profit_margin(self):\n        \"\"\"Calculate profit margin percentage.\"\"\"\n        if self.cost and self.price > 0:\n            return ((self.price - self.cost) / self.price) * 100\n        return 0\n    \n    @property\n    def needs_reorder(self):\n        \"\"\"Check if product needs reordering.\"\"\"\n        return self.stock_quantity < self.reorder_level\n    \n    @property\n    def on_sale(self):\n        \"\"\"Check if product is on sale.\"\"\"\n        return bool(self.compare_at_price and self.compare_at_price > self.price)\n\nclass ProductImage(models.Model):\n    \"\"\"Model representing product images.\"\"\"\n    product = models.ForeignKey(\n        Product,\n        on_delete=models.CASCADE,\n        related_name='images'\n    )\n    image = models.ImageField(upload_to='products/')\n    alt_text = models.CharField(max_length=200, blank=True)\n    is_primary = models.BooleanField(default=False)\n    display_order = models.IntegerField(default=0)\n    created_at = models.DateTimeField(auto_now_add=True)\n    \n    class Meta:\n        ordering = ['display_order']\n    \n    def __str__(self):\n        return f\"{self.product.name} - Image {self.display_order}\"\n\nclass ProductVariant(models.Model):\n    \"\"\"Model representing product variants (size, color, etc.).\"\"\"\n    product = models.ForeignKey(\n        Product,\n        on_delete=models.CASCADE,\n        related_name='variants'\n    )\n    sku_suffix = models.CharField(max_length=10)\n    name = models.CharField(max_length=100)  # e.g., \"Large\", \"Red\"\n    price_adjustment = models.DecimalField(\n        max_digits=10, \n        decimal_places=2, \n        default=0\n    )\n    stock_quantity = models.IntegerField(default=0)\n    is_active = models.BooleanField(default=True)\n    created_at = models.DateTimeField(auto_now_add=True)\n    updated_at = models.DateTimeField(auto_now=True)\n    \n    class Meta:\n        ordering = ['name']\n        unique_together = ['product', 'sku_suffix']\n    \n    def __str__(self):\n        return f\"{self.product.name} - {self.name}\"\n    \n    @property\n    def full_sku(self):\n        \"\"\"Return full SKU (product SKU + suffix).\"\"\"\n        return f\"{self.product.sku}-{self.sku_suffix}\"\n    \n    @property\n    def final_price(self):\n        \"\"\"Calculate final price (base price + adjustment).\"\"\"\n        return self.product.price + self.price_adjustment\n\nclass ProductReview(models.Model):\n    \"\"\"Model representing product reviews.\"\"\"\n    RATING_CHOICES = [\n        (1, '1 Star'),\n        (2, '2 Stars'),\n        (3, '3 Stars'),\n        (4, '4 Stars'),\n        (5, '5 Stars'),\n    ]\n    \n    product = models.ForeignKey(\n        Product,\n        on_delete=models.CASCADE,\n        related_name='reviews'\n    )\n    rating = models.IntegerField(choices=RATING_CHOICES)\n    title = models.CharField(max_length=200)\n    comment = models.TextField()\n    user_name = models.CharField(max_length=100)\n    user_email = models.EmailField()\n    is_approved = models.BooleanField(default=False)\n    created_at = models.DateTimeField(auto_now_add=True)\n    updated_at = models.DateTimeField(auto_now=True)\n    \n    class Meta:\n        ordering = ['-created_at']\n    \n    def __str__(self):\n        return f\"{self.product.name} - {self.rating} Stars\"\n    \n    @property\n    def star_rating(self):\n        \"\"\"Return star representation of rating.\"\"\"\n        stars = '★' * self.rating\n        empty_stars = '☆' * (5 - self.rating)\n        return stars + empty_stars",
+      "required_imports": ["django.db.models", "django.urls"],
+      "required_structure": {
+        "classes": [
+          {
+            "name": "Category",
+            "parent_class": "models.Model",
+            "has_meta_class": true,
+            "meta_class_options": ["ordering", "verbose_name_plural"],
+            "methods": ["__str__", "get_absolute_url"],
+            "properties": ["product_count"]
+          },
+          {
+            "name": "Product",
+            "parent_class": "models.Model",
+            "has_meta_class": true,
+            "meta_class_options": ["ordering"],
+            "methods": ["__str__", "get_absolute_url"],
+            "properties": ["profit_margin", "needs_reorder", "on_sale"]
+          },
+          {
+            "name": "ProductImage",
+            "parent_class": "models.Model",
+            "has_meta_class": true,
+            "meta_class_options": ["ordering"],
+            "methods": ["__str__"]
+          },
+          {
+            "name": "ProductVariant",
+            "parent_class": "models.Model",
+            "has_meta_class": true,
+            "meta_class_options": ["ordering", "unique_together"],
+            "methods": ["__str__"],
+            "properties": ["full_sku", "final_price"]
+          },
+          {
+            "name": "ProductReview",
+            "parent_class": "models.Model",
+            "has_meta_class": true,
+            "meta_class_options": ["ordering"],
+            "methods": ["__str__"],
+            "properties": ["star_rating"]
+          }
+        ]
+      },
+      "forbidden_patterns": [
+        "missing_slug_fields",
+        "no_self_referential_fk",
+        "incorrect_property_calculations"
+      ],
+      "is_primary": true,
+      "confidence_threshold": 85.00
+    }
+  ]
+}

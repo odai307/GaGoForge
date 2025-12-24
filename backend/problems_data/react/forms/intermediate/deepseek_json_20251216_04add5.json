@@ -1,0 +1,121 @@
+{
+  "problem_id": "react-forms-011",
+  "title": "Create a Multi-Step Registration Form",
+  "slug": "create-multi-step-registration-form",
+  "framework": "react",
+  "category": "forms",
+  "difficulty": "intermediate",
+  "description": "Build a multi-step registration form that collects user information across multiple pages with validation and navigation.\n\n**Business Scenario:**\nYou're building a signup flow for an e-commerce platform. Users need to provide:\n1. Personal details (name, email, password)\n2. Shipping address\n3. Payment preferences\n\nThe form should guide users through these steps with clear navigation and validation.\n\n**Requirements:**\n1. Create a 3-step form with navigation between steps\n2. Each step should have its own validation rules:\n   - Step 1: Name (required), Email (valid format), Password (min 8 chars)\n   - Step 2: Address (required), City (required), Postal Code (valid format)\n   - Step 3: Payment Method (required, radio buttons)\n3. Show progress indicator showing current step\n4. Disable \"Next\" button until current step is valid\n5. On final step, show \"Submit\" button instead of \"Next\"\n6. Show summary of all entered data before submission\n7. Handle form submission with loading state\n\n**Expected Behavior:**\n- Users can navigate between steps with Previous/Next buttons\n- Invalid fields show error messages\n- Progress updates as user moves through steps\n- Form data persists between navigation\n- Submission shows loading state and success/error message\n\n**Example Steps:**\n```\nStep 1: Personal Details\n[Name] [Email] [Password]\n\nStep 2: Shipping Address\n[Address] [City] [Postal Code]\n\nStep 3: Payment\n[○ Credit Card ○ PayPal ○ Bank Transfer]\n```\n\n**Validation Rules:**\n- Email must match regex: /^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$/\n- Password minimum 8 characters\n- Postal Code must be 5 digits (US format)\n- All required fields must be filled",
+  "description_preview": "Build a multi-step registration form with step validation, navigation, and progress tracking",
+  "context_code": "// Example form structure (for reference only)\n// You need to build the complete multi-step form component\n\ninterface FormData {\n  // Step 1\n  name: string;\n  email: string;\n  password: string;\n  \n  // Step 2\n  address: string;\n  city: string;\n  postalCode: string;\n  \n  // Step 3\n  paymentMethod: 'credit-card' | 'paypal' | 'bank-transfer';\n}",
+  "starter_code": "",
+  "target_area": "MultiStepRegistrationForm component",
+  "validation_spec": {
+    "required_imports": ["react"],
+    "required_structure": {
+      "functions": [
+        {
+          "name": "MultiStepRegistrationForm",
+          "type": "functional_component",
+          "params": [],
+          "has_return": true
+        }
+      ]
+    },
+    "behavior_patterns": [
+      {
+        "type": "hook_call",
+        "hook": "useState",
+        "min_calls": 3,
+        "description": "Must manage form data, current step, and loading state"
+      },
+      {
+        "type": "form_handling",
+        "form_type": "controlled",
+        "description": "Must use controlled form components"
+      },
+      {
+        "type": "conditional_rendering",
+        "conditional_type": "ternary",
+        "description": "Must conditionally render different form steps"
+      },
+      {
+        "type": "event_handler",
+        "event_type": "onChange",
+        "handler_style": "inline",
+        "description": "Must handle input changes"
+      },
+      {
+        "type": "event_handler",
+        "event_type": "onSubmit",
+        "handler_style": "function_reference",
+        "description": "Must handle form submission"
+      },
+      {
+        "type": "form_validation",
+        "validation_type": "synchronous",
+        "description": "Must validate each step before allowing navigation"
+      },
+      {
+        "type": "state_management",
+        "state_type": "useState",
+        "description": "Must manage multi-step form state"
+      },
+      {
+        "type": "jsx_elements",
+        "required_elements": ["input", "button", "form"],
+        "description": "Must use form elements with proper structure"
+      },
+      {
+        "type": "conditional_rendering",
+        "conditional_type": "logical_and",
+        "description": "Must conditionally disable/enable navigation buttons"
+      }
+    ],
+    "difficulty": "intermediate",
+    "framework": "react"
+  },
+  "import_weight": 10.00,
+  "structure_weight": 25.00,
+  "behavior_weight": 65.00,
+  "passing_score": 85.00,
+  "hints": [
+    "Manage current step with useState and render different form sections based on it",
+    "Store all form data in a single state object that persists between steps",
+    "Validate current step before allowing navigation to next step",
+    "Use a switch statement or conditional rendering for different form steps"
+  ],
+  "learning_resources": [
+    "https://react.dev/learn/sharing-state-between-components",
+    "https://react.dev/learn/responding-to-events",
+    "https://react.dev/learn/conditional-rendering"
+  ],
+  "tags": ["forms", "multi-step", "validation", "controlled-components", "react"],
+  "estimated_time_minutes": 35,
+  "patterns": [
+    {
+      "pattern_id": "react-forms-011-pattern-1",
+      "name": "Multi-Step Form with Validation",
+      "description": "Complete multi-step form implementation with step validation",
+      "example_code": "import React, { useState } from 'react';\n\ninterface FormData {\n  name: string;\n  email: string;\n  password: string;\n  address: string;\n  city: string;\n  postalCode: string;\n  paymentMethod: 'credit-card' | 'paypal' | 'bank-transfer';\n}\n\nconst MultiStepRegistrationForm: React.FC = () => {\n  const [currentStep, setCurrentStep] = useState(1);\n  const [formData, setFormData] = useState<FormData>({\n    name: '',\n    email: '',\n    password: '',\n    address: '',\n    city: '',\n    postalCode: '',\n    paymentMethod: 'credit-card'\n  });\n  const [errors, setErrors] = useState<Partial<Record<keyof FormData, string>>>({});\n  const [isSubmitting, setIsSubmitting] = useState(false);\n  const [submitMessage, setSubmitMessage] = useState('');\n  \n  const validateStep = (step: number): boolean => {\n    const newErrors: Partial<Record<keyof FormData, string>> = {};\n    \n    if (step === 1) {\n      if (!formData.name.trim()) newErrors.name = 'Name is required';\n      \n      const emailRegex = /^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$/;\n      if (!formData.email.trim()) {\n        newErrors.email = 'Email is required';\n      } else if (!emailRegex.test(formData.email)) {\n        newErrors.email = 'Invalid email format';\n      }\n      \n      if (!formData.password) {\n        newErrors.password = 'Password is required';\n      } else if (formData.password.length < 8) {\n        newErrors.password = 'Password must be at least 8 characters';\n      }\n    } else if (step === 2) {\n      if (!formData.address.trim()) newErrors.address = 'Address is required';\n      if (!formData.city.trim()) newErrors.city = 'City is required';\n      \n      const postalRegex = /^\\d{5}$/;\n      if (!formData.postalCode.trim()) {\n        newErrors.postalCode = 'Postal code is required';\n      } else if (!postalRegex.test(formData.postalCode)) {\n        newErrors.postalCode = 'Postal code must be 5 digits';\n      }\n    } else if (step === 3) {\n      if (!formData.paymentMethod) {\n        newErrors.paymentMethod = 'Please select a payment method';\n      }\n    }\n    \n    setErrors(newErrors);\n    return Object.keys(newErrors).length === 0;\n  };\n  \n  const handleChange = (field: keyof FormData, value: string) => {\n    setFormData(prev => ({ ...prev, [field]: value }));\n    // Clear error for this field when user starts typing\n    if (errors[field]) {\n      setErrors(prev => ({ ...prev, [field]: undefined }));\n    }\n  };\n  \n  const nextStep = () => {\n    if (validateStep(currentStep)) {\n      setCurrentStep(prev => Math.min(prev + 1, 3));\n    }\n  };\n  \n  const prevStep = () => {\n    setCurrentStep(prev => Math.max(prev - 1, 1));\n  };\n  \n  const handleSubmit = async (e: React.FormEvent) => {\n    e.preventDefault();\n    \n    if (!validateStep(currentStep)) {\n      return;\n    }\n    \n    setIsSubmitting(true);\n    setSubmitMessage('');\n    \n    try {\n      // Simulate API call\n      await new Promise(resolve => setTimeout(resolve, 1000));\n      \n      setSubmitMessage('Registration successful!');\n      console.log('Form submitted:', formData);\n      \n      // Reset form after successful submission\n      setTimeout(() => {\n        setFormData({\n          name: '',\n          email: '',\n          password: '',\n          address: '',\n          city: '',\n          postalCode: '',\n          paymentMethod: 'credit-card'\n        });\n        setCurrentStep(1);\n        setSubmitMessage('');\n      }, 2000);\n    } catch (error) {\n      setSubmitMessage('Registration failed. Please try again.');\n    } finally {\n      setIsSubmitting(false);\n    }\n  };\n  \n  const renderStep = () => {\n    switch (currentStep) {\n      case 1:\n        return (\n          <div>\n            <h3>Personal Details</h3>\n            <div>\n              <label>Name:</label>\n              <input\n                type=\"text\"\n                value={formData.name}\n                onChange={(e) => handleChange('name', e.target.value)}\n              />\n              {errors.name && <span style={{ color: 'red' }}>{errors.name}</span>}\n            </div>\n            <div>\n              <label>Email:</label>\n              <input\n                type=\"email\"\n                value={formData.email}\n                onChange={(e) => handleChange('email', e.target.value)}\n              />\n              {errors.email && <span style={{ color: 'red' }}>{errors.email}</span>}\n            </div>\n            <div>\n              <label>Password:</label>\n              <input\n                type=\"password\"\n                value={formData.password}\n                onChange={(e) => handleChange('password', e.target.value)}\n              />\n              {errors.password && <span style={{ color: 'red' }}>{errors.password}</span>}\n            </div>\n          </div>\n        );\n      \n      case 2:\n        return (\n          <div>\n            <h3>Shipping Address</h3>\n            <div>\n              <label>Address:</label>\n              <input\n                type=\"text\"\n                value={formData.address}\n                onChange={(e) => handleChange('address', e.target.value)}\n              />\n              {errors.address && <span style={{ color: 'red' }}>{errors.address}</span>}\n            </div>\n            <div>\n              <label>City:</label>\n              <input\n                type=\"text\"\n                value={formData.city}\n                onChange={(e) => handleChange('city', e.target.value)}\n              />\n              {errors.city && <span style={{ color: 'red' }}>{errors.city}</span>}\n            </div>\n            <div>\n              <label>Postal Code:</label>\n              <input\n                type=\"text\"\n                value={formData.postalCode}\n                onChange={(e) => handleChange('postalCode', e.target.value)}\n              />\n              {errors.postalCode && <span style={{ color: 'red' }}>{errors.postalCode}</span>}\n            </div>\n          </div>\n        );\n      \n      case 3:\n        return (\n          <div>\n            <h3>Payment Method</h3>\n            <div>\n              <label>\n                <input\n                  type=\"radio\"\n                  name=\"paymentMethod\"\n                  value=\"credit-card\"\n                  checked={formData.paymentMethod === 'credit-card'}\n                  onChange={(e) => handleChange('paymentMethod', e.target.value)}\n                />\n                Credit Card\n              </label>\n            </div>\n            <div>\n              <label>\n                <input\n                  type=\"radio\"\n                  name=\"paymentMethod\"\n                  value=\"paypal\"\n                  checked={formData.paymentMethod === 'paypal'}\n                  onChange={(e) => handleChange('paymentMethod', e.target.value)}\n                />\n                PayPal\n              </label>\n            </div>\n            <div>\n              <label>\n                <input\n                  type=\"radio\"\n                  name=\"paymentMethod\"\n                  value=\"bank-transfer\"\n                  checked={formData.paymentMethod === 'bank-transfer'}\n                  onChange={(e) => handleChange('paymentMethod', e.target.value)}\n                />\n                Bank Transfer\n              </label>\n            </div>\n            {errors.paymentMethod && <span style={{ color: 'red' }}>{errors.paymentMethod}</span>}\n            \n            <div>\n              <h4>Summary</h4>\n              <p>Name: {formData.name}</p>\n              <p>Email: {formData.email}</p>\n              <p>Address: {formData.address}, {formData.city} {formData.postalCode}</p>\n              <p>Payment: {formData.paymentMethod}</p>\n            </div>\n          </div>\n        );\n      \n      default:\n        return null;\n    }\n  };\n  \n  return (\n    <form onSubmit={handleSubmit}>\n      <div>\n        <div>\n          Step {currentStep} of 3\n          <div>\n            {[1, 2, 3].map(step => (\n              <div\n                key={step}\n                style={{\n                  display: 'inline-block',\n                  width: '30px',\n                  height: '30px',\n                  borderRadius: '50%',\n                  backgroundColor: step <= currentStep ? 'blue' : 'gray',\n                  color: 'white',\n                  textAlign: 'center',\n                  lineHeight: '30px',\n                  margin: '0 5px'\n                }}\n              >\n                {step}\n              </div>\n            ))}\n          </div>\n        </div>\n        \n        {renderStep()}\n        \n        <div>\n          {currentStep > 1 && (\n            <button type=\"button\" onClick={prevStep} disabled={isSubmitting}>\n              Previous\n            </button>\n          )}\n          \n          {currentStep < 3 ? (\n            <button \n              type=\"button\" \n              onClick={nextStep}\n              disabled={isSubmitting}\n            >\n              Next\n            </button>\n          ) : (\n            <button \n              type=\"submit\" \n              disabled={isSubmitting}\n            >\n              {isSubmitting ? 'Submitting...' : 'Submit Registration'}\n            </button>\n          )}\n        </div>\n        \n        {submitMessage && (\n          <div style={{ \n            marginTop: '20px', \n            padding: '10px', \n            backgroundColor: submitMessage.includes('successful') ? 'lightgreen' : 'lightcoral'\n          }}>\n            {submitMessage}\n          </div>\n        )}\n      </div>\n    </form>\n  );\n};\n\nexport default MultiStepRegistrationForm;",
+      "required_imports": ["react"],
+      "required_structure": {
+        "functions": [
+          {
+            "name": "MultiStepRegistrationForm",
+            "type": "functional_component",
+            "params": [],
+            "has_return": true
+          }
+        ]
+      },
+      "forbidden_patterns": [
+        "uncontrolled_inputs",
+        "no_validation",
+        "hardcoded_step_count"
+      ],
+      "is_primary": true,
+      "confidence_threshold": 85.00
+    }
+  ]
+}

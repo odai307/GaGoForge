@@ -1,0 +1,124 @@
+{
+  "problem_id": "react-forms-013",
+  "title": "Implement a Searchable Select Form with Async Options",
+  "slug": "implement-searchable-select-form-with-async-options",
+  "framework": "react",
+  "category": "forms",
+  "difficulty": "intermediate",
+  "description": "Create a searchable select component that fetches options asynchronously from an API as the user types, commonly used for country/city selection or product search.\n\n**Business Scenario:**\nYou're building a shipping address form for an international e-commerce site. Users need to select their country and city from large datasets. Instead of loading all options upfront, fetch and filter options as the user types.\n\n**Requirements:**\n1. Create a searchable select component with:\n   - Text input for searching\n   - Dropdown list of filtered options\n   - Loading state during API calls\n   - No results message\n2. Implement debounced search to avoid excessive API calls\n3. Fetch options from a mock API (simulate with setTimeout)\n4. Allow selecting an option by clicking or keyboard navigation\n5. Show selected value and allow clearing selection\n6. Handle API errors gracefully\n7. Include validation (selection is required)\n\n**Expected Behavior:**\n- User types in input field\n- After 300ms delay (debounce), fetch matching options\n- Show loading spinner during API call\n- Display filtered options in dropdown\n- User can select option with click or keyboard\n- Selected value appears in input\n- Clear button resets selection\n- Validation ensures a selection is made\n\n**Example Flow:**\n```\n[Type \"Uni\"] → (300ms delay) → Loading... → Shows [United States, United Kingdom]\nClick \"United States\" → Input shows \"United States\"\n[X] button clears selection\nSubmit validates selection is made\n```\n\n**Mock API Response:**\nWhen user types \"uni\", return:\n```json\n[\n  { \"id\": \"US\", \"name\": \"United States\" },\n  { \"id\": \"GB\", \"name\": \"United Kingdom\" }\n]\n```",
+  "description_preview": "Build a searchable select component that fetches filtered options from an API as user types",
+  "context_code": "// Option type and mock API function (for reference only)\ninterface Option {\n  id: string;\n  name: string;\n}\n\n// Mock API function - you'll need to implement the debounced fetching\n// async function fetchOptions(query: string): Promise<Option[]> {\n//   // Simulate API delay\n//   await new Promise(resolve => setTimeout(resolve, 500));\n//   \n//   // Return mock data based on query\n//   const allOptions = [\n//     { id: 'US', name: 'United States' },\n//     { id: 'GB', name: 'United Kingdom' },\n//     // ... more options\n//   ];\n//   \n//   return allOptions.filter(option => \n//     option.name.toLowerCase().includes(query.toLowerCase())\n//   );\n// }\n\n// You need to build the complete searchable select component",
+  "starter_code": "",
+  "target_area": "SearchableSelect component",
+  "validation_spec": {
+    "required_imports": ["react"],
+    "required_structure": {
+      "functions": [
+        {
+          "name": "SearchableSelect",
+          "type": "functional_component",
+          "params": [],
+          "has_return": true
+        }
+      ]
+    },
+    "behavior_patterns": [
+      {
+        "type": "hook_call",
+        "hook": "useState",
+        "min_calls": 4,
+        "description": "Must manage search query, options, selected value, and loading state"
+      },
+      {
+        "type": "hook_call",
+        "hook": "useEffect",
+        "min_calls": 1,
+        "description": "Must use useEffect for debounced API calls"
+      },
+      {
+        "type": "hook_call",
+        "hook": "useRef",
+        "min_calls": 1,
+        "description": "Should use useRef for timer or abort controller"
+      },
+      {
+        "type": "async_pattern",
+        "pattern": "async_await",
+        "context": "api_call",
+        "description": "Must make async API calls for options"
+      },
+      {
+        "type": "debounce_pattern",
+        "implementation": "setTimeout_clearTimeout",
+        "description": "Must implement debouncing for search input"
+      },
+      {
+        "type": "event_handler",
+        "event_type": "onChange",
+        "handler_style": "inline",
+        "description": "Must handle search input changes"
+      },
+      {
+        "type": "event_handler",
+        "event_type": "onKeyDown",
+        "handler_style": "inline",
+        "description": "Should handle keyboard navigation in dropdown"
+      },
+      {
+        "type": "conditional_rendering",
+        "conditional_type": "ternary",
+        "description": "Must conditionally show loading, options, or no results"
+      },
+      {
+        "type": "error_handling",
+        "pattern": "try_catch",
+        "description": "Must handle API errors gracefully"
+      }
+    ],
+    "difficulty": "intermediate",
+    "framework": "react"
+  },
+  "import_weight": 10.00,
+  "structure_weight": 25.00,
+  "behavior_weight": 65.00,
+  "passing_score": 85.00,
+  "hints": [
+    "Use setTimeout and clearTimeout in useEffect for debouncing",
+    "Manage loading state separately from options data",
+    "Store the current search query to avoid race conditions",
+    "Use keyboard event handlers for arrow key navigation in dropdown"
+  ],
+  "learning_resources": [
+    "https://react.dev/reference/react/useEffect",
+    "https://react.dev/learn/you-might-not-need-an-effect",
+    "https://developer.mozilla.org/en-US/docs/Web/API/setTimeout"
+  ],
+  "tags": ["forms", "search", "select", "async", "debounce", "react"],
+  "estimated_time_minutes": 45,
+  "patterns": [
+    {
+      "pattern_id": "react-forms-013-pattern-1",
+      "name": "Searchable Select with Async Options",
+      "description": "Complete implementation with debouncing, async fetching, and keyboard navigation",
+      "example_code": "import React, { useState, useEffect, useRef, useCallback } from 'react';\n\ninterface Option {\n  id: string;\n  name: string;\n}\n\nconst mockApi = async (query: string): Promise<Option[]> => {\n  // Simulate API delay\n  await new Promise(resolve => setTimeout(resolve, 500));\n  \n  const allOptions: Option[] = [\n    { id: 'US', name: 'United States' },\n    { id: 'GB', name: 'United Kingdom' },\n    { id: 'CA', name: 'Canada' },\n    { id: 'AU', name: 'Australia' },\n    { id: 'DE', name: 'Germany' },\n    { id: 'FR', name: 'France' },\n    { id: 'JP', name: 'Japan' },\n    { id: 'CN', name: 'China' },\n    { id: 'IN', name: 'India' },\n    { id: 'BR', name: 'Brazil' },\n  ];\n  \n  if (!query.trim()) {\n    return [];\n  }\n  \n  return allOptions.filter(option => \n    option.name.toLowerCase().includes(query.toLowerCase())\n  );\n};\n\nconst SearchableSelect: React.FC = () => {\n  const [searchQuery, setSearchQuery] = useState('');\n  const [selectedOption, setSelectedOption] = useState<Option | null>(null);\n  const [options, setOptions] = useState<Option[]>([]);\n  const [loading, setLoading] = useState(false);\n  const [error, setError] = useState<string | null>(null);\n  const [isDropdownOpen, setIsDropdownOpen] = useState(false);\n  const [highlightedIndex, setHighlightedIndex] = useState(-1);\n  const [validationError, setValidationError] = useState('');\n  \n  const timeoutRef = useRef<NodeJS.Timeout | null>(null);\n  const inputRef = useRef<HTMLInputElement>(null);\n  const dropdownRef = useRef<HTMLDivElement>(null);\n  \n  const fetchOptions = useCallback(async (query: string) => {\n    if (!query.trim()) {\n      setOptions([]);\n      return;\n    }\n    \n    setLoading(true);\n    setError(null);\n    \n    try {\n      const results = await mockApi(query);\n      setOptions(results);\n      setIsDropdownOpen(true);\n      setHighlightedIndex(results.length > 0 ? 0 : -1);\n    } catch (err) {\n      setError('Failed to fetch options. Please try again.');\n      setOptions([]);\n    } finally {\n      setLoading(false);\n    }\n  }, []);\n  \n  const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {\n    const value = e.target.value;\n    setSearchQuery(value);\n    setSelectedOption(null); // Clear selection when user starts typing\n    setValidationError('');\n    \n    // Clear existing timeout\n    if (timeoutRef.current) {\n      clearTimeout(timeoutRef.current);\n    }\n    \n    // Set new timeout for debouncing\n    timeoutRef.current = setTimeout(() => {\n      fetchOptions(value);\n    }, 300);\n  };\n  \n  const handleSelectOption = (option: Option) => {\n    setSelectedOption(option);\n    setSearchQuery(option.name);\n    setOptions([]);\n    setIsDropdownOpen(false);\n    setValidationError('');\n    \n    // Focus back on input after selection\n    if (inputRef.current) {\n      inputRef.current.focus();\n    }\n  };\n  \n  const handleClearSelection = () => {\n    setSelectedOption(null);\n    setSearchQuery('');\n    setOptions([]);\n    setIsDropdownOpen(false);\n    setValidationError('');\n    \n    if (inputRef.current) {\n      inputRef.current.focus();\n    }\n  };\n  \n  const handleKeyDown = (e: React.KeyboardEvent) => {\n    if (!isDropdownOpen || options.length === 0) return;\n    \n    switch (e.key) {\n      case 'ArrowDown':\n        e.preventDefault();\n        setHighlightedIndex(prev => \n          prev < options.length - 1 ? prev + 1 : prev\n        );\n        break;\n      \n      case 'ArrowUp':\n        e.preventDefault();\n        setHighlightedIndex(prev => prev > 0 ? prev - 1 : prev);\n        break;\n      \n      case 'Enter':\n        e.preventDefault();\n        if (highlightedIndex >= 0 && highlightedIndex < options.length) {\n          handleSelectOption(options[highlightedIndex]);\n        }\n        break;\n      \n      case 'Escape':\n        setIsDropdownOpen(false);\n        break;\n    }\n  };\n  \n  const handleSubmit = (e: React.FormEvent) => {\n    e.preventDefault();\n    \n    if (!selectedOption) {\n      setValidationError('Please select a country');\n      return;\n    }\n    \n    alert(`Selected: ${selectedOption.name} (${selectedOption.id})`);\n    console.log('Selected option:', selectedOption);\n  };\n  \n  // Close dropdown when clicking outside\n  useEffect(() => {\n    const handleClickOutside = (event: MouseEvent) => {\n      if (\n        dropdownRef.current && \n        !dropdownRef.current.contains(event.target as Node) &&\n        inputRef.current && \n        !inputRef.current.contains(event.target as Node)\n      ) {\n        setIsDropdownOpen(false);\n      }\n    };\n    \n    document.addEventListener('mousedown', handleClickOutside);\n    return () => document.removeEventListener('mousedown', handleClickOutside);\n  }, []);\n  \n  // Cleanup timeout on unmount\n  useEffect(() => {\n    return () => {\n      if (timeoutRef.current) {\n        clearTimeout(timeoutRef.current);\n      }\n    };\n  }, []);\n  \n  return (\n    <form onSubmit={handleSubmit}>\n      <h2>Select Your Country</h2>\n      \n      <div style={{ position: 'relative', width: '300px' }}>\n        <div style={{ display: 'flex', alignItems: 'center' }}>\n          <input\n            ref={inputRef}\n            type=\"text\"\n            value={searchQuery}\n            onChange={handleSearchChange}\n            onKeyDown={handleKeyDown}\n            onFocus={() => {\n              if (options.length > 0) {\n                setIsDropdownOpen(true);\n              }\n            }}\n            placeholder=\"Type to search countries...\"\n            style={{\n              flex: 1,\n              padding: '10px',\n              border: validationError ? '2px solid red' : '1px solid #ccc',\n              borderRadius: '4px',\n              fontSize: '16px'\n            }}\n          />\n          \n          {selectedOption && (\n            <button\n              type=\"button\"\n              onClick={handleClearSelection}\n              style={{\n                marginLeft: '5px',\n                backgroundColor: 'transparent',\n                border: 'none',\n                fontSize: '20px',\n                cursor: 'pointer',\n                color: '#666'\n              }}\n            >\n              ×\n            </button>\n          )}\n        </div>\n        \n        {validationError && (\n          <div style={{ color: 'red', marginTop: '5px' }}>{validationError}</div>\n        )}\n        \n        {isDropdownOpen && (\n          <div\n            ref={dropdownRef}\n            style={{\n              position: 'absolute',\n              top: '100%',\n              left: 0,\n              right: 0,\n              backgroundColor: 'white',\n              border: '1px solid #ccc',\n              borderRadius: '4px',\n              maxHeight: '200px',\n              overflowY: 'auto',\n              zIndex: 1000,\n              boxShadow: '0 2px 8px rgba(0,0,0,0.1)'\n            }}\n          >\n            {loading ? (\n              <div style={{ padding: '10px', textAlign: 'center', color: '#666' }}>\n                Loading...\n              </div>\n            ) : error ? (\n              <div style={{ padding: '10px', color: 'red' }}>{error}</div>\n            ) : options.length === 0 ? (\n              <div style={{ padding: '10px', color: '#666' }}>\n                {searchQuery.trim() ? 'No results found' : 'Type to search countries'}\n              </div>\n            ) : (\n              options.map((option, index) => (\n                <div\n                  key={option.id}\n                  onClick={() => handleSelectOption(option)}\n                  onMouseEnter={() => setHighlightedIndex(index)}\n                  style={{\n                    padding: '10px',\n                    cursor: 'pointer',\n                    backgroundColor: highlightedIndex === index ? '#f0f0f0' : 'white',\n                    borderBottom: index < options.length - 1 ? '1px solid #eee' : 'none'\n                  }}\n                >\n                  {option.name}\n                </div>\n              ))\n            )}\n          </div>\n        )}\n      </div>\n      \n      <div style={{ marginTop: '20px' }}>\n        <button\n          type=\"submit\"\n          style={{\n            backgroundColor: '#2196F3',\n            color: 'white',\n            border: 'none',\n            padding: '10px 20px',\n            borderRadius: '4px',\n            cursor: 'pointer',\n            fontSize: '16px'\n          }}\n        >\n          Submit Selection\n        </button>\n      </div>\n      \n      {selectedOption && (\n        <div style={{ marginTop: '20px', padding: '10px', backgroundColor: '#f0f8ff', borderRadius: '4px' }}>\n          <strong>Selected:</strong> {selectedOption.name} ({selectedOption.id})\n        </div>\n      )}\n    </form>\n  );\n};\n\nexport default SearchableSelect;",
+      "required_imports": ["react"],
+      "required_structure": {
+        "functions": [
+          {
+            "name": "SearchableSelect",
+            "type": "functional_component",
+            "params": [],
+            "has_return": true
+          }
+        ]
+      },
+      "forbidden_patterns": [
+        "no_debounce",
+        "excessive_api_calls",
+        "missing_loading_state"
+      ],
+      "is_primary": true,
+      "confidence_threshold": 85.00
+    }
+  ]
+}

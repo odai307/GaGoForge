@@ -1,0 +1,67 @@
+{
+  "problem_id": "react-state_management-001",
+  "title": "Build a Shopping Cart System with useState",
+  "slug": "build-shopping-cart-system-with-usestate",
+  "framework": "react",
+  "category": "state_management",
+  "difficulty": "beginner",
+  "description": "Create a shopping cart system that allows users to add, remove, and update quantities of products using the useState hook.\n\n**Requirements:**\n1. Create a `ShoppingCart` component that displays:\n   - List of cart items with product name, price, quantity, and total\n   - Cart total amount\n   - Clear cart button\n2. Mock product data with at least 3 products, each having:\n   - id, name, price\n3. Implement functionality for:\n   - Adding items to cart\n   - Removing items from cart\n   - Updating item quantities (increase/decrease)\n   - Calculating cart total\n   - Clearing all items from cart\n\n**Implementation Details:**\n- Each cart item should track: product id, quantity, subtotal\n- Quantity should be adjustable with + and - buttons\n- Display individual item subtotal (price × quantity)\n- Display cart grand total (sum of all subtotals)\n- Items should be removable with a delete button\n- Show empty cart message when cart is empty\n- Use the useState hook to manage cart state\n\n**Example Product Data:**\n```javascript\nconst products = [\n  { id: 1, name: 'Laptop', price: 999.99 },\n  { id: 2, name: 'Headphones', price: 149.99 },\n  { id: 3, name: 'Mouse', price: 29.99 }\n];\n```\n\n**Expected Behavior:**\n- Adding a product adds it to cart with quantity 1\n- Clicking + increases quantity, clicking - decreases quantity\n- Quantity cannot go below 1 (remove instead)\n- Delete button removes item completely\n- Clear cart removes all items\n- Total updates automatically with changes\n\n**Example Component Structure:**\n```jsx\n<ShoppingCart>\n  <AvailableProducts />\n  <CartItems />\n  <CartTotal />\n</ShoppingCart>\n```",
+  "description_preview": "Implement a shopping cart system with add, remove, and quantity management using useState",
+  "context_code": "// PRODUCT DATA (for reference only - use this in your solution)\nconst products = [\n  { id: 1, name: 'Laptop', price: 999.99 },\n  { id: 2, name: 'Headphones', price: 149.99 },\n  { id: 3, name: 'Mouse', price: 29.99 },\n  { id: 4, name: 'Keyboard', price: 79.99 },\n  { id: 5, name: 'Monitor', price: 299.99 }\n];\n\n// ProductCard component (for reference only - you can use this pattern)\nfunction ProductCard({ product, onAddToCart }) {\n  return (\n    <div style={{ border: '1px solid #ddd', padding: '10px', borderRadius: '5px' }}>\n      <h4>{product.name}</h4>\n      <p>${product.price.toFixed(2)}</p>\n      <button onClick={() => onAddToCart(product.id)}>\n        Add to Cart\n      </button>\n    </div>\n  );\n}",
+  "starter_code": "",
+  "target_area": "ShoppingCart component with cart state management",
+  "validation_spec": {
+    "required_imports": ["react", "react.useState"],
+    "required_structure": {
+      "functions": [{
+        "name": "ShoppingCart",
+        "type": "functional_component",
+        "has_export": true,
+        "has_prop_types": false
+      }]
+    },
+    "behavior_patterns": [
+      {"type": "hook_call", "hook": "useState", "min_calls": 1},
+      {"type": "state_management", "state_type": "useState"},
+      {"type": "event_handler", "event_type": "onClick", "min_calls": 3},
+      "cart array manipulation (add/remove/update)",
+      "total calculation using reduce method"
+    ]
+  },
+  "import_weight": 15.00,
+  "structure_weight": 35.00,
+  "behavior_weight": 50.00,
+  "passing_score": 80.00,
+  "hints": [
+    "Use useState to initialize cart as an empty array of items",
+    "Each cart item should include product id, quantity, and possibly product details",
+    "Use array methods like map, filter, and find for cart operations",
+    "Calculate total using reduce method on cart items",
+    "Remember to never mutate state directly - always create new arrays"
+  ],
+  "learning_resources": [
+    "https://react.dev/reference/react/useState",
+    "https://react.dev/learn/updating-arrays-in-state"
+  ],
+  "tags": ["react", "state-management", "useState", "shopping-cart", "beginner"],
+  "estimated_time_minutes": 30,
+  "patterns": [
+    {
+      "pattern_id": "react-state_management-001-pattern-1",
+      "name": "Shopping Cart with useState",
+      "description": "Complete shopping cart implementation with add, remove, quantity update, and total calculation",
+      "example_code": "import React, { useState } from 'react';\n\nconst products = [\n  { id: 1, name: 'Laptop', price: 999.99 },\n  { id: 2, name: 'Headphones', price: 149.99 },\n  { id: 3, name: 'Mouse', price: 29.99 },\n  { id: 4, name: 'Keyboard', price: 79.99 },\n  { id: 5, name: 'Monitor', price: 299.99 }\n];\n\nexport default function ShoppingCart() {\n  const [cart, setCart] = useState([]);\n  \n  const addToCart = (productId) => {\n    const product = products.find(p => p.id === productId);\n    if (!product) return;\n    \n    setCart(prevCart => {\n      const existingItem = prevCart.find(item => item.id === productId);\n      \n      if (existingItem) {\n        return prevCart.map(item => \n          item.id === productId \n            ? { ...item, quantity: item.quantity + 1 }\n            : item\n        );\n      } else {\n        return [\n          ...prevCart,\n          { \n            id: productId, \n            name: product.name, \n            price: product.price, \n            quantity: 1 \n          }\n        ];\n      }\n    });\n  };\n  \n  const removeFromCart = (productId) => {\n    setCart(prevCart => prevCart.filter(item => item.id !== productId));\n  };\n  \n  const updateQuantity = (productId, delta) => {\n    setCart(prevCart => \n      prevCart.map(item => {\n        if (item.id === productId) {\n          const newQuantity = item.quantity + delta;\n          if (newQuantity < 1) {\n            return null;\n          }\n          return { ...item, quantity: newQuantity };\n        }\n        return item;\n      }).filter(item => item !== null)\n    );\n  };\n  \n  const clearCart = () => {\n    setCart([]);\n  };\n  \n  const calculateTotal = () => {\n    return cart.reduce((total, item) => total + (item.price * item.quantity), 0);\n  };\n  \n  const getCartTotal = calculateTotal();\n  \n  return (\n    <div>\n      <h1>Shopping Cart</h1>\n      \n      <div style={{ marginBottom: '20px' }}>\n        <h3>Available Products</h3>\n        <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap' }}>\n          {products.map(product => (\n            <div \n              key={product.id}\n              style={{\n                border: '1px solid #ddd',\n                padding: '10px',\n                borderRadius: '5px',\n                width: '150px'\n              }}\n            >\n              <h4>{product.name}</h4>\n              <p>${product.price.toFixed(2)}</p>\n              <button onClick={() => addToCart(product.id)}>\n                Add to Cart\n              </button>\n            </div>\n          ))}\n        </div>\n      </div>\n      \n      <div>\n        <h3>Your Cart ({cart.length} items)</h3>\n        \n        {cart.length === 0 ? (\n          <p>Your cart is empty. Add some products!</p>\n        ) : (\n          <>\n            <table style={{ width: '100%', borderCollapse: 'collapse' }}>\n              <thead>\n                <tr style={{ borderBottom: '2px solid #ddd' }}>\n                  <th style={{ textAlign: 'left', padding: '10px' }}>Product</th>\n                  <th style={{ textAlign: 'left', padding: '10px' }}>Price</th>\n                  <th style={{ textAlign: 'left', padding: '10px' }}>Quantity</th>\n                  <th style={{ textAlign: 'left', padding: '10px' }}>Subtotal</th>\n                  <th style={{ textAlign: 'left', padding: '10px' }}>Actions</th>\n                </tr>\n              </thead>\n              <tbody>\n                {cart.map(item => (\n                  <tr key={item.id} style={{ borderBottom: '1px solid #ddd' }}>\n                    <td style={{ padding: '10px' }}>{item.name}</td>\n                    <td style={{ padding: '10px' }}>${item.price.toFixed(2)}</td>\n                    <td style={{ padding: '10px' }}>\n                      <button onClick={() => updateQuantity(item.id, -1)}>-</button>\n                      <span style={{ margin: '0 10px' }}>{item.quantity}</span>\n                      <button onClick={() => updateQuantity(item.id, 1)}>+</button>\n                    </td>\n                    <td style={{ padding: '10px' }}>\n                      ${(item.price * item.quantity).toFixed(2)}\n                    </td>\n                    <td style={{ padding: '10px' }}>\n                      <button onClick={() => removeFromCart(item.id)}>\n                        Remove\n                      </button>\n                    </td>\n                  </tr>\n                ))}\n              </tbody>\n            </table>\n            \n            <div style={{ marginTop: '20px', textAlign: 'right' }}>\n              <h3>Total: ${getCartTotal.toFixed(2)}</h3>\n              <button \n                onClick={clearCart}\n                style={{ \n                  backgroundColor: '#ff6b6b', \n                  color: 'white',\n                  padding: '10px 20px',\n                  border: 'none',\n                  borderRadius: '5px'\n                }}\n              >\n                Clear Cart\n              </button>\n            </div>\n          </>\n        )}\n      </div>\n    </div>\n  );\n}",
+      "required_imports": ["react", "react.useState"],
+      "required_structure": {
+        "functions": [{
+          "name": "ShoppingCart",
+          "type": "functional_component",
+          "has_export": true
+        }]
+      },
+      "forbidden_patterns": ["direct array mutation", "splice method", "innerHTML"],
+      "is_primary": true,
+      "confidence_threshold": 85.00
+    }
+  ]
+}

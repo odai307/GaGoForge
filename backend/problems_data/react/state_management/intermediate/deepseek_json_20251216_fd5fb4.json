@@ -1,0 +1,186 @@
+{
+  "problem_id": "react-state_management-012",
+  "title": "Implement a Todo App with Zustand for Global State Management",
+  "slug": "todo-app-with-zustand-global-state-management",
+  "framework": "react",
+  "category": "state_management",
+  "difficulty": "intermediate",
+  "description": "Create a sophisticated Todo application using Zustand for state management. The app should support todos with categories, filtering, and persistence to localStorage.\n\n**Requirements:**\n1. Install and use Zustand (zustand package) for state management\n2. Create a todo store with the following state and actions:\n   - todos: array of todo objects\n   - filter: 'all', 'active', 'completed', 'category'\n   - categories: array of category strings\n3. Todo objects should have: id, text, completed, category, createdAt\n4. Implement the following store actions:\n   - addTodo(text, category)\n   - toggleTodo(id)\n   - deleteTodo(id)\n   - updateTodo(id, updates)\n   - clearCompleted()\n   - setFilter(filterType, category?)\n5. Create derived state in the store:\n   - filteredTodos: todos filtered based on current filter\n   - stats: { total, completed, active, byCategory }\n6. Add localStorage persistence so todos survive page refresh\n7. Create UI components:\n   - TodoList: displays filtered todos with checkboxes\n   - TodoForm: form to add new todos with category selection\n   - TodoFilters: filter controls and statistics display\n   - CategoryManager: add/remove categories\n\n**Expected Behavior:**\n- Todos should persist between page reloads\n- Filtering should work for all/active/completed and by category\n- Statistics should update in real-time\n- Categories should be managed independently\n- Form should reset after adding todo\n\n**Example Todo Object:**\n```javascript\n{\n  id: 'todo_001',\n  text: 'Learn Zustand state management',\n  completed: false,\n  category: 'learning',\n  createdAt: '2024-01-15T10:30:00Z'\n}\n```",
+  "description_preview": "Build a Todo application with advanced features using Zustand for state management, including filtering, categories, and localStorage persistence.",
+  "context_code": "// STORE STRUCTURE (for reference only - you need to implement Zustand store)\n// Store state interface:\n// {\n//   todos: Todo[],\n//   filter: { type: 'all' | 'active' | 'completed' | 'category', category?: string },\n//   categories: string[]\n// }\n\n// Todo interface:\n// {\n//   id: string,\n//   text: string,\n//   completed: boolean,\n//   category: string,\n//   createdAt: string (ISO date)\n// }\n\n// Derived state:\n// - filteredTodos: Todo[]\n// - stats: { total: number, completed: number, active: number, byCategory: Record<string, number> }",
+  "starter_code": "",
+  "target_area": "Complete Todo application using Zustand store with persistence and derived state",
+  "validation_spec": {
+    "required_imports": ["zustand"],
+    "required_structure": {
+      "functions": [
+        {
+          "name": "useTodoStore",
+          "type": "custom_hook",
+          "has_export": true,
+          "description": "Zustand store hook"
+        },
+        {
+          "name": "TodoList",
+          "type": "functional_component",
+          "has_export": true,
+          "description": "Component that displays todos"
+        },
+        {
+          "name": "TodoForm",
+          "type": "functional_component",
+          "has_export": true,
+          "description": "Form component for adding todos"
+        }
+      ],
+      "variables": []
+    },
+    "behavior_patterns": [
+      {
+        "type": "state_management_libs",
+        "library": "zustand",
+        "required": true,
+        "description": "Must use Zustand for state management"
+      },
+      {
+        "type": "constructor_call",
+        "class": "create",
+        "object": "zustand",
+        "context": "store_creation",
+        "description": "Must create store using zustand.create() or similar"
+      },
+      {
+        "type": "state_variable",
+        "variable_pattern": "todos",
+        "data_structure": "array",
+        "min_items": 0,
+        "description": "Store must contain todos array"
+      },
+      {
+        "type": "state_variable",
+        "variable_pattern": "filter",
+        "data_type": "object",
+        "required_properties": ["type"],
+        "description": "Store must contain filter object with type property"
+      },
+      {
+        "type": "state_variable",
+        "variable_pattern": "categories",
+        "data_structure": "array",
+        "description": "Store must contain categories array"
+      },
+      {
+        "type": "store_action",
+        "action_name": "addTodo",
+        "parameters": ["text", "category"],
+        "description": "Must implement addTodo action with text and category parameters"
+      },
+      {
+        "type": "store_action",
+        "action_name": "toggleTodo",
+        "parameters": ["id"],
+        "description": "Must implement toggleTodo action with id parameter"
+      },
+      {
+        "type": "store_action",
+        "action_name": "setFilter",
+        "parameters": ["filterType", "category"],
+        "optional_parameters": ["category"],
+        "description": "Must implement setFilter action"
+      },
+      {
+        "type": "derived_state",
+        "calculation": "filteredTodos",
+        "uses_state": ["todos", "filter"],
+        "description": "Must implement derived filteredTodos based on todos and filter"
+      },
+      {
+        "type": "derived_state",
+        "calculation": "stats",
+        "uses_state": ["todos"],
+        "description": "Must implement derived stats object with todo statistics"
+      },
+      {
+        "type": "persistence",
+        "storage_type": "localStorage",
+        "state_properties": ["todos", "categories"],
+        "description": "Must implement localStorage persistence for todos and categories"
+      },
+      {
+        "type": "event_handler",
+        "event_type": "onSubmit",
+        "handler_action": "addTodo",
+        "description": "TodoForm must dispatch addTodo on form submission"
+      },
+      {
+        "type": "event_handler",
+        "event_type": "onChange",
+        "handler_action": "toggleTodo",
+        "description": "TodoList items must dispatch toggleTodo on checkbox change"
+      },
+      {
+        "type": "conditional_rendering",
+        "conditional_type": "ternary",
+        "uses_state": ["filteredTodos"],
+        "description": "Must conditionally render based on filteredTodos length"
+      }
+    ],
+    "difficulty": "intermediate",
+    "framework": "react",
+    "import_weight": 10.00,
+    "structure_weight": 25.00,
+    "behavior_weight": 65.00,
+    "passing_score": 85.00
+  },
+  "import_weight": 10.00,
+  "structure_weight": 25.00,
+  "behavior_weight": 65.00,
+  "passing_score": 85.00,
+  "hints": [
+    "Install zustand: npm install zustand",
+    "Create a store using create from zustand with state and actions",
+    "Implement localStorage persistence by getting initial state from localStorage and subscribing to store changes",
+    "Create derived state (getters) in the store for filteredTodos and stats",
+    "For the filter, consider using an object with type and optional category property",
+    "Use the store hook (useTodoStore) in your components to access state and actions",
+    "Implement TodoForm as a controlled component with category dropdown",
+    "In TodoList, map over filteredTodos from the store",
+    "For stats calculation, use reduce to count todos by completion status and category"
+  ],
+  "learning_resources": [
+    "https://github.com/pmndrs/zustand",
+    "https://zustand.docs.pmnd.rs/getting-started/introduction",
+    "https://zustand.docs.pmnd.rs/guides/updating-state",
+    "https://zustand.docs.pmnd.rs/guides/deriving-state"
+  ],
+  "tags": ["react", "state_management", "zustand", "todo", "persistence", "filtering", "intermediate"],
+  "estimated_time_minutes": 50,
+  "patterns": [
+    {
+      "pattern_id": "react-state_management-012-pattern-1",
+      "name": "Zustand Todo Store with Persistence",
+      "description": "Complete Zustand store implementation with todos, filtering, categories, and localStorage persistence",
+      "example_code": "import { create } from 'zustand';\nimport { persist } from 'zustand/middleware';\n\nconst useTodoStore = create(\n  persist(\n    (set, get) => ({\n      // State\n      todos: [],\n      filter: { type: 'all' },\n      categories: ['work', 'personal', 'shopping', 'learning'],\n      \n      // Actions\n      addTodo: (text, category = 'general') => {\n        const newTodo = {\n          id: Date.now().toString(),\n          text,\n          completed: false,\n          category,\n          createdAt: new Date().toISOString()\n        };\n        \n        set(state => ({\n          todos: [...state.todos, newTodo],\n          // Add category if it's new\n          categories: state.categories.includes(category) \n            ? state.categories \n            : [...state.categories, category]\n        }));\n      },\n      \n      toggleTodo: (id) => {\n        set(state => ({\n          todos: state.todos.map(todo =>\n            todo.id === id ? { ...todo, completed: !todo.completed } : todo\n          )\n        }));\n      },\n      \n      deleteTodo: (id) => {\n        set(state => ({\n          todos: state.todos.filter(todo => todo.id !== id)\n        }));\n      },\n      \n      updateTodo: (id, updates) => {\n        set(state => ({\n          todos: state.todos.map(todo =>\n            todo.id === id ? { ...todo, ...updates } : todo\n          )\n        }));\n      },\n      \n      clearCompleted: () => {\n        set(state => ({\n          todos: state.todos.filter(todo => !todo.completed)\n        }));\n      },\n      \n      setFilter: (filterType, category = null) => {\n        set({ \n          filter: { \n            type: filterType, \n            ...(category && { category }) \n          } \n        });\n      },\n      \n      addCategory: (category) => {\n        set(state => ({\n          categories: state.categories.includes(category)\n            ? state.categories\n            : [...state.categories, category]\n        }));\n      },\n      \n      removeCategory: (category) => {\n        set(state => ({\n          categories: state.categories.filter(c => c !== category),\n          // Update todos in this category to 'general'\n          todos: state.todos.map(todo =>\n            todo.category === category ? { ...todo, category: 'general' } : todo\n          )\n        }));\n      },\n      \n      // Derived state (getters)\n      filteredTodos: () => {\n        const { todos, filter } = get();\n        \n        switch (filter.type) {\n          case 'active':\n            return todos.filter(todo => !todo.completed);\n          case 'completed':\n            return todos.filter(todo => todo.completed);\n          case 'category':\n            return todos.filter(todo => todo.category === filter.category);\n          default: // 'all'\n            return todos;\n        }\n      },\n      \n      stats: () => {\n        const { todos } = get();\n        \n        const total = todos.length;\n        const completed = todos.filter(todo => todo.completed).length;\n        const active = total - completed;\n        \n        const byCategory = todos.reduce((acc, todo) => {\n          acc[todo.category] = (acc[todo.category] || 0) + 1;\n          return acc;\n        }, {});\n        \n        return { total, completed, active, byCategory };\n      }\n    }),\n    {\n      name: 'todo-storage',\n      partialize: (state) => ({\n        todos: state.todos,\n        categories: state.categories\n      })\n    }\n  )\n);\n\nexport default useTodoStore;\n\n// Example TodoList Component (not part of validation, just for reference)\n/*\nimport React from 'react';\nimport useTodoStore from './store/todoStore';\n\nconst TodoList = () => {\n  const filteredTodos = useTodoStore(state => state.filteredTodos());\n  const toggleTodo = useTodoStore(state => state.toggleTodo);\n  const deleteTodo = useTodoStore(state => state.deleteTodo);\n  const stats = useTodoStore(state => state.stats());\n  \n  return (\n    <div className=\"todo-list\">\n      <div className=\"stats\">\n        <p>Total: {stats.total} | Active: {stats.active} | Completed: {stats.completed}</p>\n      </div>\n      \n      {filteredTodos.length === 0 ? (\n        <p>No todos found</p>\n      ) : (\n        <ul>\n          {filteredTodos.map(todo => (\n            <li key={todo.id} className={todo.completed ? 'completed' : ''}>\n              <input\n                type=\"checkbox\"\n                checked={todo.completed}\n                onChange={() => toggleTodo(todo.id)}\n              />\n              <span>{todo.text}</span>\n              <span className=\"category-badge\">{todo.category}</span>\n              <button onClick={() => deleteTodo(todo.id)}>Delete</button>\n            </li>\n          ))}\n        </ul>\n      )}\n    </div>\n  );\n};\n\nconst TodoForm = () => {\n  const [text, setText] = React.useState('');\n  const [category, setCategory] = React.useState('general');\n  const categories = useTodoStore(state => state.categories);\n  const addTodo = useTodoStore(state => state.addTodo);\n  \n  const handleSubmit = (e) => {\n    e.preventDefault();\n    if (text.trim()) {\n      addTodo(text, category);\n      setText('');\n      setCategory('general');\n    }\n  };\n  \n  return (\n    <form onSubmit={handleSubmit}>\n      <input\n        type=\"text\"\n        value={text}\n        onChange={(e) => setText(e.target.value)}\n        placeholder=\"Add a new todo...\"\n      />\n      <select value={category} onChange={(e) => setCategory(e.target.value)}>\n        {categories.map(cat => (\n          <option key={cat} value={cat}>{cat}</option>\n        ))}\n      </select>\n      <button type=\"submit\">Add Todo</button>\n    </form>\n  );\n};\n*/",
+      "required_imports": ["zustand"],
+      "required_structure": {
+        "functions": [
+          {
+            "name": "useTodoStore",
+            "type": "custom_hook",
+            "has_export": true
+          }
+        ]
+      },
+      "forbidden_patterns": [
+        "Using useState instead of Zustand for global state",
+        "Not implementing persistence middleware",
+        "Missing derived state calculations",
+        "Direct state mutation instead of using set",
+        "Not handling category management properly",
+        "Hardcoding categories instead of storing in state"
+      ],
+      "is_primary": true,
+      "confidence_threshold": 85.00
+    }
+  ]
+}

@@ -1,0 +1,67 @@
+{
+  "problem_id": "react-components-002",
+  "title": "Build a Reusable Modal Dialog Component",
+  "slug": "build-reusable-modal-dialog-component",
+  "framework": "react",
+  "category": "components",
+  "difficulty": "beginner",
+  "description": "Create a reusable Modal component that can be shown/hidden and accepts custom content and actions.\n\n**Requirements:**\n1. Create a `Modal` component with props:\n   - `isOpen` (boolean, required - controls visibility)\n   - `onClose` (function, required - callback when modal closes)\n   - `title` (string, required)\n   - `children` (React nodes, required - modal content)\n   - `showCloseButton` (boolean, optional - default true)\n   - `actions` (array of action objects, optional)\n2. Modal should have:\n   - Overlay background that covers the screen\n   - Centered modal container\n   - Title header\n   - Content area\n   - Action buttons area\n   - Close button (X) in top-right corner\n3. Actions array structure:\n   ```javascript\n   [\n     { label: 'Cancel', onClick: handleCancel, variant: 'secondary' },\n     { label: 'Confirm', onClick: handleConfirm, variant: 'primary' }\n   ]\n   ```\n\n**Component Structure:**\n```jsx\n<Modal\n  isOpen={isModalOpen}\n  onClose={handleCloseModal}\n  title=\"Confirm Action\"\n  actions={[\n    { label: 'Cancel', onClick: handleCancel, variant: 'secondary' },\n    { label: 'Delete', onClick: handleDelete, variant: 'danger' }\n  ]}\n>\n  <p>Are you sure you want to delete this item?</p>\n  <p>This action cannot be undone.</p>\n</Modal>\n```\n\n**Functionality Requirements:**\n- Modal should be hidden when `isOpen` is false\n- Clicking overlay should close modal (call `onClose`)\n- Clicking X button should close modal\n- Escape key should close modal\n- Action buttons should trigger their callbacks\n- Modal should be accessible (focus trapping)\n\n**Styling Requirements:**\n- Overlay should be semi-transparent dark background\n- Modal should have white background, rounded corners, shadow\n- Smooth open/close animations\n- Responsive design (mobile-friendly)\n- Different button variants (primary, secondary, danger)",
+  "description_preview": "Create a reusable modal dialog component with overlay, animations, and customizable actions",
+  "context_code": "// Action button variants (for reference)\nconst BUTTON_VARIANTS = {\n  primary: { background: '#007bff', color: 'white' },\n  secondary: { background: '#6c757d', color: 'white' },\n  danger: { background: '#dc3545', color: 'white' },\n  success: { background: '#28a745', color: 'white' }\n};\n\n// Example usage (for reference):\n// const [isOpen, setIsOpen] = useState(false);\n// <Modal\n//   isOpen={isOpen}\n//   onClose={() => setIsOpen(false)}\n//   title=\"Sample Modal\"\n// >\n//   Modal content here\n// </Modal>",
+  "starter_code": "",
+  "target_area": "Modal component with props, event handling, and animations",
+  "validation_spec": {
+    "required_imports": ["react", "react.useEffect"],
+    "required_structure": {
+      "functions": [{
+        "name": "Modal",
+        "type": "functional_component",
+        "has_export": true,
+        "has_prop_types": false
+      }]
+    },
+    "behavior_patterns": [
+      "conditional rendering based on isOpen prop",
+      "event handlers for overlay and button clicks",
+      "useEffect for keyboard event listener",
+      "children prop usage for content",
+      "array mapping for action buttons"
+    ]
+  },
+  "import_weight": 15.00,
+  "structure_weight": 40.00,
+  "behavior_weight": 45.00,
+  "passing_score": 80.00,
+  "hints": [
+    "Use conditional rendering to show/hide the modal based on isOpen prop",
+    "Add event listener for Escape key in useEffect to close modal",
+    "Remember to clean up the event listener in useEffect return function",
+    "Use stopPropagation on modal content to prevent overlay click from closing",
+    "Map through the actions array to render multiple action buttons"
+  ],
+  "learning_resources": [
+    "https://react.dev/learn/rendering-lists",
+    "https://react.dev/reference/react/useEffect"
+  ],
+  "tags": ["react", "components", "modal", "overlay", "event-handling", "beginner"],
+  "estimated_time_minutes": 30,
+  "patterns": [
+    {
+      "pattern_id": "react-components-002-pattern-1",
+      "name": "Reusable Modal Component",
+      "description": "Complete modal component with overlay, animations, keyboard support, and customizable actions",
+      "example_code": "import React, { useEffect } from 'react';\n\nexport default function Modal({\n  isOpen,\n  onClose,\n  title,\n  children,\n  showCloseButton = true,\n  actions = []\n}) {\n  // Handle Escape key press\n  useEffect(() => {\n    const handleEscape = (event) => {\n      if (event.key === 'Escape') {\n        onClose();\n      }\n    };\n    \n    if (isOpen) {\n      document.addEventListener('keydown', handleEscape);\n      // Prevent body scrolling when modal is open\n      document.body.style.overflow = 'hidden';\n    }\n    \n    return () => {\n      document.removeEventListener('keydown', handleEscape);\n      document.body.style.overflow = 'auto';\n    };\n  }, [isOpen, onClose]);\n  \n  // Don't render if modal is closed\n  if (!isOpen) return null;\n  \n  // Handle overlay click\n  const handleOverlayClick = (e) => {\n    if (e.target === e.currentTarget) {\n      onClose();\n    }\n  };\n  \n  // Get button styles based on variant\n  const getButtonStyle = (variant = 'primary') => {\n    const baseStyle = {\n      padding: '10px 20px',\n      border: 'none',\n      borderRadius: '6px',\n      fontSize: '16px',\n      fontWeight: '500',\n      cursor: 'pointer',\n      transition: 'all 0.2s ease',\n      marginLeft: '10px'\n    };\n    \n    const variants = {\n      primary: { backgroundColor: '#007bff', color: 'white' },\n      secondary: { backgroundColor: '#6c757d', color: 'white' },\n      danger: { backgroundColor: '#dc3545', color: 'white' },\n      success: { backgroundColor: '#28a745', color: 'white' }\n    };\n    \n    return { ...baseStyle, ...variants[variant] };\n  };\n  \n  return (\n    <div \n      onClick={handleOverlayClick}\n      style={{\n        position: 'fixed',\n        top: 0,\n        left: 0,\n        right: 0,\n        bottom: 0,\n        backgroundColor: 'rgba(0, 0, 0, 0.5)',\n        display: 'flex',\n        alignItems: 'center',\n        justifyContent: 'center',\n        zIndex: 1000,\n        animation: 'fadeIn 0.3s ease'\n      }}\n    >\n      <div \n        style={{\n          backgroundColor: 'white',\n          borderRadius: '12px',\n          width: '90%',\n          maxWidth: '500px',\n          maxHeight: '90vh',\n          overflow: 'auto',\n          animation: 'slideUp 0.3s ease',\n          display: 'flex',\n          flexDirection: 'column'\n        }}\n        onClick={(e) => e.stopPropagation()}\n      >\n        {/* Header */}\n        <div style={{\n          display: 'flex',\n          justifyContent: 'space-between',\n          alignItems: 'center',\n          padding: '20px 24px',\n          borderBottom: '1px solid #e0e0e0'\n        }}>\n          <h2 style={{\n            margin: 0,\n            fontSize: '20px',\n            fontWeight: '600',\n            color: '#333'\n          }}>\n            {title}\n          </h2>\n          \n          {showCloseButton && (\n            <button\n              onClick={onClose}\n              style={{\n                background: 'none',\n                border: 'none',\n                fontSize: '24px',\n                cursor: 'pointer',\n                color: '#666',\n                padding: '0',\n                width: '32px',\n                height: '32px',\n                display: 'flex',\n                alignItems: 'center',\n                justifyContent: 'center',\n                borderRadius: '50%',\n                transition: 'background-color 0.2s ease',\n                ':hover': {\n                  backgroundColor: '#f0f0f0'\n                }\n              }}\n              aria-label=\"Close modal\"\n            >\n              ×\n            </button>\n          )}\n        </div>\n        \n        {/* Content */}\n        <div style={{\n          padding: '24px',\n          flex: 1,\n          overflow: 'auto'\n        }}>\n          {children}\n        </div>\n        \n        {/* Actions */}\n        {actions.length > 0 && (\n          <div style={{\n            padding: '20px 24px',\n            borderTop: '1px solid #e0e0e0',\n            display: 'flex',\n            justifyContent: 'flex-end',\n            backgroundColor: '#f9f9f9',\n            borderBottomLeftRadius: '12px',\n            borderBottomRightRadius: '12px'\n          }}>\n            {actions.map((action, index) => (\n              <button\n                key={index}\n                onClick={action.onClick}\n                style={getButtonStyle(action.variant)}\n              >\n                {action.label}\n              </button>\n            ))}\n          </div>\n        )}\n      </div>\n      \n      {/* CSS Animations */}\n      <style>{`\n        @keyframes fadeIn {\n          from { opacity: 0; }\n          to { opacity: 1; }\n        }\n        \n        @keyframes slideUp {\n          from { \n            opacity: 0;\n            transform: translateY(20px);\n          }\n          to { \n            opacity: 1;\n            transform: translateY(0);\n          }\n        }\n      `}</style>\n    </div>\n  );\n}",
+      "required_imports": ["react", "react.useEffect"],
+      "required_structure": {
+        "functions": [{
+          "name": "Modal",
+          "type": "functional_component",
+          "has_export": true
+        }]
+      },
+      "forbidden_patterns": ["document.body.style in render", "inline functions in map", "no cleanup in useEffect"],
+      "is_primary": true,
+      "confidence_threshold": 85.00
+    }
+  ]
+}

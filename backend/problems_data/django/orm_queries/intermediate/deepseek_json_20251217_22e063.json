@@ -1,0 +1,136 @@
+{
+  "problem_id": "django-orm_queries-013",
+  "title": "Create Library Book Availability Query",
+  "slug": "create-library-book-availability-query",
+  "framework": "django",
+  "category": "orm_queries",
+  "difficulty": "intermediate",
+  "description": "You're building a query system for a library management application. The system tracks books, copies, members, and reservations.\n\n**Models (for reference):**\n```python\nfrom django.db import models\nfrom django.contrib.auth.models import User\n\nclass Author(models.Model):\n    name = models.CharField(max_length=200)\n    birth_year = models.IntegerField(null=True, blank=True)\n    biography = models.TextField()\n\nclass Genre(models.Model):\n    name = models.CharField(max_length=100)\n    description = models.TextField()\n\nclass Book(models.Model):\n    title = models.CharField(max_length=200)\n    isbn = models.CharField(max_length=13, unique=True)\n    authors = models.ManyToManyField(Author, related_name='books')\n    genres = models.ManyToManyField(Genre, related_name='books')\n    publication_year = models.IntegerField()\n    page_count = models.IntegerField()\n    description = models.TextField()\n\nclass BookCopy(models.Model):\n    book = models.ForeignKey(Book, on_delete=models.CASCADE, related_name='copies')\n    copy_number = models.IntegerField()  # 1, 2, 3 for multiple copies of same book\n    acquisition_date = models.DateField()\n    condition_choices = [\n        ('new', 'New'),\n        ('good', 'Good'),\n        ('fair', 'Fair'),\n        ('poor', 'Poor'),\n    ]\n    condition = models.CharField(max_length=10, choices=condition_choices, default='good')\n    is_available = models.BooleanField(default=True)\n\nclass Member(models.Model):\n    user = models.OneToOneField(User, on_delete=models.CASCADE)\n    membership_number = models.CharField(max_length=20, unique=True)\n    join_date = models.DateField(auto_now_add=True)\n    max_books_allowed = models.IntegerField(default=5)\n\nclass Reservation(models.Model):\n    book = models.ForeignKey(Book, on_delete=models.CASCADE, related_name='reservations')\n    member = models.ForeignKey(Member, on_delete=models.CASCADE, related_name='reservations')\n    reservation_date = models.DateTimeField(auto_now_add=True)\n    status_choices = [\n        ('pending', 'Pending'),\n        ('active', 'Active'),\n        ('fulfilled', 'Fulfilled'),\n        ('cancelled', 'Cancelled'),\n    ]\n    status = models.CharField(max_length=20, choices=status_choices, default='pending')\n    priority = models.IntegerField()  # Lower number = higher priority\n    estimated_available_date = models.DateField(null=True, blank=True)\n```\n\n**Requirements:**\nCreate a Django ORM query function that returns book availability information with wait times.\n\n1. For each book, calculate:\n   - Total copies in library\n   - Available copies right now\n   - Reserved copies (active reservations)\n   - Wait time estimate based on reservations\n\n2. Include book details:\n   - Title, ISBN, authors\n   - Genres\n   - Publication year\n\n3. Reservation analysis:\n   - Count active reservations (status='active')\n   - Calculate estimated wait time: (reservation_count * 14 days / available_copies)\n   - Show next available date: current date + wait time days\n   - Include reservation priority queue position\n\n4. Filtering options:\n   - Only books with at least 1 copy\n   - Optionally filter by genre (parameter)\n   - Optionally filter by author (parameter)\n\n5. Performance:\n   - Use aggregation for copy counts\n   - Use conditional aggregation for available copies\n   - Optimize ManyToMany relationships\n   - Use prefetch for authors and genres\n\n**Expected Output:**\nA QuerySet where each book has annotated fields showing availability metrics.\n\n**Example Usage:**\n```python\n# Get all books with availability\nbooks = get_book_availability()\n\n# Filter by genre\nfiction_books = get_book_availability(genre_name='Fiction')\n\nfor book in fiction_books:\n    if book.available_copies > 0:\n        print(f\"{book.title} - Available now ({book.available_copies} copies)\")\n    else:\n        print(f\"{book.title} - Wait: {book.wait_days} days\")\n```",
+  "description_preview": "Build an ORM query to calculate book availability, reservation counts, and wait time estimates.",
+  "context_code": "# MODEL DEFINITIONS (for reference only)\n# These models are already defined in your project\nfrom django.db import models\nfrom django.contrib.auth.models import User\n\n# Models are defined as shown in the description above\n# Reference these in your query implementation",
+  "starter_code": "",
+  "target_area": "Create the get_book_availability() function with complex aggregations and conditional annotations",
+  "validation_spec": {
+    "required_imports": [
+      "django.db.models",
+      "django.db.models.functions",
+      "django.utils.timezone",
+      "datetime"
+    ],
+    "required_structure": {
+      "functions": [
+        {
+          "name": "get_book_availability",
+          "params": ["genre_name", "author_name"],
+          "returns": "QuerySet"
+        }
+      ]
+    },
+    "behavior_patterns": [
+      {
+        "type": "aggregation_pattern",
+        "requirements": {
+          "required_types": ["Count", "Count_with_filter"],
+          "required_field_aggregations": {
+            "copies": "Count",
+            "reservations": "Count"
+          }
+        },
+        "description": "Uses Count aggregation with filter for available copies"
+      },
+      {
+        "type": "conditional_expression",
+        "requirements": {
+          "requires_case_when": true,
+          "requires_division_protection": true
+        },
+        "description": "Calculates wait_days using conditional expressions with division protection"
+      },
+      {
+        "type": "annotation_pattern",
+        "requirements": {
+          "required_fields": ["total_copies", "available_copies", "active_reservations", "wait_days", "next_available_date"],
+          "requires_calculation": true
+        },
+        "description": "Annotates calculated fields including wait_days calculation"
+      },
+      {
+        "type": "queryset_optimization",
+        "requirements": {
+          "required_optimizations": ["prefetch_related"]
+        },
+        "description": "Optimizes ManyToMany relationships with prefetch_related"
+      },
+      {
+        "type": "complex_orm_pattern",
+        "requirements": {
+          "min_complexity_score": 20,
+          "requires_conditional_annotation": true
+        },
+        "description": "Implements moderately complex ORM query with aggregations"
+      },
+      {
+        "type": "q_object_usage",
+        "requirements": {
+          "requires_complex_q": true
+        },
+        "description": "Uses Q objects for optional filtering by genre and author"
+      }
+    ],
+    "scoring": {
+      "import_weight": 15.00,
+      "structure_weight": 30.00,
+      "behavior_weight": 55.00,
+      "passing_score": 80.00
+    }
+  },
+  "hints": [
+    "Start with Count('copies') to get total copies per book",
+    "Use Count('copies', filter=Q(copies__is_available=True)) for available copies",
+    "Use Count('reservations', filter=Q(reservations__status='active')) for active reservations",
+    "Handle division by zero when calculating wait time (reservations / available_copies)",
+    "Use prefetch_related for ManyToMany fields (authors, genres)",
+    "Create optional filters using Q objects and check if parameters are provided",
+    "Calculate next_available_date using timezone.now() + timedelta(days=wait_days)",
+    "Order results to show available books first, then by shortest wait time"
+  ],
+  "learning_resources": [
+    "https://docs.djangoproject.com/en/stable/ref/models/querysets/#aggregate-functions",
+    "https://docs.djangoproject.com/en/stable/ref/models/conditional-expressions/",
+    "https://docs.djangoproject.com/en/stable/ref/models/querysets/#prefetch-related",
+    "https://docs.djangoproject.com/en/stable/topics/db/aggregation/#filtering-on-annotations"
+  ],
+  "tags": ["django", "orm_queries", "aggregation", "conditional", "many_to_many", "intermediate"],
+  "estimated_time_minutes": 35,
+  "patterns": [
+    {
+      "pattern_id": "django-orm_queries-013-pattern-1",
+      "name": "Book Availability with Aggregation",
+      "description": "Complete solution using conditional aggregation, prefetch_related, and calculated fields",
+      "example_code": "from django.db.models import (\n    Count, Q, F, Case, When, Value, FloatField,\n    ExpressionWrapper, DateField\n)\nfrom django.utils import timezone\nfrom datetime import timedelta\n\ndef get_book_availability(genre_name=None, author_name=None):\n    \"\"\"\n    Returns book availability with wait time calculations.\n    \n    Args:\n        genre_name: Optional filter by genre name\n        author_name: Optional filter by author name\n    \"\"\"\n    # Build filter conditions\n    filters = Q(copies__isnull=False)  # At least one copy\n    \n    if genre_name:\n        filters &= Q(genres__name__icontains=genre_name)\n    \n    if author_name:\n        filters &= Q(authors__name__icontains=author_name)\n    \n    return Book.objects\\\n        .prefetch_related('authors', 'genres')\\\n        .filter(filters)\\\n        .annotate(\n            total_copies=Count('copies'),\n            available_copies=Count(\n                'copies',\n                filter=Q(copies__is_available=True)\n            ),\n            active_reservations=Count(\n                'reservations',\n                filter=Q(reservations__status='active')\n            )\n        )\\\n        .filter(total_copies__gt=0)\\\n        .annotate(\n            wait_days=Case(\n                When(\n                    available_copies__gt=0,\n                    then=Case(\n                        When(\n                            active_reservations__gt=0,\n                            then=ExpressionWrapper(\n                                F('active_reservations') * 14 / F('available_copies'),\n                                output_field=FloatField()\n                            )\n                        ),\n                        default=Value(0.0)\n                    )\n                ),\n                When(\n                    active_reservations__gt=0,\n                    then=ExpressionWrapper(\n                        F('active_reservations') * 14 / Value(1.0),\n                        output_field=FloatField()\n                    )\n                ),\n                default=Value(0.0),\n                output_field=FloatField()\n            )\n        )\\\n        .annotate(\n            next_available_date=ExpressionWrapper(\n                timezone.now() + timedelta(days=F('wait_days')),\n                output_field=DateField()\n            )\n        )\\\n        .order_by('-available_copies', 'wait_days', 'title')",
+      "required_imports": [
+        "django.db.models",
+        "django.db.models.functions",
+        "django.utils.timezone",
+        "datetime"
+      ],
+      "required_structure": {
+        "functions": [
+          {
+            "name": "get_book_availability",
+            "params": ["genre_name", "author_name"],
+            "returns": "QuerySet"
+          }
+        ]
+      },
+      "forbidden_patterns": [
+        "Using Python loops to calculate aggregates",
+        "Not handling division by zero in wait time calculation",
+        "Making separate queries for each book's copies/reservations",
+        "Not optimizing ManyToMany relationships"
+      ],
+      "is_primary": true,
+      "confidence_threshold": 85.00
+    }
+  ]
+}

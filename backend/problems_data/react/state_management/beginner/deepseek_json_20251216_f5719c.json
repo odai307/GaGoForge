@@ -1,0 +1,104 @@
+{
+  "problem_id": "react-state_management-002",
+  "title": "Create a Theme Switcher with Context API",
+  "slug": "create-theme-switcher-with-context-api",
+  "framework": "react",
+  "category": "state_management",
+  "difficulty": "beginner",
+  "description": "Implement a theme switching system using React Context API that allows users to toggle between light and dark themes across the entire application.\n\n**Requirements:**\n1. Create a `ThemeContext` using `createContext`\n2. Create a `ThemeProvider` component that:\n   - Manages theme state (light/dark)\n   - Provides toggle function\n   - Applies theme styles to children\n3. Create a `ThemeToggle` component that:\n   - Displays current theme\n   - Provides button to toggle theme\n4. Create a `ThemedApp` component that uses the theme in multiple places\n5. Apply theme-based styling to components\n\n**Implementation Details:**\n- Theme should be persisted in localStorage\n- Default theme should be 'light'\n- Theme styles should include:\n  - Background color\n  - Text color\n  - Button styles\n- Use the useContext hook to access theme in child components\n- Theme should affect all components wrapped by ThemeProvider\n\n**Expected Behavior:**\n- Initial render shows light theme\n- Clicking toggle button switches to dark theme\n- Theme persists across page reloads\n- All components update their colors based on theme\n- Toggle button shows current theme status\n\n**Component Structure:**\n```jsx\n<ThemeProvider>\n  <ThemedApp>\n    <ThemeToggle />\n    <ThemedBox />\n    <ThemedButton />\n  </ThemedApp>\n</ThemeProvider>\n```",
+  "description_preview": "Implement a global theme system using Context API with light/dark modes",
+  "context_code": "// Theme configuration (for reference only)\nconst themeConfig = {\n  light: {\n    backgroundColor: '#ffffff',\n    textColor: '#333333',\n    buttonBackground: '#007bff',\n    buttonTextColor: '#ffffff',\n    borderColor: '#dddddd'\n  },\n  dark: {\n    backgroundColor: '#1a1a1a',\n    textColor: '#f0f0f0',\n    buttonBackground: '#555555',\n    buttonTextColor: '#ffffff',\n    borderColor: '#444444'\n  }\n};\n\n// Sample ThemedBox component (for reference only)\n// This shows how a component can use theme\nfunction ThemedBox({ children }) {\n  // Would use useContext to get theme\n  return (\n    <div style={{\n      // Theme-based styles would go here\n      padding: '20px',\n      margin: '10px',\n      borderRadius: '8px'\n    }}>\n      {children}\n    </div>\n  );\n}",
+  "starter_code": "",
+  "target_area": "Theme system with Context API and useContext hook",
+  "validation_spec": {
+    "required_imports": ["react", "react.createContext", "react.useContext", "react.useState", "react.useEffect"],
+    "required_structure": {
+      "functions": [
+        {
+          "name": "ThemeProvider",
+          "type": "functional_component",
+          "has_export": false,
+          "has_prop_types": false
+        },
+        {
+          "name": "ThemeToggle",
+          "type": "functional_component",
+          "has_export": false,
+          "has_prop_types": false
+        },
+        {
+          "name": "ThemedApp",
+          "type": "functional_component",
+          "has_export": true,
+          "has_prop_types": false
+        }
+      ]
+    },
+    "behavior_patterns": [
+      {"type": "context_usage", "context_type": "create_context"},
+      {"type": "context_usage", "context_type": "use_context"},
+      {"type": "hook_call", "hook": "useState"},
+      {"type": "hook_call", "hook": "useEffect"},
+      "localStorage usage for persistence",
+      "theme toggle functionality"
+    ]
+  },
+  "import_weight": 20.00,
+  "structure_weight": 40.00,
+  "behavior_weight": 40.00,
+  "passing_score": 80.00,
+  "hints": [
+    "Create a context using React.createContext()",
+    "The ThemeProvider should wrap its children and provide theme state and toggle function",
+    "Use useEffect to load saved theme from localStorage on initial render",
+    "Use another useEffect to save theme to localStorage when it changes",
+    "Access the theme context in child components using useContext() hook"
+  ],
+  "learning_resources": [
+    "https://react.dev/reference/react/createContext",
+    "https://react.dev/reference/react/useContext"
+  ],
+  "tags": ["react", "state-management", "context-api", "useContext", "theme", "beginner"],
+  "estimated_time_minutes": 35,
+  "patterns": [
+    {
+      "pattern_id": "react-state_management-002-pattern-1",
+      "name": "Theme Switcher with Context API",
+      "description": "Complete theme switching system with Context API, localStorage persistence, and theme-aware components",
+      "example_code": "import React, { createContext, useState, useContext, useEffect } from 'react';\n\nconst ThemeContext = createContext();\n\nfunction ThemeProvider({ children }) {\n  const [theme, setTheme] = useState(() => {\n    const savedTheme = localStorage.getItem('app-theme');\n    return savedTheme || 'light';\n  });\n  \n  useEffect(() => {\n    localStorage.setItem('app-theme', theme);\n  }, [theme]);\n  \n  const toggleTheme = () => {\n    setTheme(prevTheme => prevTheme === 'light' ? 'dark' : 'light');\n  };\n  \n  const themeConfig = {\n    light: {\n      backgroundColor: '#ffffff',\n      textColor: '#333333',\n      buttonBackground: '#007bff',\n      buttonTextColor: '#ffffff',\n      borderColor: '#dddddd'\n    },\n    dark: {\n      backgroundColor: '#1a1a1a',\n      textColor: '#f0f0f0',\n      buttonBackground: '#555555',\n      buttonTextColor: '#ffffff',\n      borderColor: '#444444'\n    }\n  };\n  \n  const currentTheme = themeConfig[theme];\n  \n  return (\n    <ThemeContext.Provider value={{ theme, toggleTheme, currentTheme }}>\n      <div style={{\n        backgroundColor: currentTheme.backgroundColor,\n        color: currentTheme.textColor,\n        minHeight: '100vh',\n        padding: '20px',\n        transition: 'all 0.3s ease'\n      }}>\n        {children}\n      </div>\n    </ThemeContext.Provider>\n  );\n}\n\nfunction useTheme() {\n  const context = useContext(ThemeContext);\n  if (!context) {\n    throw new Error('useTheme must be used within ThemeProvider');\n  }\n  return context;\n}\n\nfunction ThemeToggle() {\n  const { theme, toggleTheme } = useTheme();\n  \n  return (\n    <div style={{ marginBottom: '20px' }}>\n      <button\n        onClick={toggleTheme}\n        style={{\n          padding: '10px 20px',\n          backgroundColor: theme === 'light' ? '#333' : '#fff',\n          color: theme === 'light' ? '#fff' : '#333',\n          border: 'none',\n          borderRadius: '5px',\n          cursor: 'pointer',\n          fontSize: '16px'\n        }}\n      >\n        Switch to {theme === 'light' ? 'Dark' : 'Light'} Mode\n      </button>\n      <p>Current theme: {theme}</p>\n    </div>\n  );\n}\n\nfunction ThemedBox() {\n  const { currentTheme } = useTheme();\n  \n  return (\n    <div style={{\n      backgroundColor: currentTheme.backgroundColor,\n      color: currentTheme.textColor,\n      border: `2px solid ${currentTheme.borderColor}`,\n      padding: '20px',\n      margin: '20px 0',\n      borderRadius: '8px',\n      transition: 'all 0.3s ease'\n    }}>\n      <h3>Themed Content Box</h3>\n      <p>This box automatically adapts to the current theme.</p>\n      <p>Background: {currentTheme.backgroundColor}</p>\n      <p>Text Color: {currentTheme.textColor}</p>\n    </div>\n  );\n}\n\nfunction ThemedButton({ children, onClick }) {\n  const { currentTheme } = useTheme();\n  \n  return (\n    <button\n      onClick={onClick}\n      style={{\n        backgroundColor: currentTheme.buttonBackground,\n        color: currentTheme.buttonTextColor,\n        padding: '10px 20px',\n        border: 'none',\n        borderRadius: '5px',\n        margin: '5px',\n        cursor: 'pointer',\n        transition: 'all 0.3s ease'\n      }}\n    >\n      {children}\n    </button>\n  );\n}\n\nexport default function ThemedApp() {\n  return (\n    <ThemeProvider>\n      <div style={{ maxWidth: '800px', margin: '0 auto' }}>\n        <h1>Theme Switcher Application</h1>\n        <ThemeToggle />\n        \n        <div>\n          <h2>Theme Demonstration</h2>\n          <p>This application demonstrates global state management using React Context API.</p>\n          <p>The theme is persisted in localStorage and affects all components.</p>\n        </div>\n        \n        <ThemedBox />\n        <ThemedBox />\n        \n        <div style={{ marginTop: '20px' }}>\n          <h3>Theme-Aware Buttons</h3>\n          <ThemedButton onClick={() => alert('Button clicked!')}>\n            Primary Action\n          </ThemedButton>\n          <ThemedButton onClick={() => console.log('Secondary action')}>\n            Secondary Action\n          </ThemedButton>\n        </div>\n        \n        <div style={{ marginTop: '30px', padding: '20px', borderTop: '1px solid #ccc' }}>\n          <h4>Instructions:</h4>\n          <ul>\n            <li>Click the theme toggle button to switch between light and dark modes</li>\n            <li>Refresh the page to see theme persistence</li>\n            <li>Check localStorage in dev tools to see saved theme</li>\n          </ul>\n        </div>\n      </div>\n    </ThemeProvider>\n  );\n}",
+      "required_imports": ["react", "react.createContext", "react.useContext", "react.useState", "react.useEffect"],
+      "required_structure": {
+        "functions": [
+          {
+            "name": "ThemeProvider",
+            "type": "functional_component"
+          },
+          {
+            "name": "useTheme",
+            "type": "custom_hook"
+          },
+          {
+            "name": "ThemeToggle",
+            "type": "functional_component"
+          },
+          {
+            "name": "ThemedBox",
+            "type": "functional_component"
+          },
+          {
+            "name": "ThemedButton",
+            "type": "functional_component"
+          },
+          {
+            "name": "ThemedApp",
+            "type": "functional_component",
+            "has_export": true
+          }
+        ]
+      },
+      "forbidden_patterns": ["prop drilling", "window.localStorage in render", "inline theme logic"],
+      "is_primary": true,
+      "confidence_threshold": 85.00
+    }
+  ]
+}

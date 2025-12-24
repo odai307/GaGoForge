@@ -1,0 +1,249 @@
+{
+  "problem_id": "django-models-001",
+  "title": "Create Library Management Models",
+  "slug": "create-library-management-models",
+  "framework": "django",
+  "category": "models",
+  "difficulty": "beginner",
+  "description": "Create Django models for a basic library management system with books, authors, and members.\n\n**Business Scenario:**\nYou're building a library system that needs to track books, authors, and library members. Books can have one author, and authors can have multiple books. Members can borrow multiple books, and each book can be borrowed by only one member at a time.\n\n**Requirements:**\nCreate the following models in `models.py`:\n\n1. **Author Model**:\n   - `first_name`: CharField, max_length=100, required\n   - `last_name`: CharField, max_length=100, required\n   - `email`: EmailField, unique, optional\n   - `bio`: TextField, optional\n   - `date_of_birth`: DateField, optional\n   - `nationality`: CharField, max_length=100, optional\n   - `is_active`: BooleanField, default=True\n   - `created_at`: DateTimeField, auto_now_add=True\n   - `updated_at`: DateTimeField, auto_now=True\n   \n   - Meta: ordering by last_name, then first_name\n   - `__str__`: Return full name\n   - Property `full_name`: Return formatted full name\n\n2. **Book Model**:\n   - `title`: CharField, max_length=200, required\n   - `author`: ForeignKey to Author, on_delete=PROTECT, related_name='books'\n   - `isbn`: CharField, max_length=13, unique, required (ISBN-13 format)\n   - `publication_year`: IntegerField, required\n   - `genre`: CharField, max_length=100, optional\n   - `page_count`: IntegerField, optional\n   - `price`: DecimalField, max_digits=6, decimal_places=2, optional\n   - `available_copies`: IntegerField, default=1\n   - `is_available`: BooleanField, default=True\n   - `created_at`: DateTimeField, auto_now_add=True\n   - `updated_at`: DateTimeField, auto_now=True\n   \n   - Meta: ordering by title\n   - `__str__`: Return title\n   - Method `needs_restock`: Return True if available_copies < 5\n\n3. **Member Model**:\n   - `first_name`: CharField, max_length=100, required\n   - `last_name`: CharField, max_length=100, required\n   - `email`: EmailField, unique, required\n   - `membership_id`: CharField, max_length=20, unique, required\n   - `date_of_birth`: DateField, required\n   - `phone`: CharField, max_length=20, optional\n   - `address`: TextField, optional\n   - `membership_date`: DateField, auto_now_add=True\n   - `is_active`: BooleanField, default=True\n   \n   - Meta: ordering by last_name, then first_name\n   - `__str__`: Return full name with membership ID\n   - Property `full_name`: Return formatted full name\n\n4. **BorrowRecord Model**:\n   - `book`: ForeignKey to Book, on_delete=PROTECT, related_name='borrow_records'\n   - `member`: ForeignKey to Member, on_delete=PROTECT, related_name='borrow_records'\n   - `borrow_date`: DateField, auto_now_add=True\n   - `due_date`: DateField, required (default: 14 days from borrow_date)\n   - `return_date`: DateField, null=True, blank=True\n   - `fine_amount`: DecimalField, max_digits=6, decimal_places=2, default=0\n   - `status`: CharField with choices: ('borrowed', 'returned', 'overdue')\n   \n   - Meta: ordering by -borrow_date\n   - `__str__`: Return \"Book - Member - Status\"\n   - Method `calculate_fine`: Calculate fine if overdue (₹10 per day)\n   - Property `is_overdue`: Return True if due_date passed and not returned\n\n**Expected Behavior:**\n- Proper field types and constraints\n- Correct relationships between models\n- Appropriate on_delete behaviors\n- Custom methods and properties work as described\n- Meta options correctly implemented\n\n**Example Usage:**\n```python\n# Create an author\nauthor = Author.objects.create(\n    first_name=\"Jane\",\n    last_name=\"Austen\",\n    email=\"jane@example.com\",\n    nationality=\"British\"\n)\n\n# Create a book\nbook = Book.objects.create(\n    title=\"Pride and Prejudice\",\n    author=author,\n    isbn=\"9780141439518\",\n    publication_year=1813\n)\n\n# Check if book needs restock\nif book.needs_restock():\n    print(f\"{book.title} needs restocking\")\n```",
+  "description_preview": "Create Django models for a library system with Authors, Books, Members, and BorrowRecords",
+  "context_code": "# You need to create the models in models.py\n# This is a reference for what you're building\n\n# Expected model relationships:\n# Author 1───N Book\n# Book    N───1 Member (through BorrowRecord)\n# Member 1───N BorrowRecord",
+  "starter_code": "",
+  "target_area": "Library system Django models",
+  "validation_spec": {
+    "required_imports": ["django.db.models", "datetime"],
+    "required_structure": {
+      "classes": [
+        {
+          "name": "Author",
+          "parent_class": "models.Model",
+          "has_meta_class": true,
+          "meta_class_options": ["ordering"],
+          "methods": ["__str__"],
+          "properties": ["full_name"]
+        },
+        {
+          "name": "Book",
+          "parent_class": "models.Model",
+          "has_meta_class": true,
+          "meta_class_options": ["ordering"],
+          "methods": ["__str__", "needs_restock"],
+          "fields": ["title", "author", "isbn", "publication_year", "available_copies", "is_available"]
+        },
+        {
+          "name": "Member",
+          "parent_class": "models.Model",
+          "has_meta_class": true,
+          "meta_class_options": ["ordering"],
+          "methods": ["__str__"],
+          "properties": ["full_name"]
+        },
+        {
+          "name": "BorrowRecord",
+          "parent_class": "models.Model",
+          "has_meta_class": true,
+          "meta_class_options": ["ordering"],
+          "methods": ["__str__", "calculate_fine"],
+          "properties": ["is_overdue"]
+        }
+      ]
+    },
+    "behavior_patterns": [
+      {
+        "type": "model_field",
+        "field_type": "CharField",
+        "min_count": 10,
+        "description": "Must include CharFields for names, emails, IDs, etc."
+      },
+      {
+        "type": "model_field",
+        "field_type": "ForeignKey",
+        "min_count": 3,
+        "description": "Must include ForeignKeys for relationships"
+      },
+      {
+        "type": "model_field",
+        "field_type": "EmailField",
+        "description": "Must include EmailFields for author and member emails"
+      },
+      {
+        "type": "model_field",
+        "field_type": "DateField",
+        "min_count": 4,
+        "description": "Must include DateFields for dates"
+      },
+      {
+        "type": "model_field",
+        "field_type": "DateTimeField",
+        "min_count": 4,
+        "description": "Must include DateTimeFields for timestamps"
+      },
+      {
+        "type": "model_field",
+        "field_type": "BooleanField",
+        "min_count": 3,
+        "description": "Must include BooleanFields for status flags"
+      },
+      {
+        "type": "model_field",
+        "field_type": "IntegerField",
+        "min_count": 3,
+        "description": "Must include IntegerFields for counts and years"
+      },
+      {
+        "type": "model_field",
+        "field_type": "DecimalField",
+        "description": "Must include DecimalFields for prices and fines"
+      },
+      {
+        "type": "model_field",
+        "field_type": "TextField",
+        "description": "Must include TextFields for descriptions"
+      },
+      {
+        "type": "foreign_key_relationship",
+        "from_model": "Book",
+        "to_model": "Author",
+        "on_delete": "PROTECT",
+        "description": "Book must have ForeignKey to Author"
+      },
+      {
+        "type": "foreign_key_relationship",
+        "from_model": "BorrowRecord",
+        "to_model": "Book",
+        "on_delete": "PROTECT",
+        "description": "BorrowRecord must have ForeignKey to Book"
+      },
+      {
+        "type": "foreign_key_relationship",
+        "from_model": "BorrowRecord",
+        "to_model": "Member",
+        "on_delete": "PROTECT",
+        "description": "BorrowRecord must have ForeignKey to Member"
+      },
+      {
+        "type": "meta_class",
+        "model": "all",
+        "options": ["ordering"],
+        "description": "All models must have Meta class with ordering"
+      },
+      {
+        "type": "str_method",
+        "model": "all",
+        "description": "All models must have __str__ method"
+      },
+      {
+        "type": "custom_method",
+        "model": "Book",
+        "method_name": "needs_restock",
+        "description": "Book must have needs_restock method"
+      },
+      {
+        "type": "custom_method",
+        "model": "BorrowRecord",
+        "method_name": "calculate_fine",
+        "description": "BorrowRecord must have calculate_fine method"
+      },
+      {
+        "type": "property_method",
+        "model": "Author",
+        "property_name": "full_name",
+        "description": "Author must have full_name property"
+      },
+      {
+        "type": "property_method",
+        "model": "Member",
+        "property_name": "full_name",
+        "description": "Member must have full_name property"
+      },
+      {
+        "type": "property_method",
+        "model": "BorrowRecord",
+        "property_name": "is_overdue",
+        "description": "BorrowRecord must have is_overdue property"
+      },
+      {
+        "type": "field_constraint",
+        "constraint": "unique",
+        "fields": ["isbn", "email", "membership_id"],
+        "description": "Must have unique constraints on isbn, email, and membership_id"
+      },
+      {
+        "type": "auto_now_field",
+        "field_names": ["created_at", "updated_at", "membership_date", "borrow_date"],
+        "description": "Must use auto_now_add for creation timestamps"
+      }
+    ],
+    "difficulty": "beginner",
+    "framework": "django"
+  },
+  "import_weight": 15.00,
+  "structure_weight": 40.00,
+  "behavior_weight": 45.00,
+  "passing_score": 75.00,
+  "hints": [
+    "Use models.Model as base class for all models",
+    "For ForeignKey fields, specify on_delete behavior (PROTECT for library data)",
+    "Use auto_now_add=True for creation timestamps, auto_now=True for update timestamps",
+    "Properties use @property decorator, methods are regular class methods"
+  ],
+  "learning_resources": [
+    "https://docs.djangoproject.com/en/stable/topics/db/models/",
+    "https://docs.djangoproject.com/en/stable/ref/models/fields/",
+    "https://docs.djangoproject.com/en/stable/topics/db/models/#relationships"
+  ],
+  "tags": ["django", "models", "library", "relationships", "beginner"],
+  "estimated_time_minutes": 35,
+  "patterns": [
+    {
+      "pattern_id": "django-models-001-pattern-1",
+      "name": "Complete Library Management Models",
+      "description": "All four models with proper fields, relationships, and methods",
+      "example_code": "from django.db import models\nfrom datetime import timedelta, date\n\nclass Author(models.Model):\n    \"\"\"Model representing a book author.\"\"\"\n    first_name = models.CharField(max_length=100)\n    last_name = models.CharField(max_length=100)\n    email = models.EmailField(unique=True, blank=True, null=True)\n    bio = models.TextField(blank=True)\n    date_of_birth = models.DateField(blank=True, null=True)\n    nationality = models.CharField(max_length=100, blank=True)\n    is_active = models.BooleanField(default=True)\n    created_at = models.DateTimeField(auto_now_add=True)\n    updated_at = models.DateTimeField(auto_now=True)\n    \n    class Meta:\n        ordering = ['last_name', 'first_name']\n    \n    def __str__(self):\n        return f\"{self.first_name} {self.last_name}\"\n    \n    @property\n    def full_name(self):\n        return f\"{self.first_name} {self.last_name}\"\n\nclass Book(models.Model):\n    \"\"\"Model representing a library book.\"\"\"\n    title = models.CharField(max_length=200)\n    author = models.ForeignKey(\n        Author, \n        on_delete=models.PROTECT, \n        related_name='books'\n    )\n    isbn = models.CharField(max_length=13, unique=True)\n    publication_year = models.IntegerField()\n    genre = models.CharField(max_length=100, blank=True)\n    page_count = models.IntegerField(blank=True, null=True)\n    price = models.DecimalField(\n        max_digits=6, \n        decimal_places=2, \n        blank=True, \n        null=True\n    )\n    available_copies = models.IntegerField(default=1)\n    is_available = models.BooleanField(default=True)\n    created_at = models.DateTimeField(auto_now_add=True)\n    updated_at = models.DateTimeField(auto_now=True)\n    \n    class Meta:\n        ordering = ['title']\n    \n    def __str__(self):\n        return self.title\n    \n    def needs_restock(self):\n        \"\"\"Check if book needs restocking (less than 5 copies).\"\"\"\n        return self.available_copies < 5\n\nclass Member(models.Model):\n    \"\"\"Model representing a library member.\"\"\"\n    first_name = models.CharField(max_length=100)\n    last_name = models.CharField(max_length=100)\n    email = models.EmailField(unique=True)\n    membership_id = models.CharField(max_length=20, unique=True)\n    date_of_birth = models.DateField()\n    phone = models.CharField(max_length=20, blank=True)\n    address = models.TextField(blank=True)\n    membership_date = models.DateField(auto_now_add=True)\n    is_active = models.BooleanField(default=True)\n    \n    class Meta:\n        ordering = ['last_name', 'first_name']\n    \n    def __str__(self):\n        return f\"{self.first_name} {self.last_name} ({self.membership_id})\"\n    \n    @property\n    def full_name(self):\n        return f\"{self.first_name} {self.last_name}\"\n\nclass BorrowRecord(models.Model):\n    \"\"\"Model representing a book borrowing record.\"\"\"\n    STATUS_CHOICES = [\n        ('borrowed', 'Borrowed'),\n        ('returned', 'Returned'),\n        ('overdue', 'Overdue'),\n    ]\n    \n    book = models.ForeignKey(\n        Book, \n        on_delete=models.PROTECT, \n        related_name='borrow_records'\n    )\n    member = models.ForeignKey(\n        Member, \n        on_delete=models.PROTECT, \n        related_name='borrow_records'\n    )\n    borrow_date = models.DateField(auto_now_add=True)\n    due_date = models.DateField()\n    return_date = models.DateField(blank=True, null=True)\n    fine_amount = models.DecimalField(\n        max_digits=6, \n        decimal_places=2, \n        default=0\n    )\n    status = models.CharField(\n        max_length=20, \n        choices=STATUS_CHOICES, \n        default='borrowed'\n    )\n    \n    class Meta:\n        ordering = ['-borrow_date']\n    \n    def __str__(self):\n        return f\"{self.book.title} - {self.member.full_name} - {self.status}\"\n    \n    def save(self, *args, **kwargs):\n        \"\"\"Set due date to 14 days from borrow date if not provided.\"\"\"\n        if not self.due_date:\n            self.due_date = self.borrow_date + timedelta(days=14)\n        super().save(*args, **kwargs)\n    \n    def calculate_fine(self):\n        \"\"\"Calculate fine if book is overdue (₹10 per day).\"\"\"\n        if self.return_date:\n            # Book already returned\n            return self.fine_amount\n        \n        if self.is_overdue:\n            overdue_days = (date.today() - self.due_date).days\n            if overdue_days > 0:\n                fine = overdue_days * 10  # ₹10 per day\n                self.fine_amount = fine\n                self.status = 'overdue'\n                self.save()\n                return fine\n        \n        return 0\n    \n    @property\n    def is_overdue(self):\n        \"\"\"Check if the book is overdue.\"\"\"\n        if self.return_date:\n            return False  # Already returned\n        \n        return date.today() > self.due_date",
+      "required_imports": ["django.db.models", "datetime"],
+      "required_structure": {
+        "classes": [
+          {
+            "name": "Author",
+            "parent_class": "models.Model",
+            "has_meta_class": true,
+            "meta_class_options": ["ordering"],
+            "methods": ["__str__"],
+            "properties": ["full_name"]
+          },
+          {
+            "name": "Book",
+            "parent_class": "models.Model",
+            "has_meta_class": true,
+            "meta_class_options": ["ordering"],
+            "methods": ["__str__", "needs_restock"],
+            "fields": ["title", "author", "isbn", "publication_year", "available_copies", "is_available"]
+          },
+          {
+            "name": "Member",
+            "parent_class": "models.Model",
+            "has_meta_class": true,
+            "meta_class_options": ["ordering"],
+            "methods": ["__str__"],
+            "properties": ["full_name"]
+          },
+          {
+            "name": "BorrowRecord",
+            "parent_class": "models.Model",
+            "has_meta_class": true,
+            "meta_class_options": ["ordering"],
+            "methods": ["__str__", "save", "calculate_fine"],
+            "properties": ["is_overdue"]
+          }
+        ]
+      },
+      "forbidden_patterns": [
+        "missing_relationships",
+        "no_meta_classes",
+        "incorrect_field_types"
+      ],
+      "is_primary": true,
+      "confidence_threshold": 85.00
+    }
+  ]
+}

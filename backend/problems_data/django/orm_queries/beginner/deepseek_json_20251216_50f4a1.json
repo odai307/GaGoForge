@@ -1,0 +1,137 @@
+{
+  "problem_id": "django-orm_queries-002",
+  "title": "Library System with Author-Book Relationships",
+  "slug": "library-system-with-author-book-relationships",
+  "framework": "django",
+  "category": "orm_queries",
+  "difficulty": "beginner",
+  "description": "Write Django ORM queries for a library system with Author and Book models in a one-to-many relationship.\n\n**Business Scenario:**\nYou're building queries for a library catalog system where authors can have multiple books.\n\n**Model Definitions:**\n```python\nfrom django.db import models\n\nclass Author(models.Model):\n    first_name = models.CharField(max_length=100)\n    last_name = models.CharField(max_length=100)\n    email = models.EmailField(unique=True)\n    birth_year = models.IntegerField()\n    nationality = models.CharField(max_length=100)\n    \n    class Meta:\n        ordering = ['last_name', 'first_name']\n    \n    def __str__(self):\n        return f\"{self.first_name} {self.last_name}\"\n    \n    @property\n    def full_name(self):\n        return f\"{self.first_name} {self.last_name}\"\n\nclass Book(models.Model):\n    title = models.CharField(max_length=200)\n    author = models.ForeignKey(Author, on_delete=models.CASCADE, related_name='books')\n    isbn = models.CharField(max_length=13, unique=True)\n    publication_year = models.IntegerField()\n    genre = models.CharField(max_length=100)\n    page_count = models.IntegerField()\n    price = models.DecimalField(max_digits=6, decimal_places=2)\n    available_copies = models.IntegerField(default=1)\n    \n    class Meta:\n        ordering = ['title']\n    \n    def __str__(self):\n        return self.title\n```\n\n**Requirements:**\nImplement the following functions using Django ORM:\n\n1. **get_books_with_authors()**: Return all books with their author information (use select_related)\n2. **get_authors_with_books()**: Return all authors with their books (use prefetch_related)\n3. **get_author_book_count(author_id)**: Return number of books by a specific author\n4. **get_books_by_genre(genre)**: Return all books in a specific genre\n5. **get_available_books()**: Return books with available_copies > 0\n6. **get_authors_by_nationality(nationality)**: Return authors from a specific country\n7. **get_books_published_between(start_year, end_year)**: Return books published between years\n8. **get_top_authors_by_book_count(limit)**: Return authors with most books (limit results)\n9. **get_books_by_author_name(author_name)**: Return books by author name (partial match)\n10. **update_book_copies(isbn, new_count)**: Update available copies for a book\n\n**Expected Behavior:**\n- Use appropriate relationship optimizations (select_related, prefetch_related)\n- Return QuerySets where applicable\n- Use aggregates for counts and rankings\n- Handle foreign key relationships efficiently\n\n**Example Usage:**\n```python\n# Get books with author information (avoid N+1)\nbooks = get_books_with_authors()\n\n# Get authors with their books\nauthors = get_authors_with_books()\n\n# Get top 5 authors by book count\ntop_authors = get_top_authors_by_book_count(5)\n```",
+  "description_preview": "Implement ORM queries for Author-Book relationships with optimization techniques",
+  "context_code": "# MODEL DEFINITIONS (for reference only - you need to write the query functions)\nfrom django.db import models\n\nclass Author(models.Model):\n    first_name = models.CharField(max_length=100)\n    last_name = models.CharField(max_length=100)\n    email = models.EmailField(unique=True)\n    birth_year = models.IntegerField()\n    nationality = models.CharField(max_length=100)\n    \n    class Meta:\n        ordering = ['last_name', 'first_name']\n    \n    def __str__(self):\n        return f\"{self.first_name} {self.last_name}\"\n\nclass Book(models.Model):\n    title = models.CharField(max_length=200)\n    author = models.ForeignKey(Author, on_delete=models.CASCADE, related_name='books')\n    isbn = models.CharField(max_length=13, unique=True)\n    publication_year = models.IntegerField()\n    genre = models.CharField(max_length=100)\n    page_count = models.IntegerField()\n    price = models.DecimalField(max_digits=6, decimal_places=2)\n    available_copies = models.IntegerField(default=1)\n    \n    class Meta:\n        ordering = ['title']\n    \n    def __str__(self):\n        return self.title",
+  "starter_code": "",
+  "target_area": "ORM query functions with relationships",
+  "validation_spec": {
+    "required_imports": ["django.db.models"],
+    "required_structure": {
+      "functions": [
+        {"name": "get_books_with_authors"},
+        {"name": "get_authors_with_books"},
+        {"name": "get_author_book_count"},
+        {"name": "get_books_by_genre"},
+        {"name": "get_available_books"},
+        {"name": "get_authors_by_nationality"},
+        {"name": "get_books_published_between"},
+        {"name": "get_top_authors_by_book_count"},
+        {"name": "get_books_by_author_name"},
+        {"name": "update_book_copies"}
+      ]
+    },
+    "behavior_patterns": [
+      {
+        "type": "queryset_operation",
+        "operation": "select_related",
+        "description": "Must use select_related('author') for books with authors"
+      },
+      {
+        "type": "queryset_operation",
+        "operation": "prefetch_related",
+        "description": "Must use prefetch_related('books') for authors with books"
+      },
+      {
+        "type": "queryset_operation",
+        "operation": "filter",
+        "min_calls": 6,
+        "description": "Must use filter() for genre, availability, nationality, year range, etc."
+      },
+      {
+        "type": "queryset_operation",
+        "operation": "annotate",
+        "description": "Must use annotate() for book counts"
+      },
+      {
+        "type": "queryset_operation",
+        "operation": "aggregate",
+        "description": "Must use aggregate() for counts"
+      },
+      {
+        "type": "queryset_operation",
+        "operation": "order_by",
+        "description": "Must use order_by() for rankings"
+      },
+      {
+        "type": "field_lookup",
+        "lookup": "gt",
+        "description": "Must use __gt for available copies"
+      },
+      {
+        "type": "field_lookup",
+        "lookup": "range",
+        "description": "Must use __range for year between"
+      },
+      {
+        "type": "field_lookup",
+        "lookup": "icontains",
+        "description": "Must use __icontains for author name search"
+      },
+      {
+        "type": "reverse_relationship",
+        "relationship": "books",
+        "description": "Must access reverse relationship author.books"
+      },
+      {
+        "type": "update_operation",
+        "operation": "update",
+        "description": "Must use update() for modifying copies"
+      }
+    ],
+    "difficulty": "beginner",
+    "framework": "django"
+  },
+  "import_weight": 15.00,
+  "structure_weight": 40.00,
+  "behavior_weight": 45.00,
+  "passing_score": 75.00,
+  "hints": [
+    "Use select_related for forward foreign key relationships (Book → Author)",
+    "Use prefetch_related for reverse foreign key relationships (Author ← Book)",
+    "For counts, use Count from django.db.models",
+    "Chain order_by with - to get descending order for rankings"
+  ],
+  "learning_resources": [
+    "https://docs.djangoproject.com/en/stable/ref/models/querysets/#select-related",
+    "https://docs.djangoproject.com/en/stable/ref/models/querysets/#prefetch-related",
+    "https://docs.djangoproject.com/en/stable/topics/db/aggregation/"
+  ],
+  "tags": ["django", "orm", "relationships", "foreignkey", "optimization", "beginner"],
+  "estimated_time_minutes": 30,
+  "patterns": [
+    {
+      "pattern_id": "django-orm_queries-002-pattern-1",
+      "name": "Author-Book Relationship Queries",
+      "description": "Complete implementation with relationship optimizations",
+      "example_code": "from django.db.models import Count, Q\nfrom .models import Author, Book\n\ndef get_books_with_authors():\n    \"\"\"Return all books with their author information.\"\"\"\n    return Book.objects.select_related('author').all().order_by('title')\n\ndef get_authors_with_books():\n    \"\"\"Return all authors with their books.\"\"\"\n    return Author.objects.prefetch_related('books').all().order_by('last_name', 'first_name')\n\ndef get_author_book_count(author_id):\n    \"\"\"Return number of books by a specific author.\"\"\"\n    return Book.objects.filter(author_id=author_id).count()\n\ndef get_books_by_genre(genre):\n    \"\"\"Return all books in a specific genre.\"\"\"\n    return Book.objects.filter(genre__iexact=genre).order_by('title')\n\ndef get_available_books():\n    \"\"\"Return books with available_copies > 0.\"\"\"\n    return Book.objects.filter(available_copies__gt=0).order_by('title')\n\ndef get_authors_by_nationality(nationality):\n    \"\"\"Return authors from a specific country.\"\"\"\n    return Author.objects.filter(nationality__iexact=nationality).order_by('last_name', 'first_name')\n\ndef get_books_published_between(start_year, end_year):\n    \"\"\"Return books published between years.\"\"\"\n    return Book.objects.filter(\n        publication_year__range=(start_year, end_year)\n    ).order_by('publication_year', 'title')\n\ndef get_top_authors_by_book_count(limit=10):\n    \"\"\"Return authors with most books.\"\"\"\n    return Author.objects.annotate(\n        book_count=Count('books')\n    ).order_by('-book_count', 'last_name', 'first_name')[:limit]\n\ndef get_books_by_author_name(author_name):\n    \"\"\"Return books by author name (partial match).\"\"\"\n    # Search in both first and last names\n    return Book.objects.filter(\n        Q(author__first_name__icontains=author_name) | \n        Q(author__last_name__icontains=author_name)\n    ).select_related('author').order_by('title')\n\ndef update_book_copies(isbn, new_count):\n    \"\"\"Update available copies for a book.\"\"\"\n    if new_count < 0:\n        raise ValueError(\"Copy count cannot be negative\")\n    \n    updated_count = Book.objects.filter(isbn=isbn).update(available_copies=new_count)\n    \n    if updated_count > 0:\n        return Book.objects.get(isbn=isbn)\n    return None",
+      "required_imports": ["django.db.models"],
+      "required_structure": {
+        "functions": [
+          {"name": "get_books_with_authors"},
+          {"name": "get_authors_with_books"},
+          {"name": "get_author_book_count"},
+          {"name": "get_books_by_genre"},
+          {"name": "get_available_books"},
+          {"name": "get_authors_by_nationality"},
+          {"name": "get_books_published_between"},
+          {"name": "get_top_authors_by_book_count"},
+          {"name": "get_books_by_author_name"},
+          {"name": "update_book_copies"}
+        ]
+      },
+      "forbidden_patterns": [
+        "n_plus_one_queries",
+        "no_relationship_optimization",
+        "raw_sql"
+      ],
+      "is_primary": true,
+      "confidence_threshold": 85.00
+    }
+  ]
+}

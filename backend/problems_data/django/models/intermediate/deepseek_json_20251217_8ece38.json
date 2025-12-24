@@ -1,0 +1,138 @@
+{
+  "problem_id": "django-models-002",
+  "title": "Create E-commerce Product Catalog with Inheritance",
+  "slug": "create-ecommerce-product-catalog-with-inheritance",
+  "framework": "django",
+  "category": "models",
+  "difficulty": "intermediate",
+  "description": "Build a product catalog system for an e-commerce platform that sells different types of products. Use model inheritance to handle common product attributes while allowing specific attributes for different product types.\n\n**Business Requirements:**\n- All products have common attributes: name, SKU, price, description, and stock quantity\n- Digital products (like eBooks, software) need additional fields: file_size, download_link, and compatible_devices\n- Physical products (like books, electronics) need additional fields: weight, dimensions, and shipping_class\n- Clothing products need additional fields: size, color, material, and care_instructions\n- The system should prevent negative stock quantities\n- Products should have a status (active/inactive/discontinued)\n- Each product type should have a method to calculate shipping cost (free for digital, calculated for others)\n\n**Model Architecture:**\n1. **BaseProduct**: Abstract base model with common attributes\n2. **DigitalProduct**: Inherits from BaseProduct, adds digital-specific fields\n3. **PhysicalProduct**: Inherits from BaseProduct, adds physical-specific fields\n4. **ClothingProduct**: Inherits from PhysicalProduct, adds clothing-specific fields\n\n**Constraints:**\n- SKU must be unique across all products\n- Price must be positive\n- Stock quantity cannot be negative\n- File size must be positive for digital products\n- Weight must be positive for physical products\n\n**Expected Behavior:**\n- Digital products should return 0 for shipping cost\n- Physical products should calculate shipping based on weight and shipping class\n- Clothing products should inherit physical shipping calculation\n- All products should have a method to check if they're in stock\n\n**Example Usage:**\n```python\n# After implementation, this should work:\ndigital = DigitalProduct.objects.create(\n    sku='DIG-001',\n    name='Python eBook',\n    price=29.99,\n    stock_quantity=100,\n    file_size=5.2,  # MB\n    download_link='https://store.example.com/download/1'\n)\n\nphysical = PhysicalProduct.objects.create(\n    sku='PHY-001',\n    name='Wireless Mouse',\n    price=25.99,\n    stock_quantity=50,\n    weight=0.15,  # kg\n    shipping_class='standard'\n)\n\nclothing = ClothingProduct.objects.create(\n    sku='CLO-001',\n    name='Cotton T-Shirt',\n    price=19.99,\n    stock_quantity=200,\n    weight=0.2,\n    shipping_class='standard',\n    size='M',\n    color='Blue'\n)\n\nprint(digital.calculate_shipping())  # Should return 0.0\nprint(physical.calculate_shipping())  # Should calculate based on weight\nprint(clothing.calculate_shipping())  # Should inherit from PhysicalProduct\nprint(digital.is_in_stock())  # Should return True if stock_quantity > 0\n```",
+  "description_preview": "Implement an e-commerce product catalog using model inheritance with abstract base classes and specialized product types.",
+  "context_code": "# MODEL DEFINITIONS (for reference only - you need to create your own implementation)\n# These are the imports you'll need to use:\n# from django.db import models\n# from django.core.validators import MinValueValidator\n# from decimal import Decimal\n\n# Your implementation goes below. Do not modify or reference this context code directly.",
+  "starter_code": "",
+  "target_area": "Create four Django models using inheritance: BaseProduct (abstract), DigitalProduct, PhysicalProduct, and ClothingProduct with appropriate fields, validators, and methods",
+  "validation_spec": {
+    "required_imports": [
+      "django.db.models",
+      "django.core.validators.MinValueValidator",
+      "decimal.Decimal"
+    ],
+    "required_structure": {
+      "classes": [
+        {
+          "name": "BaseProduct",
+          "parent_class": "models.Model",
+          "is_abstract": true,
+          "has_meta_class": true,
+          "fields": ["sku", "name", "price", "description", "stock_quantity", "status"],
+          "methods": ["is_in_stock", "__str__"]
+        },
+        {
+          "name": "DigitalProduct",
+          "parent_class": "BaseProduct",
+          "has_meta_class": true,
+          "fields": ["file_size", "download_link", "compatible_devices"],
+          "methods": ["calculate_shipping"]
+        },
+        {
+          "name": "PhysicalProduct",
+          "parent_class": "BaseProduct",
+          "has_meta_class": true,
+          "fields": ["weight", "dimensions", "shipping_class"],
+          "methods": ["calculate_shipping"]
+        },
+        {
+          "name": "ClothingProduct",
+          "parent_class": "PhysicalProduct",
+          "has_meta_class": true,
+          "fields": ["size", "color", "material", "care_instructions"]
+        }
+      ]
+    },
+    "behavior_patterns": [
+      "BaseProduct is abstract with abstract = True in Meta class",
+      "BaseProduct has CharField for sku with unique=True",
+      "BaseProduct has DecimalField for price with max_digits=10 and decimal_places=2",
+      "BaseProduct has IntegerField for stock_quantity with validators",
+      "BaseProduct has CharField for status with choices",
+      "DigitalProduct has FloatField for file_size with validators",
+      "PhysicalProduct has DecimalField for weight with validators",
+      "ClothingProduct has CharField for size with choices",
+      "All models have is_in_stock method",
+      "DigitalProduct.calculate_shipping returns 0",
+      "PhysicalProduct.calculate_shipping returns calculated value"
+    ]
+  },
+  "import_weight": 15.00,
+  "structure_weight": 35.00,
+  "behavior_weight": 50.00,
+  "passing_score": 80.00,
+  "hints": [
+    "Start by creating the abstract BaseProduct model with common fields and Meta class with abstract=True",
+    "Use DecimalField for price to avoid floating-point precision issues",
+    "Implement choices for status field (active/inactive/discontinued)",
+    "Create validators to ensure positive values for price, stock_quantity, file_size, and weight",
+    "DigitalProduct should inherit from BaseProduct and add its specific fields",
+    "PhysicalProduct should also inherit from BaseProduct and implement calculate_shipping based on weight",
+    "ClothingProduct should inherit from PhysicalProduct and add clothing-specific fields"
+  ],
+  "learning_resources": [
+    "https://docs.djangoproject.com/en/stable/topics/db/models/#abstract-base-classes",
+    "https://docs.djangoproject.com/en/stable/ref/models/fields/#decimalfield",
+    "https://docs.djangoproject.com/en/stable/ref/validators/"
+  ],
+  "tags": ["django", "models", "inheritance", "abstract-base-class", "ecommerce", "intermediate"],
+  "estimated_time_minutes": 40,
+  "patterns": [
+    {
+      "pattern_id": "django-models-002-pattern-1",
+      "name": "Product Inheritance Pattern",
+      "description": "Complete implementation using abstract base class and concrete inherited models",
+      "example_code": "from django.db import models\nfrom django.core.validators import MinValueValidator\nfrom decimal import Decimal\n\nclass BaseProduct(models.Model):\n    STATUS_CHOICES = [\n        ('active', 'Active'),\n        ('inactive', 'Inactive'),\n        ('discontinued', 'Discontinued'),\n    ]\n    \n    sku = models.CharField(max_length=50, unique=True)\n    name = models.CharField(max_length=200)\n    price = models.DecimalField(\n        max_digits=10,\n        decimal_places=2,\n        validators=[MinValueValidator(Decimal('0.01'))]\n    )\n    description = models.TextField(blank=True)\n    stock_quantity = models.IntegerField(\n        validators=[MinValueValidator(0)],\n        default=0\n    )\n    status = models.CharField(\n        max_length=20,\n        choices=STATUS_CHOICES,\n        default='active'\n    )\n    \n    def is_in_stock(self):\n        return self.stock_quantity > 0\n    \n    def __str__(self):\n        return f'{self.name} ({self.sku})'\n    \n    class Meta:\n        abstract = True\n\nclass DigitalProduct(BaseProduct):\n    file_size = models.FloatField(\n        validators=[MinValueValidator(0.1)],\n        help_text='Size in megabytes'\n    )\n    download_link = models.URLField(max_length=500)\n    compatible_devices = models.CharField(max_length=200, blank=True)\n    \n    def calculate_shipping(self):\n        return Decimal('0.00')\n    \n    class Meta:\n        verbose_name = 'Digital Product'\n        verbose_name_plural = 'Digital Products'\n\nclass PhysicalProduct(BaseProduct):\n    SHIPPING_CLASSES = [\n        ('standard', 'Standard (5-7 days)'),\n        ('express', 'Express (2-3 days)'),\n        ('priority', 'Priority (1 day)'),\n    ]\n    \n    weight = models.DecimalField(\n        max_digits=6,\n        decimal_places=3,\n        validators=[MinValueValidator(Decimal('0.001'))],\n        help_text='Weight in kilograms'\n    )\n    dimensions = models.CharField(max_length=100, blank=True)\n    shipping_class = models.CharField(\n        max_length=20,\n        choices=SHIPPING_CLASSES,\n        default='standard'\n    )\n    \n    def calculate_shipping(self):\n        # Simplified shipping calculation based on weight and class\n        base_cost = Decimal('5.00')\n        weight_cost = self.weight * Decimal('2.00')\n        \n        if self.shipping_class == 'express':\n            base_cost += Decimal('3.00')\n        elif self.shipping_class == 'priority':\n            base_cost += Decimal('7.00')\n        \n        return base_cost + weight_cost\n    \n    class Meta:\n        verbose_name = 'Physical Product'\n        verbose_name_plural = 'Physical Products'\n\nclass ClothingProduct(PhysicalProduct):\n    SIZE_CHOICES = [\n        ('XS', 'Extra Small'),\n        ('S', 'Small'),\n        ('M', 'Medium'),\n        ('L', 'Large'),\n        ('XL', 'Extra Large'),\n        ('XXL', 'Double Extra Large'),\n    ]\n    \n    size = models.CharField(max_length=10, choices=SIZE_CHOICES)\n    color = models.CharField(max_length=50)\n    material = models.CharField(max_length=100, blank=True)\n    care_instructions = models.TextField(blank=True)\n    \n    class Meta:\n        verbose_name = 'Clothing Product'\n        verbose_name_plural = 'Clothing Products'",
+      "required_imports": [
+        "django.db.models",
+        "django.core.validators.MinValueValidator",
+        "decimal.Decimal"
+      ],
+      "required_structure": {
+        "classes": [
+          {
+            "name": "BaseProduct",
+            "parent_class": "models.Model",
+            "is_abstract": true,
+            "has_meta_class": true,
+            "fields": ["sku", "name", "price", "description", "stock_quantity", "status"],
+            "methods": ["is_in_stock", "__str__"]
+          },
+          {
+            "name": "DigitalProduct",
+            "parent_class": "BaseProduct",
+            "has_meta_class": true,
+            "fields": ["file_size", "download_link", "compatible_devices"],
+            "methods": ["calculate_shipping"]
+          },
+          {
+            "name": "PhysicalProduct",
+            "parent_class": "BaseProduct",
+            "has_meta_class": true,
+            "fields": ["weight", "dimensions", "shipping_class"],
+            "methods": ["calculate_shipping"]
+          },
+          {
+            "name": "ClothingProduct",
+            "parent_class": "PhysicalProduct",
+            "has_meta_class": true,
+            "fields": ["size", "color", "material", "care_instructions"]
+          }
+        ]
+      },
+      "forbidden_patterns": [
+        "Not making BaseProduct abstract",
+        "Using FloatField for price instead of DecimalField",
+        "Missing validators for positive values",
+        "Not implementing calculate_shipping method"
+      ],
+      "is_primary": true,
+      "confidence_threshold": 85.00
+    }
+  ]
+}

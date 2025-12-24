@@ -1,0 +1,128 @@
+{
+  "problem_id": "react-performance-006",
+  "title": "Optimize Complex Form with Debouncing, Throttling, and Selective Rendering",
+  "slug": "optimize-complex-form-with-debouncing-throttling-and-selective-rendering",
+  "framework": "react",
+  "category": "performance",
+  "difficulty": "intermediate",
+  "description": "You're building a complex multi-step configuration form with real-time validation, auto-save, and preview generation. The current implementation causes performance issues due to excessive re-renders and expensive calculations on every keystroke.\n\n**Business Requirements:**\n1. Multi-step form with 5 sections (Personal, Address, Preferences, Payment, Review)\n2. Real-time validation for each field with async API calls\n3. Auto-save to backend every 30 seconds or on significant changes\n4. Live preview generation based on form values\n5. Cross-field validation and dependency calculations\n6. Undo/redo functionality with performance considerations\n\n**Performance Issues to Solve:**\n- Re-rendering entire form on every keystroke\n- Multiple API calls on every change without debouncing\n- Expensive preview regeneration on minor changes\n- Memory leaks from uncleaned timeouts/intervals\n- Unnecessary validation of unchanged fields\n\n**Technical Requirements:**\n1. Implement field-level debouncing for validation\n2. Use throttling for auto-save functionality\n3. Implement selective rendering with component splitting\n4. Use `useMemo` for expensive preview calculations\n5. Implement proper cleanup for timers and intervals\n6. Use `useCallback` for stable event handlers\n7. Implement virtualized field lists for large sections\n8. Optimize with `React.memo` and custom comparison functions\n\n**Expected Behavior:**\n- Smooth typing without lag\n- Intelligent validation (not on every keystroke)\n- Efficient auto-save without blocking UI\n- Fast preview updates only when needed\n- No memory leaks\n- Minimal re-renders",
+  "description_preview": "Optimize a complex multi-step form with debouncing, throttling, selective rendering, and efficient validation",
+  "context_code": "// FORM CONFIGURATION (for reference only)\nconst formSections = [\n  {\n    id: 'personal',\n    title: 'Personal Information',\n    fields: ['firstName', 'lastName', 'email', 'phone']\n  },\n  {\n    id: 'address',\n    title: 'Address',\n    fields: ['street', 'city', 'state', 'zipCode', 'country']\n  },\n  {\n    id: 'preferences',\n    title: 'Preferences',\n    fields: ['newsletter', 'notifications', 'theme', 'language']\n  },\n  {\n    id: 'payment',\n    title: 'Payment',\n    fields: ['cardNumber', 'expiry', 'cvv', 'billingAddress']\n  },\n  {\n    id: 'review',\n    title: 'Review',\n    fields: ['terms', 'marketing']\n  }\n];\n\n// Mock async validation function\nconst validateField = async (fieldName, value) => {\n  // Simulate API call delay\n  await new Promise(resolve => setTimeout(resolve, 100));\n  \n  // Simple validation logic\n  if (!value) return { isValid: false, error: 'This field is required' };\n  \n  if (fieldName === 'email') {\n    const emailRegex = /^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$/;\n    return {\n      isValid: emailRegex.test(value),\n      error: emailRegex.test(value) ? null : 'Invalid email format'\n    };\n  }\n  \n  return { isValid: true, error: null };\n};",
+  "starter_code": "",
+  "target_area": "OptimizedMultiStepForm with performance optimizations",
+  "validation_spec": {
+    "required_imports": ["react"],
+    "required_structure": {
+      "functions": [
+        {
+          "name": "OptimizedMultiStepForm",
+          "type": "functional_component",
+          "has_export": true
+        },
+        {
+          "name": "FormSection",
+          "type": "functional_component"
+        },
+        {
+          "name": "FormField",
+          "type": "functional_component"
+        }
+      ]
+    },
+    "behavior_patterns": [
+      {
+        "type": "state_management",
+        "state_type": "useState"
+      },
+      {
+        "type": "hook_call",
+        "hook": "useCallback",
+        "min_calls": 5
+      },
+      {
+        "type": "hook_call",
+        "hook": "useMemo",
+        "min_calls": 3
+      },
+      {
+        "type": "hook_call",
+        "hook": "useEffect",
+        "min_calls": 3
+      },
+      {
+        "type": "hook_call",
+        "hook": "useRef",
+        "min_calls": 2
+      },
+      {
+        "type": "memoization",
+        "memo_type": "react_memo"
+      },
+      "Debounced input handlers",
+      "Throttled auto-save functionality",
+      "Selective component rendering",
+      "Async validation with cleanup",
+      "Preview generation with memoization",
+      "Timer/interval cleanup in useEffect"
+    ]
+  },
+  "import_weight": 10.00,
+  "structure_weight": 30.00,
+  "behavior_weight": 60.00,
+  "passing_score": 80.00,
+  "hints": [
+    "Split the form into small, memoized components (FormSection, FormField)",
+    "Use useCallback for debounced and throttled handlers",
+    "Implement custom debounce and throttle hooks or functions",
+    "Store field values in a useRef for quick access without re-renders",
+    "Use useMemo for expensive preview calculations with dependency arrays",
+    "Implement selective validation - only validate changed fields",
+    "Clean up all timers, intervals, and async operations in useEffect cleanup",
+    "Use React.memo with custom comparison functions for FormField components"
+  ],
+  "learning_resources": [
+    "https://react.dev/reference/react/useCallback",
+    "https://react.dev/reference/react/useMemo",
+    "https://react.dev/reference/react/useEffect",
+    "https://react.dev/reference/react/memo",
+    "https://developer.mozilla.org/en-US/docs/Web/API/setTimeout",
+    "https://developer.mozilla.org/en-US/docs/Web/API/setInterval"
+  ],
+  "tags": ["react", "performance", "forms", "debouncing", "throttling", "optimization", "intermediate"],
+  "estimated_time_minutes": 55,
+  "patterns": [
+    {
+      "pattern_id": "react-performance-006-pattern-1",
+      "name": "Optimized Form Pattern",
+      "description": "Complex form optimization with debouncing, throttling, and selective rendering",
+      "example_code": "import React, { useState, useCallback, useMemo, useEffect, useRef, memo } from 'react';\n\n// Custom debounce hook\nconst useDebounce = (callback, delay) => {\n  const timeoutRef = useRef();\n  \n  return useCallback((...args) => {\n    if (timeoutRef.current) {\n      clearTimeout(timeoutRef.current);\n    }\n    \n    timeoutRef.current = setTimeout(() => {\n      callback(...args);\n    }, delay);\n  }, [callback, delay]);\n};\n\n// Custom throttle hook\nconst useThrottle = (callback, delay) => {\n  const lastCallRef = useRef(0);\n  const timeoutRef = useRef();\n  \n  return useCallback((...args) => {\n    const now = Date.now();\n    \n    if (now - lastCallRef.current >= delay) {\n      lastCallRef.current = now;\n      callback(...args);\n    } else {\n      if (timeoutRef.current) {\n        clearTimeout(timeoutRef.current);\n      }\n      \n      timeoutRef.current = setTimeout(() => {\n        lastCallRef.current = Date.now();\n        callback(...args);\n      }, delay - (now - lastCallRef.current));\n    }\n  }, [callback, delay]);\n};\n\n// Memoized FormField component with custom comparison\nconst FormField = memo(function FormField({ \n  name, \n  label, \n  value, \n  error, \n  onChange, \n  onValidate \n}) {\n  console.log(`FormField ${name} rendering`);\n  \n  const handleChange = useCallback((e) => {\n    onChange(name, e.target.value);\n  }, [name, onChange]);\n  \n  return (\n    <div className=\"form-field\" style={{ marginBottom: '15px' }}>\n      <label style={{ display: 'block', marginBottom: '5px' }}>\n        {label}:\n      </label>\n      <input\n        type=\"text\"\n        value={value || ''}\n        onChange={handleChange}\n        onBlur={() => onValidate(name, value)}\n        style={{\n          width: '100%',\n          padding: '8px',\n          border: error ? '1px solid #dc3545' : '1px solid #ced4da',\n          borderRadius: '4px'\n        }}\n      />\n      {error && (\n        <div style={{ color: '#dc3545', fontSize: '14px', marginTop: '5px' }}>\n          {error}\n        </div>\n      )}\n    </div>\n  );\n}, (prevProps, nextProps) => {\n  // Custom comparison - only re-render if these props changed\n  return (\n    prevProps.value === nextProps.value &&\n    prevProps.error === nextProps.error &&\n    prevProps.label === nextProps.label\n  );\n});\n\n// Memoized FormSection component\nconst FormSection = memo(function FormSection({ \n  title, \n  fields, \n  fieldValues, \n  fieldErrors, \n  onFieldChange, \n  onFieldValidate \n}) {\n  console.log(`FormSection ${title} rendering`);\n  \n  return (\n    <div className=\"form-section\" style={{ \n      marginBottom: '30px', \n      padding: '20px', \n      border: '1px solid #dee2e6', \n      borderRadius: '4px' \n    }}>\n      <h3 style={{ marginBottom: '20px' }}>{title}</h3>\n      {fields.map(fieldName => (\n        <FormField\n          key={fieldName}\n          name={fieldName}\n          label={fieldName.replace(/([A-Z])/g, ' $1').replace(/^./, str => str.toUpperCase())}\n          value={fieldValues[fieldName] || ''}\n          error={fieldErrors[fieldName]}\n          onChange={onFieldChange}\n          onValidate={onFieldValidate}\n        />\n      ))}\n    </div>\n  );\n});\n\nconst formSections = [\n  {\n    id: 'personal',\n    title: 'Personal Information',\n    fields: ['firstName', 'lastName', 'email', 'phone']\n  },\n  {\n    id: 'address',\n    title: 'Address',\n    fields: ['street', 'city', 'state', 'zipCode', 'country']\n  },\n  {\n    id: 'preferences',\n    title: 'Preferences',\n    fields: ['newsletter', 'notifications', 'theme', 'language']\n  }\n];\n\n// Mock async validation\nconst validateField = async (fieldName, value) => {\n  await new Promise(resolve => setTimeout(resolve, 100));\n  \n  if (!value) return { isValid: false, error: 'This field is required' };\n  \n  if (fieldName === 'email') {\n    const emailRegex = /^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$/;\n    return {\n      isValid: emailRegex.test(value),\n      error: emailRegex.test(value) ? null : 'Invalid email format'\n    };\n  }\n  \n  return { isValid: true, error: null };\n};\n\n// Mock auto-save\nconst autoSaveToBackend = async (formData) => {\n  console.log('Auto-saving form data:', formData);\n  await new Promise(resolve => setTimeout(resolve, 500));\n  return { success: true };\n};\n\nexport function OptimizedMultiStepForm() {\n  const [currentStep, setCurrentStep] = useState(0);\n  const [fieldValues, setFieldValues] = useState({});\n  const [fieldErrors, setFieldErrors] = useState({});\n  const [isSaving, setIsSaving] = useState(false);\n  const [lastSaveTime, setLastSaveTime] = useState(null);\n  \n  const pendingValidationsRef = useRef(new Set());\n  const formValuesRef = useRef(fieldValues);\n  \n  // Update ref whenever fieldValues change\n  useEffect(() => {\n    formValuesRef.current = fieldValues;\n  }, [fieldValues]);\n  \n  // Debounced field change handler\n  const handleFieldChange = useDebounce((fieldName, value) => {\n    setFieldValues(prev => ({\n      ...prev,\n      [fieldName]: value\n    }));\n  }, 300);\n  \n  // Async field validation with cleanup\n  const handleFieldValidate = useCallback(async (fieldName, value) => {\n    // Skip if already validating this field\n    if (pendingValidationsRef.current.has(fieldName)) {\n      return;\n    }\n    \n    pendingValidationsRef.current.add(fieldName);\n    \n    try {\n      const validation = await validateField(fieldName, value);\n      \n      setFieldErrors(prev => ({\n        ...prev,\n        [fieldName]: validation.error\n      }));\n    } catch (error) {\n      console.error('Validation error:', error);\n    } finally {\n      pendingValidationsRef.current.delete(fieldName);\n    }\n  }, []);\n  \n  // Throttled auto-save\n  const throttledAutoSave = useThrottle(async () => {\n    if (isSaving) return;\n    \n    setIsSaving(true);\n    try {\n      await autoSaveToBackend(formValuesRef.current);\n      setLastSaveTime(new Date().toLocaleTimeString());\n    } catch (error) {\n      console.error('Auto-save failed:', error);\n    } finally {\n      setIsSaving(false);\n    }\n  }, 30000); // Save every 30 seconds\n  \n  // Trigger auto-save when form changes significantly\n  useEffect(() => {\n    const changedFields = Object.keys(fieldValues).length;\n    if (changedFields > 0) {\n      throttledAutoSave();\n    }\n  }, [fieldValues, throttledAutoSave]);\n  \n  // Memoized form preview\n  const formPreview = useMemo(() => {\n    console.log('Generating form preview...');\n    \n    const completedFields = Object.keys(fieldValues).length;\n    const totalFields = formSections.reduce((sum, section) => sum + section.fields.length, 0);\n    const completionPercentage = Math.round((completedFields / totalFields) * 100);\n    \n    const errorCount = Object.values(fieldErrors).filter(Boolean).length;\n    \n    return {\n      completedFields,\n      totalFields,\n      completionPercentage,\n      errorCount,\n      isValid: errorCount === 0,\n      summary: Object.entries(fieldValues)\n        .map(([key, value]) => `${key}: ${value}`)\n        .join('\\n')\n    };\n  }, [fieldValues, fieldErrors]);\n  \n  // Cleanup on unmount\n  useEffect(() => {\n    return () => {\n      // Clear any pending validations\n      pendingValidationsRef.current.clear();\n    };\n  }, []);\n  \n  const currentSection = formSections[currentStep];\n  \n  return (\n    <div className=\"optimized-form\" style={{ maxWidth: '800px', margin: '0 auto' }}>\n      <h2>Optimized Multi-Step Form</h2>\n      \n      <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '20px' }}>\n        <div className=\"step-indicator\">\n          Step {currentStep + 1} of {formSections.length}: {currentSection.title}\n        </div>\n        <div className=\"auto-save-status\" style={{ color: '#666', fontSize: '14px' }}>\n          {isSaving ? 'Saving...' : lastSaveTime ? `Last saved: ${lastSaveTime}` : 'Not saved yet'}\n        </div>\n      </div>\n      \n      <FormSection\n        key={currentSection.id}\n        title={currentSection.title}\n        fields={currentSection.fields}\n        fieldValues={fieldValues}\n        fieldErrors={fieldErrors}\n        onFieldChange={handleFieldChange}\n        onFieldValidate={handleFieldValidate}\n      />\n      \n      <div className=\"form-navigation\" style={{ \n        display: 'flex', \n        justifyContent: 'space-between',\n        marginTop: '20px' \n      }}>\n        <button\n          onClick={() => setCurrentStep(prev => Math.max(0, prev - 1))}\n          disabled={currentStep === 0}\n          style={{ padding: '10px 20px' }}\n        >\n          Previous\n        </button>\n        \n        <button\n          onClick={() => setCurrentStep(prev => Math.min(formSections.length - 1, prev + 1))}\n          disabled={currentStep === formSections.length - 1}\n          style={{ padding: '10px 20px' }}\n        >\n          Next\n        </button>\n      </div>\n      \n      <div className=\"form-preview\" style={{\n        marginTop: '30px',\n        padding: '20px',\n        backgroundColor: '#f8f9fa',\n        borderRadius: '4px'\n      }}>\n        <h3>Form Preview & Status</h3>\n        \n        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '20px' }}>\n          <div>\n            <h4>Progress</h4>\n            <div style={{ marginBottom: '10px' }}>\n              {formPreview.completedFields} of {formPreview.totalFields} fields completed\n            </div>\n            <div style={{\n              height: '10px',\n              backgroundColor: '#e9ecef',\n              borderRadius: '5px',\n              overflow: 'hidden'\n            }}>\n              <div style={{\n                height: '100%',\n                backgroundColor: formPreview.completionPercentage === 100 ? '#28a745' : '#007bff',\n                width: `${formPreview.completionPercentage}%`,\n                transition: 'width 0.3s ease'\n              }} />\n            </div>\n            <div style={{ textAlign: 'center', marginTop: '5px' }}>\n              {formPreview.completionPercentage}%\n            </div>\n          </div>\n          \n          <div>\n            <h4>Validation</h4>\n            <div style={{ marginBottom: '10px' }}>\n              Errors: <span style={{ \n                color: formPreview.errorCount > 0 ? '#dc3545' : '#28a745',\n                fontWeight: 'bold'\n              }}>\n                {formPreview.errorCount}\n              </span>\n            </div>\n            <div style={{\n              padding: '10px',\n              backgroundColor: formPreview.isValid ? '#d4edda' : '#f8d7da',\n              color: formPreview.isValid ? '#155724' : '#721c24',\n              borderRadius: '4px'\n            }}>\n              {formPreview.isValid ? 'Form is valid' : 'Form has validation errors'}\n            </div>\n          </div>\n        </div>\n        \n        <div style={{ marginTop: '20px', fontSize: '14px', color: '#666' }}>\n          <p><strong>Performance Features:</strong></p>\n          <ul>\n            <li>Debounced Input: 300ms delay before updating state</li>\n            <li>Throttled Auto-save: Every 30 seconds maximum</li>\n            <li>Selective Rendering: Only current section renders</li>\n            <li>Memoized Components: FormField and FormSection use React.memo</li>\n            <li>Memoized Calculations: Preview generated only when needed</li>\n            <li>Async Cleanup: Pending validations tracked and cleaned up</li>\n          </ul>\n        </div>\n      </div>\n    </div>\n  );\n}",
+      "required_imports": ["react"],
+      "required_structure": {
+        "functions": [
+          {
+            "name": "OptimizedMultiStepForm",
+            "type": "functional_component",
+            "has_export": true
+          },
+          {
+            "name": "FormSection",
+            "type": "functional_component"
+          },
+          {
+            "name": "FormField",
+            "type": "functional_component"
+          }
+        ]
+      },
+      "forbidden_patterns": [
+        "No debouncing on input changes",
+        "Inline functions in event handlers",
+        "Full form re-renders on every change",
+        "Missing cleanup for async operations",
+        "No memoization for expensive calculations"
+      ],
+      "is_primary": true,
+      "confidence_threshold": 85.00
+    }
+  ]
+}

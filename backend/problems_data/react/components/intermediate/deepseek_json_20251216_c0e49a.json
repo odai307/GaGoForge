@@ -1,0 +1,208 @@
+{
+  "problem_id": "react-components-013",
+  "title": "Implement a Drag-and-Drop Kanban Board Component",
+  "slug": "drag-and-drop-kanban-board-component",
+  "framework": "react",
+  "category": "components",
+  "difficulty": "intermediate",
+  "description": "Create an interactive Kanban board component with drag-and-drop functionality for managing tasks across multiple columns. The board should support reordering tasks within columns and moving tasks between columns.\n\n**Requirements:**\n1. Implement a KanbanBoard component with:\n   - Columns: array of column objects with id, title, taskIds\n   - Tasks: array of task objects with id, content, columnId\n   - onTasksReorder: callback when tasks are reordered\n2. Drag-and-drop features:\n   - Drag tasks within same column (reorder)\n   - Drag tasks between columns (move)\n   - Visual drag preview\n   - Drop indicators\n   - Smooth animations\n3. Column features:\n   - Add new tasks to column\n   - Edit task content\n   - Delete tasks\n   - Add new columns\n   - Column title editing\n4. UI requirements:\n   - Visual feedback during drag (opacity change, dragging state)\n   - Drop zones with hover effects\n   - Column limits (max tasks per column)\n   - Responsive design with horizontal scroll\n   - Persistence to localStorage\n\n**Expected Behavior:**\n- Tasks can be dragged within and between columns\n- Visual indicators show where task will be dropped\n- Column highlights when task is dragged over\n- Tasks animate to new positions\n- Board state persists between page reloads\n- All changes trigger onTasksReorder callback\n- Mobile touch support for drag-and-drop\n\n**Example Data Structure:**\n```javascript\nconst initialColumns = [\n  { id: 'todo', title: 'To Do', taskIds: ['task1', 'task2'] },\n  { id: 'inprogress', title: 'In Progress', taskIds: ['task3'] },\n  { id: 'done', title: 'Done', taskIds: ['task4', 'task5'] }\n];\n\nconst initialTasks = [\n  { id: 'task1', content: 'Design dashboard', columnId: 'todo' },\n  { id: 'task2', content: 'Implement API', columnId: 'todo' },\n  { id: 'task3', content: 'Write tests', columnId: 'inprogress' }\n];\n```",
+  "description_preview": "Build an interactive Kanban board with full drag-and-drop functionality, column management, and task operations.",
+  "context_code": "// DRAG AND DROP TYPES (for reference only)\n// Drag item structure:\n// {\n//   type: 'task',\n//   task: Task,\n//   sourceColumnId: string,\n//   sourceIndex: number\n// }\n\n// Drop result structure:\n// {\n//   type: 'task',\n//   task: Task,\n//   destinationColumnId: string,\n//   destinationIndex: number,\n//   sourceColumnId: string,\n//   sourceIndex: number\n// }\n\n// Column interface:\n// {\n//   id: string,\n//   title: string,\n//   taskIds: string[],\n//   maxTasks?: number\n// }\n\n// Task interface:\n// {\n//   id: string,\n//   content: string,\n//   columnId: string\n// }",
+  "starter_code": "",
+  "target_area": "Complete Kanban board component with drag-and-drop and state management",
+  "validation_spec": {
+    "required_imports": ["react"],
+    "required_structure": {
+      "functions": [
+        {
+          "name": "KanbanBoard",
+          "type": "functional_component",
+          "has_export": true,
+          "props": ["columns", "tasks", "onTasksReorder"],
+          "description": "Main Kanban board component"
+        },
+        {
+          "name": "KanbanColumn",
+          "type": "functional_component",
+          "has_export": false,
+          "description": "Column component that accepts dropped tasks"
+        },
+        {
+          "name": "KanbanTask",
+          "type": "functional_component",
+          "has_export": false,
+          "description": "Draggable task component"
+        }
+      ]
+    },
+    "behavior_patterns": [
+      {
+        "type": "hook_call",
+        "hook": "useState",
+        "min_calls": 2,
+        "description": "Must use useState for columns and tasks state"
+      },
+      {
+        "type": "hook_call",
+        "hook": "useReducer",
+        "min_calls": 1,
+        "description": "Should use useReducer for complex state updates (optional)"
+      },
+      {
+        "type": "hook_call",
+        "hook": "useCallback",
+        "min_calls": 4,
+        "description": "Must use useCallback for drag handlers and state updaters"
+      },
+      {
+        "type": "hook_call",
+        "hook": "useRef",
+        "min_calls": 1,
+        "description": "Should use useRef for drag state or DOM references"
+      },
+      {
+        "type": "drag_and_drop",
+        "feature": "drag_start",
+        "element": "task",
+        "description": "Tasks must handle drag start with dataTransfer"
+      },
+      {
+        "type": "drag_and_drop",
+        "feature": "drag_over",
+        "element": "column",
+        "description": "Columns must handle drag over to allow drops"
+      },
+      {
+        "type": "drag_and_drop",
+        "feature": "drop",
+        "element": "column",
+        "description": "Columns must handle drop to accept tasks"
+      },
+      {
+        "type": "drag_and_drop",
+        "feature": "drag_end",
+        "element": "task",
+        "description": "Tasks must handle drag end for cleanup"
+      },
+      {
+        "type": "visual_feedback",
+        "feature": "dragging_style",
+        "properties": ["opacity", "transform"],
+        "description": "Must apply visual styles to dragging task (reduced opacity)"
+      },
+      {
+        "type": "visual_feedback",
+        "feature": "drop_zone",
+        "states": ["active", "inactive"],
+        "description": "Must highlight drop zones during drag operations"
+      },
+      {
+        "type": "animation",
+        "technique": "css_transition",
+        "properties": ["transform", "opacity"],
+        "description": "Must implement smooth transitions for task movements"
+      },
+      {
+        "type": "state_update",
+        "action": "reorder_tasks",
+        "parameters": ["sourceColumnId", "sourceIndex", "destinationColumnId", "destinationIndex"],
+        "description": "Must implement task reordering logic"
+      },
+      {
+        "type": "persistence",
+        "storage_type": "localStorage",
+        "state_properties": ["columns", "tasks"],
+        "description": "Must persist board state to localStorage"
+      },
+      {
+        "type": "event_handler",
+        "event_type": "onDoubleClick",
+        "handler_action": "edit_task",
+        "description": "Tasks should support double-click to edit content"
+      },
+      {
+        "type": "event_handler",
+        "event_type": "onKeyDown",
+        "handler_action": "add_task",
+        "key": "Enter",
+        "description": "Should support Enter key to add new tasks"
+      },
+      {
+        "type": "responsive_design",
+        "feature": "horizontal_scroll",
+        "layout": "flex_row",
+        "description": "Board must support horizontal scrolling for many columns"
+      }
+    ],
+    "difficulty": "intermediate",
+    "framework": "react",
+    "import_weight": 5.00,
+    "structure_weight": 30.00,
+    "behavior_weight": 65.00,
+    "passing_score": 85.00
+  },
+  "import_weight": 5.00,
+  "structure_weight": 30.00,
+  "behavior_weight": 65.00,
+  "passing_score": 85.00,
+  "hints": [
+    "Implement drag-and-drop using HTML5 Drag and Drop API (draggable, onDragStart, onDragOver, onDrop)",
+    "Store drag data in dataTransfer.setData() during drag start and retrieve it during drop",
+    "For visual feedback, use state to track dragging task and apply conditional CSS classes",
+    "Implement a useKanban hook to manage board state and business logic",
+    "For task reordering, create a function that can move tasks within and between columns",
+    "Use CSS transforms and transitions for smooth animations when tasks move",
+    "Implement localStorage persistence by saving/loading columns and tasks",
+    "Consider using a context or reducer for complex state management across components",
+    "For mobile support, also implement touch events (onTouchStart, onTouchMove, onTouchEnd)",
+    "Add limits to columns and visual indicators when column is at capacity"
+  ],
+  "learning_resources": [
+    "https://developer.mozilla.org/en-US/docs/Web/API/HTML_Drag_and_Drop_API",
+    "https://react.dev/learn/manipulating-the-dom-with-refs",
+    "https://react.dev/learn/updating-arrays-in-state",
+    "https://react.dev/learn/sharing-state-between-components"
+  ],
+  "tags": ["react", "components", "kanban", "drag-and-drop", "dnd", "interactive", "intermediate"],
+  "estimated_time_minutes": 55,
+  "patterns": [
+    {
+      "pattern_id": "react-components-013-pattern-1",
+      "name": "Interactive Kanban Board with Drag-and-Drop",
+      "description": "Complete Kanban board implementation with HTML5 drag-and-drop, column management, and persistence",
+      "example_code": "import React, { useState, useEffect, useCallback } from 'react';\n\nconst KanbanBoard = ({ initialColumns = [], initialTasks = [], onTasksReorder }) => {\n  // State\n  const [columns, setColumns] = useState(initialColumns);\n  const [tasks, setTasks] = useState(initialTasks);\n  const [draggingTask, setDraggingTask] = useState(null);\n  const [activeColumn, setActiveColumn] = useState(null);\n  \n  // Load from localStorage on mount\n  useEffect(() => {\n    const savedColumns = localStorage.getItem('kanban-columns');\n    const savedTasks = localStorage.getItem('kanban-tasks');\n    \n    if (savedColumns) {\n      setColumns(JSON.parse(savedColumns));\n    }\n    if (savedTasks) {\n      setTasks(JSON.parse(savedTasks));\n    }\n  }, []);\n  \n  // Save to localStorage on change\n  useEffect(() => {\n    localStorage.setItem('kanban-columns', JSON.stringify(columns));\n    localStorage.setItem('kanban-tasks', JSON.stringify(tasks));\n  }, [columns, tasks]);\n  \n  // Get tasks for a specific column\n  const getColumnTasks = useCallback((columnId) => {\n    return tasks.filter(task => task.columnId === columnId);\n  }, [tasks]);\n  \n  // Handle drag start\n  const handleDragStart = useCallback((e, task, columnId, index) => {\n    setDraggingTask({ task, columnId, index });\n    \n    // Set drag data\n    e.dataTransfer.setData('text/plain', JSON.stringify({\n      taskId: task.id,\n      sourceColumnId: columnId,\n      sourceIndex: index\n    }));\n    \n    // Visual feedback\n    e.currentTarget.style.opacity = '0.4';\n  }, []);\n  \n  // Handle drag over\n  const handleDragOver = useCallback((e, columnId) => {\n    e.preventDefault();\n    setActiveColumn(columnId);\n  }, []);\n  \n  // Handle drop\n  const handleDrop = useCallback((e, targetColumnId, targetIndex) => {\n    e.preventDefault();\n    \n    try {\n      const dragData = JSON.parse(e.dataTransfer.getData('text/plain'));\n      const { taskId, sourceColumnId, sourceIndex } = dragData;\n      \n      if (!taskId || !sourceColumnId) return;\n      \n      // Find the task\n      const taskToMove = tasks.find(t => t.id === taskId);\n      if (!taskToMove) return;\n      \n      // If dropping in same position, do nothing\n      if (sourceColumnId === targetColumnId && sourceIndex === targetIndex) {\n        return;\n      }\n      \n      // Update tasks\n      const updatedTasks = tasks.map(task => {\n        if (task.id === taskId) {\n          return { ...task, columnId: targetColumnId };\n        }\n        return task;\n      });\n      \n      // Update columns' taskIds\n      const updatedColumns = columns.map(column => {\n        if (column.id === sourceColumnId && column.id === targetColumnId) {\n          // Moving within same column\n          const newTaskIds = [...column.taskIds];\n          newTaskIds.splice(sourceIndex, 1);\n          newTaskIds.splice(targetIndex, 0, taskId);\n          return { ...column, taskIds: newTaskIds };\n        } else if (column.id === sourceColumnId) {\n          // Remove from source column\n          const newTaskIds = column.taskIds.filter(id => id !== taskId);\n          return { ...column, taskIds: newTaskIds };\n        } else if (column.id === targetColumnId) {\n          // Add to target column\n          const newTaskIds = [...column.taskIds];\n          newTaskIds.splice(targetIndex, 0, taskId);\n          return { ...column, taskIds: newTaskIds };\n        }\n        return column;\n      });\n      \n      setTasks(updatedTasks);\n      setColumns(updatedColumns);\n      onTasksReorder?.({\n        taskId,\n        sourceColumnId,\n        sourceIndex,\n        targetColumnId,\n        targetIndex\n      });\n      \n    } catch (error) {\n      console.error('Drop error:', error);\n    } finally {\n      setDraggingTask(null);\n      setActiveColumn(null);\n    }\n  }, [tasks, columns, onTasksReorder]);\n  \n  // Handle drag end\n  const handleDragEnd = useCallback((e) => {\n    e.currentTarget.style.opacity = '1';\n    setDraggingTask(null);\n    setActiveColumn(null);\n  }, []);\n  \n  // Add new task\n  const handleAddTask = useCallback((columnId, content) => {\n    if (!content.trim()) return;\n    \n    const newTask = {\n      id: `task_${Date.now()}`,\n      content,\n      columnId\n    };\n    \n    const updatedTasks = [...tasks, newTask];\n    const updatedColumns = columns.map(column => {\n      if (column.id === columnId) {\n        return { ...column, taskIds: [...column.taskIds, newTask.id] };\n      }\n      return column;\n    });\n    \n    setTasks(updatedTasks);\n    setColumns(updatedColumns);\n  }, [tasks, columns]);\n  \n  // Edit task\n  const handleEditTask = useCallback((taskId, newContent) => {\n    if (!newContent.trim()) return;\n    \n    setTasks(tasks.map(task => \n      task.id === taskId ? { ...task, content: newContent } : task\n    ));\n  }, [tasks]);\n  \n  // Delete task\n  const handleDeleteTask = useCallback((taskId, columnId) => {\n    setTasks(tasks.filter(task => task.id !== taskId));\n    \n    setColumns(columns.map(column => {\n      if (column.id === columnId) {\n        return { \n          ...column, \n          taskIds: column.taskIds.filter(id => id !== taskId) \n        };\n      }\n      return column;\n    }));\n  }, [tasks, columns]);\n  \n  // Add new column\n  const handleAddColumn = useCallback((title) => {\n    if (!title.trim()) return;\n    \n    const newColumn = {\n      id: `column_${Date.now()}`,\n      title,\n      taskIds: []\n    };\n    \n    setColumns([...columns, newColumn]);\n  }, [columns]);\n  \n  return (\n    <div className=\"kanban-board\" style={{\n      display: 'flex',\n      overflowX: 'auto',\n      padding: '16px',\n      gap: '16px',\n      minHeight: '500px'\n    }}>\n      {columns.map(column => (\n        <KanbanColumn\n          key={column.id}\n          column={column}\n          tasks={getColumnTasks(column.id)}\n          isActive={activeColumn === column.id}\n          onDragOver={(e) => handleDragOver(e, column.id)}\n          onDrop={(e) => handleDrop(e, column.id, column.taskIds.length)}\n          onAddTask={handleAddTask}\n          onEditTask={handleEditTask}\n          onDeleteTask={handleDeleteTask}\n        />\n      ))}\n      \n      <button\n        onClick={() => handleAddColumn('New Column')}\n        style={{\n          alignSelf: 'flex-start',\n          padding: '12px 24px',\n          backgroundColor: '#f3f4f6',\n          border: '2px dashed #d1d5db',\n          borderRadius: '8px',\n          cursor: 'pointer',\n          minWidth: '250px'\n        }}\n      >\n        + Add Column\n      </button>\n    </div>\n  );\n};\n\n// Column Component\nconst KanbanColumn = ({ \n  column, \n  tasks, \n  isActive, \n  onDragOver, \n  onDrop, \n  onAddTask, \n  onEditTask, \n  onDeleteTask \n}) => {\n  const [newTaskContent, setNewTaskContent] = useState('');\n  \n  const handleAddTask = () => {\n    onAddTask(column.id, newTaskContent);\n    setNewTaskContent('');\n  };\n  \n  return (\n    <div \n      className={`kanban-column ${isActive ? 'active' : ''}`}\n      onDragOver={onDragOver}\n      onDrop={onDrop}\n      style={{\n        backgroundColor: isActive ? '#f0f9ff' : '#f9fafb',\n        borderRadius: '8px',\n        padding: '16px',\n        minWidth: '300px',\n        minHeight: '400px',\n        display: 'flex',\n        flexDirection: 'column',\n        border: isActive ? '2px solid #3b82f6' : '1px solid #e5e7eb',\n        transition: 'border-color 0.2s, background-color 0.2s'\n      }}\n    >\n      <h3 style={{ margin: '0 0 16px 0', fontSize: '1.25rem' }}>\n        {column.title} ({tasks.length})\n      </h3>\n      \n      <div className=\"task-list\" style={{ flex: 1, overflowY: 'auto' }}>\n        {tasks.map((task, index) => (\n          <KanbanTask\n            key={task.id}\n            task={task}\n            index={index}\n            columnId={column.id}\n            onDragStart={onDragStart}\n            onDragEnd={onDragEnd}\n            onEditTask={onEditTask}\n            onDeleteTask={onDeleteTask}\n          />\n        ))}\n      </div>\n      \n      <div className=\"add-task-form\" style={{ marginTop: '16px' }}>\n        <input\n          type=\"text\"\n          value={newTaskContent}\n          onChange={(e) => setNewTaskContent(e.target.value)}\n          onKeyDown={(e) => e.key === 'Enter' && handleAddTask()}\n          placeholder=\"Add a new task...\"\n          style={{\n            width: '100%',\n            padding: '8px 12px',\n            borderRadius: '4px',\n            border: '1px solid #d1d5db',\n            marginBottom: '8px'\n          }}\n        />\n        <button\n          onClick={handleAddTask}\n          style={{\n            width: '100%',\n            padding: '8px',\n            backgroundColor: '#3b82f6',\n            color: 'white',\n            border: 'none',\n            borderRadius: '4px',\n            cursor: 'pointer'\n          }}\n        >\n          Add Task\n        </button>\n      </div>\n    </div>\n  );\n};\n\n// Task Component\nconst KanbanTask = ({ \n  task, \n  index, \n  columnId, \n  onDragStart, \n  onDragEnd, \n  onEditTask, \n  onDeleteTask \n}) => {\n  const [isEditing, setIsEditing] = useState(false);\n  const [editedContent, setEditedContent] = useState(task.content);\n  \n  const handleEdit = () => {\n    if (isEditing) {\n      onEditTask(task.id, editedContent);\n    }\n    setIsEditing(!isEditing);\n  };\n  \n  return (\n    <div\n      draggable\n      onDragStart={(e) => onDragStart(e, task, columnId, index)}\n      onDragEnd={onDragEnd}\n      onDoubleClick={() => setIsEditing(true)}\n      style={{\n        backgroundColor: 'white',\n        borderRadius: '6px',\n        padding: '12px',\n        marginBottom: '8px',\n        boxShadow: '0 1px 3px rgba(0,0,0,0.1)',\n        cursor: 'grab',\n        transition: 'transform 0.2s, opacity 0.2s',\n        userSelect: 'none'\n      }}\n    >\n      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>\n        <div style={{ flex: 1 }}>\n          {isEditing ? (\n            <input\n              type=\"text\"\n              value={editedContent}\n              onChange={(e) => setEditedContent(e.target.value)}\n              onBlur={handleEdit}\n              onKeyDown={(e) => e.key === 'Enter' && handleEdit()}\n              autoFocus\n              style={{\n                width: '100%',\n                padding: '4px',\n                border: '1px solid #3b82f6',\n                borderRadius: '4px'\n              }}\n            />\n          ) : (\n            <p style={{ margin: 0 }}>{task.content}</p>\n          )}\n        </div>\n        \n        <button\n          onClick={() => onDeleteTask(task.id, columnId)}\n          style={{\n            background: 'none',\n            border: 'none',\n            color: '#ef4444',\n            cursor: 'pointer',\n            padding: '4px',\n            marginLeft: '8px'\n          }}\n          aria-label=\"Delete task\"\n        >\n          ×\n        </button>\n      </div>\n    </div>\n  );\n};\n\nconst onDragStart = (e, task, columnId, index) => {\n  // This would be passed from parent\n  e.dataTransfer.setData('text/plain', JSON.stringify({\n    taskId: task.id,\n    sourceColumnId: columnId,\n    sourceIndex: index\n  }));\n  e.currentTarget.style.opacity = '0.4';\n};\n\nconst onDragEnd = (e) => {\n  e.currentTarget.style.opacity = '1';\n};\n\nexport default KanbanBoard;",
+      "required_imports": ["react"],
+      "required_structure": {
+        "functions": [
+          {
+            "name": "KanbanBoard",
+            "type": "functional_component",
+            "has_export": true,
+            "props": ["initialColumns", "initialTasks", "onTasksReorder"]
+          },
+          {
+            "name": "KanbanColumn",
+            "type": "functional_component",
+            "props": ["column", "tasks", "isActive", "onDragOver", "onDrop", "onAddTask", "onEditTask", "onDeleteTask"]
+          },
+          {
+            "name": "KanbanTask",
+            "type": "functional_component",
+            "props": ["task", "index", "columnId", "onDragStart", "onDragEnd", "onEditTask", "onDeleteTask"]
+          }
+        ]
+      },
+      "forbidden_patterns": [
+        "Not using HTML5 Drag and Drop API",
+        "Missing visual feedback during drag operations",
+        "No localStorage persistence",
+        "Not handling task reordering within same column",
+        "Hardcoded column/task data",
+        "Missing mobile touch support",
+        "No error handling for invalid drag data"
+      ],
+      "is_primary": true,
+      "confidence_threshold": 85.00
+    }
+  ]
+}

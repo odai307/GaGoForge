@@ -1,0 +1,195 @@
+{
+  "problem_id": "django-views-002",
+  "title": "Create Product Views with Category Filtering",
+  "slug": "create-product-views-with-category-filtering",
+  "framework": "django",
+  "category": "views",
+  "difficulty": "beginner",
+  "description": "Create Django REST Framework views for a Product model with category filtering and custom actions.\n\n**Business Scenario:**\nYou're building an e-commerce API that needs product endpoints with category-based filtering and special actions like marking products as featured.\n\n**Model and Serializer Definitions:**\n```python\n# models.py\nfrom django.db import models\n\nclass Category(models.Model):\n    name = models.CharField(max_length=100, unique=True)\n    description = models.TextField(blank=True)\n    is_active = models.BooleanField(default=True)\n    \n    def __str__(self):\n        return self.name\n\nclass Product(models.Model):\n    name = models.CharField(max_length=200)\n    description = models.TextField()\n    sku = models.CharField(max_length=50, unique=True)\n    category = models.ForeignKey(Category, on_delete=models.PROTECT, related_name='products')\n    price = models.DecimalField(max_digits=10, decimal_places=2)\n    stock_quantity = models.IntegerField(default=0)\n    is_featured = models.BooleanField(default=False)\n    is_available = models.BooleanField(default=True)\n    created_at = models.DateTimeField(auto_now_add=True)\n    updated_at = models.DateTimeField(auto_now=True)\n    \n    def __str__(self):\n        return self.name\n\n# serializers.py\nfrom rest_framework import serializers\nfrom .models import Product, Category\n\nclass CategorySerializer(serializers.ModelSerializer):\n    class Meta:\n        model = Category\n        fields = ['id', 'name', 'description', 'is_active']\n\nclass ProductSerializer(serializers.ModelSerializer):\n    category_name = serializers.CharField(source='category.name', read_only=True)\n    \n    class Meta:\n        model = Product\n        fields = [\n            'id', 'name', 'description', 'sku', 'category', 'category_name',\n            'price', 'stock_quantity', 'is_featured', 'is_available',\n            'created_at', 'updated_at'\n        ]\n        read_only_fields = ['created_at', 'updated_at', 'category_name']\n```\n\n**Requirements:**\nCreate the following API views in `views.py`:\n\n1. **ProductListView**: List all products with optional category filtering\n   - GET only\n   - Support query parameter 'category' to filter by category ID\n   - Support query parameter 'featured' to show only featured products\n   - Support query parameter 'available' to show only available products\n   - Return products with their category names\n\n2. **ProductCreateView**: Create new products\n   - POST only\n   - Validate incoming data\n   - Return created product with 201 status\n\n3. **ProductDetailView**: Get, update, or delete a single product\n   - Support GET, PUT, PATCH, DELETE\n   - Look up by SKU (not ID)\n   - Return product details with category name\n\n4. **ProductStockUpdateView**: Update product stock quantity\n   - PATCH only\n   - Accept {'stock_quantity': new_value} in request data\n   - Validate stock can't be negative\n   - Return updated product\n\n5. **FeaturedProductToggleView**: Toggle featured status of a product\n   - PATCH only\n   - Toggle is_featured field (True ↔ False)\n   - Return updated product\n\n6. **CategoryProductCountView**: List categories with product counts\n   - GET only\n   - Return list of categories with additional field 'product_count'\n   - Order by product count (descending)\n\n**Expected Behavior:**\n- All views should use appropriate DRF classes\n- Filtering should work with query parameters\n- Custom actions should properly update fields\n- Lookup by SKU should be implemented\n- Proper HTTP status codes should be returned\n\n**Example URLs:**\n```\nGET    /api/products/?category=1&featured=true\nPOST   /api/products/create/\nGET    /api/products/sku/SKU123/\nPATCH  /api/products/sku/SKU123/stock/\nPATCH  /api/products/sku/SKU123/featured/\nGET    /api/categories/stats/\n```",
+  "description_preview": "Create product API views with filtering, custom actions, and SKU-based lookups",
+  "context_code": "# MODEL AND SERIALIZER DEFINITIONS (for reference only)\n# You need to create the views in views.py\n\n# models.py\nfrom django.db import models\n\nclass Category(models.Model):\n    name = models.CharField(max_length=100, unique=True)\n    description = models.TextField(blank=True)\n    is_active = models.BooleanField(default=True)\n    \n    def __str__(self):\n        return self.name\n\nclass Product(models.Model):\n    name = models.CharField(max_length=200)\n    description = models.TextField()\n    sku = models.CharField(max_length=50, unique=True)\n    category = models.ForeignKey(Category, on_delete=models.PROTECT, related_name='products')\n    price = models.DecimalField(max_digits=10, decimal_places=2)\n    stock_quantity = models.IntegerField(default=0)\n    is_featured = models.BooleanField(default=False)\n    is_available = models.BooleanField(default=True)\n    created_at = models.DateTimeField(auto_now_add=True)\n    updated_at = models.DateTimeField(auto_now=True)\n    \n    def __str__(self):\n        return self.name\n\n# serializers.py\nfrom rest_framework import serializers\nfrom .models import Product, Category\n\nclass CategorySerializer(serializers.ModelSerializer):\n    class Meta:\n        model = Category\n        fields = ['id', 'name', 'description', 'is_active']\n\nclass ProductSerializer(serializers.ModelSerializer):\n    category_name = serializers.CharField(source='category.name', read_only=True)\n    \n    class Meta:\n        model = Product\n        fields = [\n            'id', 'name', 'description', 'sku', 'category', 'category_name',\n            'price', 'stock_quantity', 'is_featured', 'is_available',\n            'created_at', 'updated_at'\n        ]\n        read_only_fields = ['created_at', 'updated_at', 'category_name']",
+  "starter_code": "",
+  "target_area": "Product API views with filtering and custom actions",
+  "validation_spec": {
+    "required_imports": [
+      "rest_framework.generics",
+      "rest_framework.views",
+      "rest_framework.response",
+      "rest_framework.status",
+      "rest_framework.decorators",
+      "django.db.models",
+      "django.shortcuts"
+    ],
+    "required_structure": {
+      "classes": [
+        {
+          "name": "ProductListView",
+          "parent_class": "generics.ListAPIView",
+          "methods": ["get_queryset"]
+        },
+        {
+          "name": "ProductCreateView",
+          "parent_class": "generics.CreateAPIView",
+          "methods": ["get_serializer_class"]
+        },
+        {
+          "name": "ProductDetailView",
+          "parent_class": "generics.RetrieveUpdateDestroyAPIView",
+          "methods": ["get_object"]
+        },
+        {
+          "name": "ProductStockUpdateView",
+          "parent_class": "generics.UpdateAPIView",
+          "methods": ["get_object", "partial_update"]
+        },
+        {
+          "name": "FeaturedProductToggleView",
+          "parent_class": "generics.UpdateAPIView",
+          "methods": ["get_object", "partial_update"]
+        },
+        {
+          "name": "CategoryProductCountView",
+          "parent_class": "generics.ListAPIView",
+          "methods": ["get_queryset"]
+        }
+      ]
+    },
+    "behavior_patterns": [
+      {
+        "type": "view_class",
+        "class_name": "ProductListView",
+        "parent_class": "ListAPIView",
+        "description": "Must use ListAPIView for product listing"
+      },
+      {
+        "type": "filter_view",
+        "view_class": "ProductListView",
+        "filters": ["category", "featured", "available"],
+        "description": "List view must support multiple query parameter filters"
+      },
+      {
+        "type": "lookup_field",
+        "view_class": "ProductDetailView",
+        "field": "sku",
+        "description": "Detail view must use SKU as lookup field instead of ID"
+      },
+      {
+        "type": "custom_action_view",
+        "view_class": "ProductStockUpdateView",
+        "action": "stock_update",
+        "description": "Stock update view must handle PATCH for stock quantity"
+      },
+      {
+        "type": "custom_action_view",
+        "view_class": "FeaturedProductToggleView",
+        "action": "toggle_featured",
+        "description": "Featured toggle view must toggle boolean field"
+      },
+      {
+        "type": "aggregate_view",
+        "view_class": "CategoryProductCountView",
+        "aggregates": ["Count"],
+        "description": "Category view must annotate with product count"
+      },
+      {
+        "type": "get_object_method",
+        "view_class": "ProductDetailView",
+        "description": "Must override get_object for custom lookup"
+      },
+      {
+        "type": "partial_update_method",
+        "view_class": "ProductStockUpdateView",
+        "description": "Must override partial_update for custom update logic"
+      },
+      {
+        "type": "response_format",
+        "view_class": "all",
+        "format": "json",
+        "description": "All views must return proper JSON responses"
+      },
+      {
+        "type": "queryset_optimization",
+        "operation": "select_related",
+        "view_class": "ProductListView",
+        "description": "List view should use select_related for category"
+      }
+    ],
+    "difficulty": "beginner",
+    "framework": "django"
+  },
+  "import_weight": 15.00,
+  "structure_weight": 40.00,
+  "behavior_weight": 45.00,
+  "passing_score": 75.00,
+  "hints": [
+    "For SKU-based lookup, override get_object() and use get_object_or_404 with sku field",
+    "In filtering views, check request.query_params for filter values",
+    "For toggle action, get current value and set to opposite boolean",
+    "Use annotate() with Count('products') for category product counts"
+  ],
+  "learning_resources": [
+    "https://www.django-rest-framework.org/api-guide/generic-views/#concrete-view-classes",
+    "https://www.django-rest-framework.org/api-guide/filtering/",
+    "https://www.django-rest-framework.org/api-guide/views/#apiview"
+  ],
+  "tags": ["django", "views", "filtering", "custom-actions", "ecommerce", "beginner"],
+  "estimated_time_minutes": 35,
+  "patterns": [
+    {
+      "pattern_id": "django-views-002-pattern-1",
+      "name": "Complete Product Views with Filtering",
+      "description": "All product views with filtering, custom actions, and SKU lookups",
+      "example_code": "from rest_framework import generics, status\nfrom rest_framework.response import Response\nfrom rest_framework.exceptions import ValidationError\nfrom django.db.models import Count, Q\nfrom django.shortcuts import get_object_or_404\nfrom .models import Product, Category\nfrom .serializers import ProductSerializer, CategorySerializer\n\nclass ProductListView(generics.ListAPIView):\n    \"\"\"\n    List all products with optional filtering.\n    \"\"\"\n    serializer_class = ProductSerializer\n    \n    def get_queryset(self):\n        \"\"\"\n        Return filtered products based on query parameters.\n        \"\"\"\n        queryset = Product.objects.select_related('category').all()\n        \n        # Get filter parameters from request\n        category_id = self.request.query_params.get('category')\n        featured = self.request.query_params.get('featured')\n        available = self.request.query_params.get('available')\n        \n        # Apply filters\n        if category_id:\n            queryset = queryset.filter(category_id=category_id)\n        \n        if featured and featured.lower() == 'true':\n            queryset = queryset.filter(is_featured=True)\n        \n        if available and available.lower() == 'true':\n            queryset = queryset.filter(is_available=True)\n        \n        return queryset.order_by('name')\n    \n    def list(self, request, *args, **kwargs):\n        \"\"\"\n        Custom list response with filter information.\n        \"\"\"\n        queryset = self.get_queryset()\n        serializer = self.get_serializer(queryset, many=True)\n        \n        response_data = {\n            'count': queryset.count(),\n            'filters': {\n                'category': request.query_params.get('category'),\n                'featured': request.query_params.get('featured'),\n                'available': request.query_params.get('available')\n            },\n            'results': serializer.data\n        }\n        \n        return Response(response_data)\n\nclass ProductCreateView(generics.CreateAPIView):\n    \"\"\"\n    Create a new product.\n    \"\"\"\n    queryset = Product.objects.all()\n    serializer_class = ProductSerializer\n    \n    def perform_create(self, serializer):\n        \"\"\"\n        Save the product and perform any additional actions.\n        \"\"\"\n        serializer.save()\n    \n    def create(self, request, *args, **kwargs):\n        \"\"\"\n        Create product and return response with 201 status.\n        \"\"\"\n        serializer = self.get_serializer(data=request.data)\n        serializer.is_valid(raise_exception=True)\n        self.perform_create(serializer)\n        \n        headers = self.get_success_headers(serializer.data)\n        return Response(\n            serializer.data,\n            status=status.HTTP_201_CREATED,\n            headers=headers\n        )\n\nclass ProductDetailView(generics.RetrieveUpdateDestroyAPIView):\n    \"\"\"\n    Retrieve, update, or delete a product by SKU.\n    \"\"\"\n    serializer_class = ProductSerializer\n    lookup_field = 'sku'\n    lookup_url_kwarg = 'sku'\n    \n    def get_object(self):\n        \"\"\"\n        Get product by SKU instead of ID.\n        \"\"\"\n        sku = self.kwargs.get('sku')\n        return get_object_or_404(Product, sku=sku)\n\nclass ProductStockUpdateView(generics.UpdateAPIView):\n    \"\"\"\n    Update product stock quantity.\n    \"\"\"\n    serializer_class = ProductSerializer\n    lookup_field = 'sku'\n    lookup_url_kwarg = 'sku'\n    \n    def get_object(self):\n        sku = self.kwargs.get('sku')\n        return get_object_or_404(Product, sku=sku)\n    \n    def partial_update(self, request, *args, **kwargs):\n        \"\"\"\n        Update only the stock quantity field.\n        \"\"\"\n        product = self.get_object()\n        new_stock = request.data.get('stock_quantity')\n        \n        if new_stock is None:\n            raise ValidationError({'stock_quantity': 'This field is required.'})\n        \n        try:\n            new_stock = int(new_stock)\n        except (ValueError, TypeError):\n            raise ValidationError({'stock_quantity': 'Must be a valid integer.'})\n        \n        if new_stock < 0:\n            raise ValidationError({'stock_quantity': 'Cannot be negative.'})\n        \n        product.stock_quantity = new_stock\n        product.save()\n        \n        serializer = self.get_serializer(product)\n        return Response(serializer.data)\n\nclass FeaturedProductToggleView(generics.UpdateAPIView):\n    \"\"\"\n    Toggle featured status of a product.\n    \"\"\"\n    serializer_class = ProductSerializer\n    lookup_field = 'sku'\n    lookup_url_kwarg = 'sku'\n    \n    def get_object(self):\n        sku = self.kwargs.get('sku')\n        return get_object_or_404(Product, sku=sku)\n    \n    def partial_update(self, request, *args, **kwargs):\n        \"\"\"\n        Toggle the is_featured field.\n        \"\"\"\n        product = self.get_object()\n        \n        # Toggle the boolean value\n        product.is_featured = not product.is_featured\n        product.save()\n        \n        serializer = self.get_serializer(product)\n        \n        message = 'Product marked as featured' if product.is_featured else 'Product removed from featured'\n        response_data = {\n            'message': message,\n            'product': serializer.data\n        }\n        \n        return Response(response_data)\n\nclass CategoryProductCountView(generics.ListAPIView):\n    \"\"\"\n    List categories with product counts.\n    \"\"\"\n    serializer_class = CategorySerializer\n    \n    def get_queryset(self):\n        \"\"\"\n        Return categories annotated with product counts.\n        \"\"\"\n        return Category.objects.annotate(\n            product_count=Count('products')\n        ).filter(is_active=True).order_by('-product_count', 'name')\n    \n    def list(self, request, *args, **kwargs):\n        \"\"\"\n        Custom response with product counts.\n        \"\"\"\n        queryset = self.get_queryset()\n        serializer = self.get_serializer(queryset, many=True)\n        \n        # Add product_count to serialized data\n        response_data = []\n        for category, data in zip(queryset, serializer.data):\n            data['product_count'] = category.product_count\n            response_data.append(data)\n        \n        return Response({\n            'count': len(response_data),\n            'categories': response_data\n        })",
+      "required_imports": [
+        "rest_framework.generics",
+        "rest_framework.views",
+        "rest_framework.response",
+        "rest_framework.status",
+        "rest_framework.exceptions",
+        "django.db.models",
+        "django.shortcuts"
+      ],
+      "required_structure": {
+        "classes": [
+          {
+            "name": "ProductListView",
+            "parent_class": "generics.ListAPIView",
+            "methods": ["get_queryset", "list"]
+          },
+          {
+            "name": "ProductCreateView",
+            "parent_class": "generics.CreateAPIView",
+            "methods": ["perform_create", "create"]
+          },
+          {
+            "name": "ProductDetailView",
+            "parent_class": "generics.RetrieveUpdateDestroyAPIView",
+            "methods": ["get_object"]
+          },
+          {
+            "name": "ProductStockUpdateView",
+            "parent_class": "generics.UpdateAPIView",
+            "methods": ["get_object", "partial_update"]
+          },
+          {
+            "name": "FeaturedProductToggleView",
+            "parent_class": "generics.UpdateAPIView",
+            "methods": ["get_object", "partial_update"]
+          },
+          {
+            "name": "CategoryProductCountView",
+            "parent_class": "generics.ListAPIView",
+            "methods": ["get_queryset", "list"]
+          }
+        ]
+      },
+      "forbidden_patterns": [
+        "no_filtering",
+        "id_based_lookup",
+        "missing_validation"
+      ],
+      "is_primary": true,
+      "confidence_threshold": 85.00
+    }
+  ]
+}

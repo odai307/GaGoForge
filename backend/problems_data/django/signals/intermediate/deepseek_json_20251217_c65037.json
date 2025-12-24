@@ -1,0 +1,163 @@
+{
+  "problem_id": "django-signals-001",
+  "title": "Implement Audit Logging System with Signals",
+  "slug": "implement-audit-logging-system-with-signals",
+  "framework": "django",
+  "category": "signals",
+  "difficulty": "intermediate",
+  "description": "Create an audit logging system for an employee management application using Django signals. The system should automatically track all changes to employee records.\n\n**Business Requirements:**\n- You're building an HR system that needs to maintain an audit trail of all employee record changes\n- Every time an Employee model instance is created, updated, or deleted, a log entry should be created\n- Log entries should capture: action type (create/update/delete), timestamp, user who made the change, model name, and changed field details\n- The system should automatically detect which fields changed during updates\n- Log entries should be read-only once created\n- Supervisors should be notified via email (simulate with print) when sensitive fields (salary, department) are modified\n- Employee status changes (active/inactive) should trigger additional business logic\n\n**Models to Implement:**\n1. **Employee**: Core employee data\n2. **AuditLog**: Tracks all changes to Employee records\n\n**Signal Requirements:**\n1. **post_save signal**: Log creation and updates, detect field changes\n2. **pre_save signal**: Capture old values before update for comparison\n3. **post_delete signal**: Log deletions\n4. **m2m_changed signal**: Handle department changes (ManyToManyField)\n\n**Constraints:**\n- AuditLog entries must be immutable once created\n- Only log actual field changes (skip unchanged fields)\n- Handle edge cases: bulk operations, database transactions\n- Prevent signal recursion when saving AuditLog entries\n\n**Expected Behavior:**\n```python\n# After implementation, this should work:\nemp = Employee.objects.create(\n    name='John Doe',\n    email='john@company.com',\n    salary=50000,\n    status='active'\n)\n# Should create AuditLog entry for creation\n\nemp.salary = 55000\nemp.save()\n# Should create AuditLog entry showing salary change from 50000 to 55000\n# Should print notification about salary change\n\nemp.delete()\n# Should create AuditLog entry for deletion\n\nprint(AuditLog.objects.count())  # Should be 3\n```",
+  "description_preview": "Create an audit logging system using Django signals to automatically track all changes to employee records with field-level change detection.",
+  "context_code": "# SIGNAL IMPLEMENTATION (for reference only - you need to create your own implementation)\n# These are the imports you'll need to use:\n# from django.db import models\n# from django.db.models.signals import post_save, pre_save, post_delete, m2m_changed\n# from django.dispatch import receiver\n# from django.utils import timezone\n# from django.contrib.auth.models import User\n\n# Your implementation goes below. Do not modify or reference this context code directly.",
+  "starter_code": "",
+  "target_area": "Implement Employee and AuditLog models with Django signals (post_save, pre_save, post_delete) to create an automatic audit logging system",
+  "validation_spec": {
+    "required_imports": [
+      "django.db.models",
+      "django.db.models.signals.post_save",
+      "django.db.models.signals.pre_save",
+      "django.db.models.signals.post_delete",
+      "django.db.models.signals.m2m_changed",
+      "django.dispatch.receiver",
+      "django.utils.timezone",
+      "django.contrib.auth.models.User"
+    ],
+    "required_structure": {
+      "classes": [
+        {
+          "name": "Employee",
+          "parent_class": "models.Model",
+          "has_meta_class": true,
+          "fields": ["name", "email", "salary", "department", "status", "hire_date"],
+          "methods": ["__str__"]
+        },
+        {
+          "name": "AuditLog",
+          "parent_class": "models.Model",
+          "has_meta_class": true,
+          "fields": ["action", "timestamp", "user", "model_name", "object_id", "field_name", "old_value", "new_value"],
+          "methods": ["__str__", "save"]
+        }
+      ],
+      "signals": [
+        {
+          "type": "pre_save",
+          "model": "Employee",
+          "function": "capture_pre_save_state",
+          "description": "Capture old values before Employee save"
+        },
+        {
+          "type": "post_save",
+          "model": "Employee",
+          "function": "log_employee_change",
+          "description": "Log creation and updates"
+        },
+        {
+          "type": "post_delete",
+          "model": "Employee",
+          "function": "log_employee_deletion",
+          "description": "Log deletion"
+        },
+        {
+          "type": "m2m_changed",
+          "model": "Employee.department",
+          "function": "log_department_change",
+          "description": "Handle department changes"
+        }
+      ]
+    },
+    "behavior_patterns": [
+      "pre_save signal stores old instance values in a thread-local or dictionary",
+      "post_save signal compares old and new values to detect changed fields",
+      "post_save creates AuditLog entry only for actually changed fields",
+      "post_delete signal creates AuditLog entry with action='delete'",
+      "m2m_changed signal handles department field changes",
+      "AuditLog.save() prevents modification of existing entries",
+      "Sensitive field changes (salary, department) trigger notification print",
+      "Employee status changes trigger additional business logic"
+    ]
+  },
+  "import_weight": 10.00,
+  "structure_weight": 25.00,
+  "behavior_weight": 65.00,
+  "passing_score": 85.00,
+  "hints": [
+    "Start by creating Employee and AuditLog models with appropriate fields",
+    "Implement pre_save signal to capture the current database state before changes",
+    "Store old values in a dictionary keyed by instance PK for post_save comparison",
+    "In post_save, compare each field between old and new values to detect changes",
+    "Create AuditLog entries only for fields that actually changed",
+    "Handle the creation case separately (no old values to compare)",
+    "Implement post_delete signal to log deletions",
+    "Override AuditLog.save() to prevent updates to existing entries",
+    "Add notification logic when sensitive fields are modified"
+  ],
+  "learning_resources": [
+    "https://docs.djangoproject.com/en/stable/ref/signals/",
+    "https://docs.djangoproject.com/en/stable/topics/signals/",
+    "https://docs.djangoproject.com/en/stable/ref/models/instances/#django.db.models.Model.save_base"
+  ],
+  "tags": ["django", "signals", "audit-logging", "post_save", "pre_save", "intermediate"],
+  "estimated_time_minutes": 40,
+  "patterns": [
+    {
+      "pattern_id": "django-signals-001-pattern-1",
+      "name": "Audit Logging with Pre/Post Save Signals",
+      "description": "Complete audit logging implementation with field-level change detection",
+      "example_code": "from django.db import models\nfrom django.db.models.signals import post_save, pre_save, post_delete, m2m_changed\nfrom django.dispatch import receiver\nfrom django.utils import timezone\nfrom django.contrib.auth.models import User\nimport threading\n\n# Thread-local storage for pre-save values\n_thread_locals = threading.local()\n\ndef get_current_user():\n    \"\"\"Mock function to get current user - in real app would use request.user\"\"\"\n    try:\n        return User.objects.first()\n    except:\n        return None\n\nclass Employee(models.Model):\n    STATUS_CHOICES = [\n        ('active', 'Active'),\n        ('inactive', 'Inactive'),\n        ('on_leave', 'On Leave'),\n    ]\n    \n    name = models.CharField(max_length=100)\n    email = models.EmailField(unique=True)\n    salary = models.DecimalField(max_digits=10, decimal_places=2)\n    department = models.CharField(max_length=100)\n    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='active')\n    hire_date = models.DateField()\n    \n    def __str__(self):\n        return self.name\n\nclass AuditLog(models.Model):\n    ACTION_CHOICES = [\n        ('create', 'Create'),\n        ('update', 'Update'),\n        ('delete', 'Delete'),\n        ('m2m_change', 'M2M Change'),\n    ]\n    \n    action = models.CharField(max_length=20, choices=ACTION_CHOICES)\n    timestamp = models.DateTimeField(default=timezone.now)\n    user = models.ForeignKey(User, on_delete=models.SET_NULL, null=True)\n    model_name = models.CharField(max_length=100)\n    object_id = models.PositiveIntegerField()\n    field_name = models.CharField(max_length=100)\n    old_value = models.TextField(blank=True, null=True)\n    new_value = models.TextField(blank=True, null=True)\n    \n    class Meta:\n        ordering = ['-timestamp']\n    \n    def save(self, *args, **kwargs):\n        # Prevent modifications to existing audit logs\n        if self.pk is not None:\n            existing = AuditLog.objects.get(pk=self.pk)\n            if existing.timestamp != self.timestamp:\n                raise ValueError(\"AuditLog entries cannot be modified\")\n        super().save(*args, **kwargs)\n    \n    def __str__(self):\n        return f\"{self.action} on {self.model_name} #{self.object_id}\"\n\n@receiver(pre_save, sender=Employee)\ndef capture_pre_save_state(sender, instance, **kwargs):\n    \"\"\"Capture current database state before save\"\"\"\n    if instance.pk:\n        try:\n            old_instance = Employee.objects.get(pk=instance.pk)\n            # Store old values in thread-local storage\n            if not hasattr(_thread_locals, 'pre_save_data'):\n                _thread_locals.pre_save_data = {}\n            _thread_locals.pre_save_data[instance.pk] = {\n                'name': old_instance.name,\n                'email': old_instance.email,\n                'salary': str(old_instance.salary),\n                'department': old_instance.department,\n                'status': old_instance.status,\n                'hire_date': str(old_instance.hire_date),\n            }\n        except Employee.DoesNotExist:\n            pass\n\n@receiver(post_save, sender=Employee)\ndef log_employee_change(sender, instance, created, **kwargs):\n    \"\"\"Log creation or updates to Employee\"\"\"\n    user = get_current_user()\n    action = 'create' if created else 'update'\n    \n    if created:\n        # Log creation\n        AuditLog.objects.create(\n            action='create',\n            user=user,\n            model_name='Employee',\n            object_id=instance.pk,\n            field_name='ALL',\n            old_value='',\n            new_value=f'Created employee: {instance.name}'\n        )\n    else:\n        # Log updates - compare with pre_save values\n        old_values = getattr(_thread_locals, 'pre_save_data', {}).get(instance.pk, {})\n        \n        # List of sensitive fields for notification\n        sensitive_fields = ['salary', 'department', 'status']\n        \n        for field in ['name', 'email', 'salary', 'department', 'status', 'hire_date']:\n            new_value = str(getattr(instance, field))\n            old_value = old_values.get(field, '')\n            \n            if old_value != new_value:\n                # Create audit log entry\n                AuditLog.objects.create(\n                    action='update',\n                    user=user,\n                    model_name='Employee',\n                    object_id=instance.pk,\n                    field_name=field,\n                    old_value=old_value,\n                    new_value=new_value\n                )\n                \n                # Notify for sensitive field changes\n                if field in sensitive_fields:\n                    print(f\"ALERT: {field} changed from {old_value} to {new_value} for employee {instance.name}\")\n                \n                # Additional logic for status changes\n                if field == 'status' and new_value == 'inactive':\n                    print(f\"Employee {instance.name} marked as inactive. Initiating offboarding process.\")\n        \n        # Clean up stored old values\n        if instance.pk in getattr(_thread_locals, 'pre_save_data', {}):\n            del _thread_locals.pre_save_data[instance.pk]\n\n@receiver(post_delete, sender=Employee)\ndef log_employee_deletion(sender, instance, **kwargs):\n    \"\"\"Log deletion of Employee\"\"\"\n    user = get_current_user()\n    AuditLog.objects.create(\n        action='delete',\n        user=user,\n        model_name='Employee',\n        object_id=instance.pk,\n        field_name='ALL',\n        old_value=f'Employee: {instance.name}',\n        new_value=''\n    )\n    print(f\"Employee {instance.name} deleted from the system.\")",
+      "required_imports": [
+        "django.db.models",
+        "django.db.models.signals.post_save",
+        "django.db.models.signals.pre_save",
+        "django.db.models.signals.post_delete",
+        "django.db.models.signals.m2m_changed",
+        "django.dispatch.receiver",
+        "django.utils.timezone",
+        "django.contrib.auth.models.User",
+        "threading"
+      ],
+      "required_structure": {
+        "classes": [
+          {
+            "name": "Employee",
+            "parent_class": "models.Model",
+            "has_meta_class": true,
+            "fields": ["name", "email", "salary", "department", "status", "hire_date"],
+            "methods": ["__str__"]
+          },
+          {
+            "name": "AuditLog",
+            "parent_class": "models.Model",
+            "has_meta_class": true,
+            "fields": ["action", "timestamp", "user", "model_name", "object_id", "field_name", "old_value", "new_value"],
+            "methods": ["__str__", "save"]
+          }
+        ],
+        "signals": [
+          {
+            "type": "pre_save",
+            "model": "Employee",
+            "function": "capture_pre_save_state"
+          },
+          {
+            "type": "post_save",
+            "model": "Employee",
+            "function": "log_employee_change"
+          },
+          {
+            "type": "post_delete",
+            "model": "Employee",
+            "function": "log_employee_deletion"
+          }
+        ]
+      },
+      "forbidden_patterns": [
+        "Not storing old values before save",
+        "Logging unchanged fields",
+        "Allowing modification of AuditLog entries",
+        "Missing thread-safe storage for pre_save values"
+      ],
+      "is_primary": true,
+      "confidence_threshold": 85.00
+    }
+  ]
+}

@@ -1,0 +1,66 @@
+{
+  "problem_id": "react-hooks-002",
+  "title": "Create a Controlled Form Input Component",
+  "slug": "create-controlled-form-input-component",
+  "framework": "react",
+  "category": "hooks",
+  "difficulty": "beginner",
+  "description": "Implement a form with controlled inputs using the useState hook. This component should collect user information with validation.\n\n**Requirements:**\n- Create a functional component named `UserForm`\n- Track form state for three fields: name, email, and age\n- Initialize all form fields as empty strings\n- Each input should update state on change\n- Add a submit button that logs form data to console\n- Show validation: name must be at least 2 characters, email must contain '@', age must be a positive number\n- Display error messages for invalid fields\n\n**Expected Behavior:**\n- Typing in any input updates the corresponding state\n- Submit button should show \"Please fix errors\" when form is invalid\n- Submit button should log data to console when form is valid\n- Real-time validation feedback should appear below each input\n\n**Field Specifications:**\n- Name: Text input, min 2 characters\n- Email: Email input, must contain '@' symbol\n- Age: Number input, must be positive integer\n\n**Example Console Output:**\n```javascript\n{\n  name: \"John Doe\",\n  email: \"john@example.com\",\n  age: \"25\"\n}\n```",
+  "description_preview": "Build a controlled form with validation using useState hook",
+  "context_code": "",
+  "starter_code": "",
+  "target_area": "UserForm component implementation",
+  "validation_spec": {
+    "required_imports": ["react", "react.useState"],
+    "required_structure": {
+      "functions": [{
+        "name": "UserForm",
+        "type": "functional_component",
+        "has_export": true,
+        "has_prop_types": false
+      }]
+    },
+    "behavior_patterns": [
+      {"type": "hook_call", "hook": "useState", "min_calls": 1},
+      {"type": "event_handler", "event_type": "onChange", "handler_style": "function_reference"},
+      {"type": "event_handler", "event_type": "onSubmit", "handler_style": "inline"},
+      {"type": "form_handling", "form_type": "controlled"},
+      {"type": "conditional_rendering", "conditional_type": "logical_and"}
+    ]
+  },
+  "import_weight": 15.00,
+  "structure_weight": 35.00,
+  "behavior_weight": 50.00,
+  "passing_score": 80.00,
+  "hints": [
+    "Use useState to create state variables for each form field",
+    "Remember to prevent the default form submission behavior using e.preventDefault()",
+    "Create separate handler functions for each input or use a single handler with dynamic property names",
+    "Use conditional rendering to show error messages based on validation logic"
+  ],
+  "learning_resources": [
+    "https://react.dev/reference/react-dom/components/input",
+    "https://react.dev/learn/reacting-to-input-with-state"
+  ],
+  "tags": ["react", "hooks", "useState", "forms", "validation", "beginner"],
+  "estimated_time_minutes": 30,
+  "patterns": [
+    {
+      "pattern_id": "react-hooks-002-pattern-1",
+      "name": "Controlled Form with Validation",
+      "description": "Form implementation with controlled inputs and real-time validation using useState",
+      "example_code": "import React, { useState } from 'react';\n\nexport default function UserForm() {\n  const [formData, setFormData] = useState({\n    name: '',\n    email: '',\n    age: ''\n  });\n\n  const [errors, setErrors] = useState({});\n\n  const handleChange = (e) => {\n    const { name, value } = e.target;\n    setFormData({\n      ...formData,\n      [name]: value\n    });\n\n    // Validate in real-time\n    validateField(name, value);\n  };\n\n  const validateField = (name, value) => {\n    let error = '';\n    \n    switch (name) {\n      case 'name':\n        error = value.length < 2 ? 'Name must be at least 2 characters' : '';\n        break;\n      case 'email':\n        error = !value.includes('@') ? 'Email must contain @ symbol' : '';\n        break;\n      case 'age':\n        const ageNum = parseInt(value);\n        error = isNaN(ageNum) || ageNum <= 0 ? 'Age must be a positive number' : '';\n        break;\n      default:\n        break;\n    }\n\n    setErrors(prev => ({\n      ...prev,\n      [name]: error\n    }));\n  };\n\n  const handleSubmit = (e) => {\n    e.preventDefault();\n    \n    // Check if any errors exist\n    const hasErrors = Object.values(errors).some(error => error !== '');\n    const emptyFields = Object.values(formData).some(value => value === '');\n    \n    if (hasErrors || emptyFields) {\n      console.log('Please fix errors before submitting');\n    } else {\n      console.log('Form submitted:', formData);\n    }\n  };\n\n  const isFormValid = () => {\n    return !Object.values(errors).some(error => error !== '') && \n           !Object.values(formData).some(value => value === '');\n  };\n\n  return (\n    <form onSubmit={handleSubmit}>\n      <h2>User Registration</h2>\n      \n      <div>\n        <label>Name:</label>\n        <input\n          type=\"text\"\n          name=\"name\"\n          value={formData.name}\n          onChange={handleChange}\n          placeholder=\"Enter your name\"\n        />\n        {errors.name && <p style={{ color: 'red' }}>{errors.name}</p>}\n      </div>\n\n      <div>\n        <label>Email:</label>\n        <input\n          type=\"email\"\n          name=\"email\"\n          value={formData.email}\n          onChange={handleChange}\n          placeholder=\"Enter your email\"\n        />\n        {errors.email && <p style={{ color: 'red' }}>{errors.email}</p>}\n      </div>\n\n      <div>\n        <label>Age:</label>\n        <input\n          type=\"number\"\n          name=\"age\"\n          value={formData.age}\n          onChange={handleChange}\n          placeholder=\"Enter your age\"\n          min=\"1\"\n        />\n        {errors.age && <p style={{ color: 'red' }}>{errors.age}</p>}\n      </div>\n\n      <button type=\"submit\">\n        {isFormValid() ? 'Submit Form' : 'Please fix errors'}\n      </button>\n    </form>\n  );\n}",
+      "required_imports": ["react", "react.useState"],
+      "required_structure": {
+        "functions": [{
+          "name": "UserForm",
+          "type": "functional_component",
+          "has_export": true
+        }]
+      },
+      "forbidden_patterns": ["document.getElementById", "innerHTML", "ref uncontrolled"],
+      "is_primary": true,
+      "confidence_threshold": 85.00
+    }
+  ]
+}
